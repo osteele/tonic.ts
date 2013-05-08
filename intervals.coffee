@@ -104,20 +104,30 @@ if draw_diagrams
 
   draw_note = (string_number, fret_number, root, color) ->
     y = v_gutter + (fret_number - 1) * fret_height + fret_height / 2
-    # y = v_gutter if fret_number == 0
     ctx.fillStyle = color or (if root then 'red' else 'white')
     ctx.strokeStyle = color or 'black'
     ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.arc v_gutter + (6 - string_number) * string_spacing, y, note_radius, 0, 2 * Math.PI, false
+    ctx.arc h_gutter + (6 - string_number) * string_spacing, y, note_radius, 0, 2 * Math.PI, false
     ctx.fill() if fret_number
     ctx.stroke()
     ctx.strokeStyle = 'black'
 
 
-draw_fingerboard = ->
+draw_fingerboard = (fingerings) ->
   draw_strings()
   draw_frets()
+  if fingerings
+    fretted_strings = (false for _ in [0..string_number])
+    for {string, fret, root, color} in fingerings
+      fretted_strings[string] = true
+      draw_note string, fret, root, color
+    for is_fretted, string_number in fretted_strings
+      continue if is_fretted or string_number < 1
+      ctx.font = '4pt Helvetica'
+      ctx.fillStyle = 'black'
+      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter - 2
+
 
 note_number_at = (string, fret) ->
   string_note_numbers[string - 1] + fret
@@ -133,14 +143,21 @@ save_canvas_to_png = (canvas, fname) ->
   stream.on 'data', (chunk) -> out.write(chunk)
   stream.on 'end', () -> console.log "Saved #{fname}"
 
-draw_intervals_from = (semitones, root_string, root_fret, color) ->
+intervals_from = (root_string, root_fret, semitones) ->
   root_note_number = note_number_at(root_string, root_fret)
-  draw_note root_string, root_fret, true, color
+  fingerings = []
   for string in strings
     for fret in frets
       continue if string == root_string and fret == root_fret
       continue unless (note_number_at(string, fret) - root_note_number + 120) % 12 == semitones
-      draw_note string, fret, false, color
+      fingerings.push string: string, fret: fret
+  return fingerings
+
+draw_intervals_from = (semitones, root_string, root_fret, color) ->
+  root_note_number = note_number_at(root_string, root_fret)
+  draw_note root_string, root_fret, true, color
+  for {string, fret} in intervals_from(root_string, root_fret, semitones)
+    draw_note string, fret, false, color
 
 interval_cards = ->
   fingerings_each (string, fret) ->
@@ -309,19 +326,21 @@ chord_page = (title, intervals, outervals, pdf) ->
     for ix in [0...12]
       pitch_number = (ix * 5 + 7) % 12
       fingering = pitch_fingers[pitch_number]
-      string = fingering[0]
-      fret = fingering[1]
+      root_string = fingering[0]
+      root_fret = fingering[1]
       draw_cell ->
         ctx.font = '20px Impact'
         ctx.font = '5pt Times' if draw_diagrams
         ctx.fillStyle = 'rgb(10,20,30)'
         ctx.fillText note_names[pitch_number] + ' ' + title, h_gutter, -3
-        draw_fingerboard()
-        for semitones, si in outervals
-          continue if semitones in intervals
-          draw_intervals_from semitones, string, fret, other_colors[si]
+        fingerings = []
+        # for semitones, si in outervals
+        #   continue if semitones in intervals
+        #   draw_intervals_from semitones, string, fret, other_colors[si]
         for semitones, si in intervals
-          draw_intervals_from semitones, string, fret, colors[si]
+          for {string, fret} in intervals_from(root_string, root_fret, semitones)
+            fingerings.push string: string, fret: fret, color: colors[si]
+        draw_fingerboard fingerings
 
 # chord_page 'Major', [0, 4, 7]
 
@@ -335,20 +354,20 @@ book = (filename, draw_book) ->
 
 chord_book = ->
   chords = [
-    ['Major', [0, 4, 7], [0, 3, 7]],
-    ['Minor', [0, 3, 7], [0, 4, 7]],
-    ['Aug', [0, 4, 8], [0, 4, 7]],
-    ['Dim', [0, 3, 6], [0, 3, 7]],
-    ['7th', [0, 4, 7, 10]],
-    ['Maj7', [0, 4, 7, 11]],
-    ['Sus2', [0, 2, 7], [0, 4, 7]],
-    ['Sus4', [0, 5, 7], [0, 4, 7]],
-    ['Min7', [0, 3, 7, 10], [0, 4, 7, 10]],
-    ['Dim7', [0, 3, 6, 9]],
-    ['6th', [0, 4, 7, 9]],
+    {name: 'Major', offsets: [0, 4, 7], relative: [0, 3, 7]},
+    {name: 'Minor', offsets: [0, 3, 7], relative: [0, 4, 7]},
+    {name: 'Aug', offsets: [0, 4, 8], relative: [0, 4, 7]},
+    {name: 'Dim', offsets: [0, 3, 6], relative: [0, 3, 7]},
+    {name: '7th', offsets: [0, 4, 7, 10]},
+    {name: 'Maj7', offsets: [0, 4, 7, 11]},
+    {name: 'Sus2', offsets: [0, 2, 7], relative: [0, 4, 7]},
+    {name: 'Sus4', offsets: [0, 5, 7], relative: [0, 4, 7]},
+    {name: 'Min7', offsets: [0, 3, 7, 10], relative: [0, 4, 7, 10]},
+    {name: 'Dim7', offsets: [0, 3, 6, 9]},
+    {name: '6th', offsets: [0, 4, 7, 9]},
   ]
-  book "Combined Fretboard Chords.pdf", (pager) ->
-    for chord in chords
-      pager -> chord_page chord[0], chord[1], chord[2], true
+  book "Combined Fretboard Chords.pdf", (page) ->
+    for {name, offsets, relative} in chords
+      page -> chord_page name, offsets, relative
 
 chord_book()
