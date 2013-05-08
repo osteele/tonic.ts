@@ -18,8 +18,8 @@ v_gutter = 10
 string_spacing = 20
 fret_width = 45
 fret_overhang = .3 * fret_width
-fretboard_width_with_gutter = 2 * v_gutter + fret_width * fret_count + fret_overhang
-fretboard_height_with_gutter = 2 * h_gutter + (string_count - 1) * string_spacing
+padded_fretboard_width = 2 * v_gutter + fret_width * fret_count + fret_overhang
+padded_fretboard_height = 2 * h_gutter + (string_count - 1) * string_spacing
 
 draw_diagrams = true
 if draw_diagrams
@@ -29,8 +29,8 @@ if draw_diagrams
   h_gutter = 5
   v_gutter = 5
   note_radius = 1
-  fretboard_width_with_gutter = 2 * h_gutter + (string_count - 1) * string_spacing
-  fretboard_height_with_gutter = 2 * v_gutter + fret_height * fret_count + fret_overhang
+  padded_fretboard_width = 2 * h_gutter + (string_count - 1) * string_spacing
+  padded_fretboard_height = 2 * v_gutter + fret_height * fret_count + fret_overhang
 
 build_directory = __dirname + '/build/'
 canvas = null
@@ -96,8 +96,8 @@ if draw_diagrams
     for fret_number in frets
       y = fret_number * fret_height + v_gutter
       ctx.beginPath()
-      ctx.moveTo v_gutter, y
-      ctx.lineTo v_gutter + (string_count - 1) * string_spacing, y
+      ctx.moveTo v_gutter-.5, y
+      ctx.lineTo v_gutter+.5 + (string_count - 1) * string_spacing, y
       ctx.lineWidth = 3 if fret_number == 0
       ctx.stroke()
       ctx.lineWidth = 1
@@ -112,9 +112,6 @@ if draw_diagrams
     ctx.arc v_gutter + (6 - string_number) * string_spacing, y, note_radius, 0, 2 * Math.PI, false
     ctx.fill() if fret_number
     ctx.stroke()
-    # ctx.fill() unless color and color.match(/rgba/)
-    # ctx.strokeStyle = color if color and color.match(/rgba/)
-    # ctx.stroke() if color and color.match(/rgba/)
     ctx.strokeStyle = 'black'
 
 
@@ -125,7 +122,7 @@ draw_fingerboard = ->
 note_number_at = (string, fret) ->
   string_note_numbers[string - 1] + fret
 
-positions_each = (fn) ->
+fingerings_each = (fn) ->
   for string in strings
     for fret in frets
       fn string, fret
@@ -146,8 +143,8 @@ draw_intervals_from = (semitones, root_string, root_fret, color) ->
       draw_note string, fret, false, color
 
 interval_cards = ->
-  positions_each (string, fret) ->
-    canvas = new Canvas(fretboard_width_with_gutter, fretboard_height_with_gutter)
+  fingerings_each (string, fret) ->
+    canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
     ctx = canvas.getContext('2d')
     erase_background()
     draw_fingerboard()
@@ -156,7 +153,7 @@ interval_cards = ->
     save_canvas_to_png canvas, filename
 
     for interval_name, semitones in intervals
-      canvas = new Canvas(fretboard_width_with_gutter, fretboard_height_with_gutter)
+      canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
       ctx = canvas.getContext('2d')
       erase_background()
       draw_fingerboard()
@@ -168,8 +165,8 @@ interval_cards = ->
 intervals_from_note_sheet = (string, fret, pdf) ->
   canvas_gutter = 20
   header_height = 40
-  canvas_width = fretboard_width_with_gutter * 3 + canvas_gutter * 3
-  canvas_height = (fretboard_height_with_gutter + header_height) * 4 + canvas_gutter * 3
+  canvas_width = padded_fretboard_width * 3 + canvas_gutter * 3
+  canvas_height = (padded_fretboard_height + header_height) * 4 + canvas_gutter * 3
 
   canvas = new Canvas(canvas_width, canvas_height, pdf and 'pdf') unless pdf and canvas
   ctx = canvas.getContext('2d')
@@ -177,8 +174,8 @@ intervals_from_note_sheet = (string, fret, pdf) ->
 
   for interval_name, semitones in intervals
     ix = (semitones + 11) % 12
-    dx = (ix % 3) * (fretboard_width_with_gutter + canvas_gutter) + canvas_gutter / 2
-    dy = Math.floor(ix / 3) * (header_height + fretboard_height_with_gutter + canvas_gutter)
+    dx = (ix % 3) * (padded_fretboard_width + canvas_gutter) + canvas_gutter / 2
+    dy = Math.floor(ix / 3) * (header_height + padded_fretboard_height + canvas_gutter)
     ctx.save()
     ctx.translate dx, dy
     ctx.translate 0, header_height
@@ -194,11 +191,11 @@ intervals_from_note_sheet = (string, fret, pdf) ->
   save_canvas_to_png canvas, filename unless pdf
 
 intervals_from_note_sheets = ->
-  positions_each (string, fret) ->
+  fingerings_each (string, fret) ->
     intervals_from_note_sheet string, fret
 
 intervals_from_root_book = ->
-  positions_each (string, fret) ->
+  fingerings_each (string, fret) ->
     intervals_from_note_sheet string, fret, true
     ctx.addPage()
   filename = "Fretboard Intervals by Root.pdf"
@@ -209,8 +206,8 @@ make_interval_sheet = (semitones, pdf) ->
   header_height = 40
   cols = fret_count + 1
   rows = (string_count - hidden_strings.length)
-  canvas_width = fretboard_width_with_gutter * cols + canvas_gutter * cols
-  canvas_height = header_height + fretboard_height_with_gutter * rows + canvas_gutter * rows
+  canvas_width = padded_fretboard_width * cols + canvas_gutter * cols
+  canvas_height = header_height + padded_fretboard_height * rows + canvas_gutter * rows
 
   canvas = new Canvas(canvas_width, canvas_height, pdf and 'pdf') unless pdf and canvas
   ctx = canvas.getContext('2d')
@@ -222,21 +219,21 @@ make_interval_sheet = (semitones, pdf) ->
   ctx.fillStyle = 'rgb(128, 128, 128)'
   ctx.fillText canvas_label, canvas_gutter / 2, header_height
 
-  positions_each (string, fret) ->
+  fingerings_each (string, fret) ->
     return if hidden_strings.indexOf(string) >= 0
     row = string - 1
     row -= hidden_strings.length if show_hidden_strings and string > hidden_strings[0]
-    dx = fret * (fretboard_width_with_gutter + canvas_gutter) + canvas_gutter / 2
-    dy = header_height + row * (fretboard_height_with_gutter + canvas_gutter) + canvas_gutter / 2
+    dx = fret * (padded_fretboard_width + canvas_gutter) + canvas_gutter / 2
+    dy = header_height + row * (padded_fretboard_height + canvas_gutter) + canvas_gutter / 2
     ctx.save()
     ctx.translate dx, dy
     draw_fingerboard()
     draw_intervals_from semitones, string, fret
     if show_hidden_strings
       ctx.fillStyle = 'rgba(255,255,255,0.75)'
-      ctx.fillRect 0, v_gutter + 1.5 * string_spacing, fretboard_width_with_gutter, hidden_strings.length * string_spacing
+      ctx.fillRect 0, v_gutter + 1.5 * string_spacing, padded_fretboard_width, hidden_strings.length * string_spacing
       ctx.fillStyle = 'rgba(0,0,0,0.0125)'
-      ctx.fillRect 0, v_gutter + 1.5 * string_spacing, fretboard_width_with_gutter, hidden_strings.length * string_spacing
+      ctx.fillRect 0, v_gutter + 1.5 * string_spacing, padded_fretboard_width, hidden_strings.length * string_spacing
     ctx.restore()
 
   unless pdf
@@ -260,66 +257,81 @@ intervals_book = (pages) ->
 
 # intervals_from_root_book()
 
+mode = null
+pdf = false
+page = (width, height, draw_page) ->
+  return [width, height] if mode == 'measure'
+  canvas ||= new Canvas(width, height, pdf and 'pdf')
+  ctx = canvas.getContext('2d')
+  ctx.textDrawingMode = 'glyph' if pdf
+  erase_background()
+  draw_page ctx
+  unless pdf
+    filename = "test.pdf"
+    fs.writeFile build_directory + filename, canvas.toBuffer()
+
+grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
+  page cols * cell_width, header_height + rows * cell_height, (ctx) ->
+    i = 0
+    draw_page ctx, (draw_cell) ->
+      ctx.save()
+      ctx.translate (i % cols) * cell_width, header_height + Math.floor(i / cols) * cell_height
+      draw_cell()
+      ctx.restore()
+      i += 1
+
 chord_page = (title, intervals, outervals, pdf) ->
   outervals ||= []
 
-  canvas_gutter = 20
+  diagram_gutter = 20
   header_height = 40
   diagram_title_height = 30
   cols = 3
   rows = 4
   if draw_diagrams
-    diagram_title_height = 15
-    canvas_gutter = 2
-  canvas_width = fretboard_width_with_gutter * cols + canvas_gutter * cols
-  canvas_height = header_height + (fretboard_height_with_gutter + diagram_title_height) * rows + canvas_gutter * rows
+    diagram_title_height = 35
+    diagram_gutter = 10
 
-  roots = []
-  positions_each (string, fret) ->
-    number = note_number_at(string, fret) % 12
-    roots[number] = [string, fret]
-
-  canvas = new Canvas(canvas_width, canvas_height, pdf and 'pdf') unless pdf and canvas
-  ctx = canvas.getContext('2d')
-  ctx.textDrawingMode = 'glyph' if pdf
-  erase_background()
-
-  ctx.font = '20px Impact'
-  ctx.fillStyle = 'rgb(128, 128, 128)'
-  ctx.fillText "#{title} Chords", canvas_gutter / 2, header_height
+  pitch_fingers = []
+  fingerings_each (string, fret) ->
+    pitch_number = note_number_at(string, fret) % 12
+    pitch_fingers[pitch_number] = [string, fret]
 
   note_names = "E F F# G G# A A# B C C# D D#".split(/\s/)
   colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  roots.map (note, ix) ->
-    note_number = (ix * 5 + 7) % 12
-    note = roots[note_number]
-    string = note[0]
-    fret = note[1]
-    col = ix % cols
-    row = Math.floor(ix / cols)
-    dx = col * (fretboard_width_with_gutter + canvas_gutter) + canvas_gutter / 2
-    dy = header_height + row * (fretboard_height_with_gutter + canvas_gutter + diagram_title_height) + canvas_gutter / 2
-    ctx.save()
-    ctx.translate dx, dy + diagram_title_height
+  grid cols, rows, padded_fretboard_width + diagram_gutter, padded_fretboard_height + diagram_gutter, diagram_title_height, (ctx, draw_cell) ->
     ctx.font = '20px Impact'
-    ctx.font = '5pt Times' if draw_diagrams
-    ctx.fillStyle = 'rgb(10,20,30)'
-    ctx.fillText note_names[note_number] + ' ' + title, h_gutter, -3
-    draw_fingerboard()
-    for semitones, si in outervals
-      continue if semitones in intervals
-      draw_intervals_from semitones, string, fret, other_colors[si]
-    for semitones, si in intervals
-      draw_intervals_from semitones, string, fret, colors[si]
-    ctx.restore()
+    ctx.fillStyle = 'rgb(128, 128, 128)'
+    ctx.fillText "#{title} Chords", diagram_gutter / 2, header_height / 2
 
-  unless pdf
-    filename = "test.pdf"
-    fs.writeFile build_directory + filename, canvas.toBuffer()
+    for ix in [0...12]
+      pitch_number = (ix * 5 + 7) % 12
+      fingering = pitch_fingers[pitch_number]
+      string = fingering[0]
+      fret = fingering[1]
+      draw_cell ->
+        ctx.font = '20px Impact'
+        ctx.font = '5pt Times' if draw_diagrams
+        ctx.fillStyle = 'rgb(10,20,30)'
+        ctx.fillText note_names[pitch_number] + ' ' + title, h_gutter, -3
+        draw_fingerboard()
+        for semitones, si in outervals
+          continue if semitones in intervals
+          draw_intervals_from semitones, string, fret, other_colors[si]
+        for semitones, si in intervals
+          draw_intervals_from semitones, string, fret, colors[si]
 
 # chord_page 'Major', [0, 4, 7]
+
+book = (filename, draw_book) ->
+  pdf = true
+  mode = 'draw'
+  draw_book (draw_page) ->
+    draw_page()
+    ctx.addPage()
+  fs.writeFile build_directory + filename, canvas.toBuffer()
 
 chord_book = ->
   chords = [
@@ -335,10 +347,8 @@ chord_book = ->
     ['Dim7', [0, 3, 6, 9]],
     ['6th', [0, 4, 7, 9]],
   ]
-  for chord in chords
-    chord_page chord[0], chord[1], chord[2], true
-    ctx.addPage()
-  filename = "Combined Fretboard Chords.pdf"
-  fs.writeFile build_directory + filename, canvas.toBuffer()
+  book "Combined Fretboard Chords.pdf", (pager) ->
+    for chord in chords
+      pager -> chord_page chord[0], chord[1], chord[2], true
 
 chord_book()
