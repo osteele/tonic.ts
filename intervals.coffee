@@ -41,10 +41,16 @@ string_count = strings.length
 
 frets = [0..4]  # includes nut
 fret_count = frets.length - 1  # doesn't include nut
-string_note_numbers = ((string_count - n) * 5 for n in strings)
+
+StringIntervals = [5, 5, 5, 4, 5]
+StringNoteNumbers = (->
+  numbers = [0]
+  for interval, i in StringIntervals
+    numbers.push numbers[i] + interval
+  numbers.reverse())()
 
 fingering_note_number = ({string, fret}) ->
-  string_note_numbers[string - 1] + fret
+  StringNoteNumbers[string - 1] + fret
 
 finger_positions_each = (fn) ->
   for string in strings
