@@ -1,12 +1,117 @@
 fs = require('fs')
 Canvas = require('canvas')
 
+#
+# Music Theory
+#
+
+Intervals = ['P8', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7']
+
+LongIntervalNames = [
+  'Octave', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
+  'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th']
+
+NoteNames = "E F F# G G# A A# B C C# D D#".split(/\s/)
+
+Chords = [
+  {name: 'Major', abbr: '', offsets: [0, 4, 7]},
+  {name: 'Minor', abbr: 'm', offsets: [0, 3, 7]},
+  {name: 'Aug', abbr: '+', offsets: [0, 4, 8]},
+  {name: 'Dim', abbr: '°', offsets: [0, 3, 6]},
+  {name: 'Sus2', abbr: 'sus2', offsets: [0, 2, 7]},
+  {name: 'Sus4', abbr: 'sus4', offsets: [0, 5, 7]},
+  {name: 'Dom 7th', abbr: '7', offsets: [0, 4, 7, 10]},
+  {name: 'Major 7th', abbr: 'maj7', offsets: [0, 4, 7, 11]},
+  {name: 'Minor 7th', abbr: 'min7', offsets: [0, 3, 7, 10]},
+  {name: 'Dim 7th', abbr: '°7', offsets: [0, 3, 6, 9]},
+  {name: 'Dom 7 b5', abbr: '7b5', offsets: [0, 4, 6, 10]},
+  {name: 'Min 7th b5', abbr: 'm7b5', offsets: [0, 3, 6, 10]},
+  # {name: 'Aug 7th', abbr: '7aug', offsets: [0, 4, 8, 10]},
+  {name: 'Dim Maj 7th', abbr: '°maj7', offsets: [0, 3, 6, 11]},
+  {name: 'Min Maj 7th', abbr: 'min-maj7', offsets: [0, 3, 7, 11]},
+  # {name: '6th', abbr: '6', offsets: [0, 4, 7, 9]},
+]
+
+
+#
+# Fretboard
+#
 strings = [1..6]
 string_count = strings.length
 
 frets = [0..4]  # includes nut
 fret_count = frets.length - 1  # doesn't include nut
+string_note_numbers = ((string_count - n) * 5 for n in strings)
 
+fingering_note_number = ({string, fret}) ->
+  string_note_numbers[string - 1] + fret
+
+finger_positions_each = (fn) ->
+  for string in strings
+    for fret in frets
+      fn string: string, fret: fret
+
+intervals_from = (fingering, semitones) ->
+  root_note_number = fingering_note_number(fingering)
+  fingerings = []
+  finger_positions_each (fingering) ->
+    return unless (fingering_note_number(fingering) - root_note_number + 120) % 12 == semitones
+    fingerings.push fingering
+  return fingerings
+
+#
+# Drawing
+#
+
+build_directory = __dirname + '/build/'
+canvas = null
+ctx = null
+
+erase_background = ->
+  ctx.fillStyle = 'white'
+  ctx.fillRect 0, 0, canvas.width, canvas.height
+
+save_canvas_to_png = (canvas, fname) ->
+  out = fs.createWriteStream(build_directory + fname)
+  stream = canvas.pngStream()
+  stream.on 'data', (chunk) -> out.write(chunk)
+  stream.on 'end', () -> console.log "Saved #{fname}"
+
+mode = null
+pdf = false
+page = (width, height, draw_page) ->
+  return [width, height] if mode == 'measure'
+  canvas ||= new Canvas(width, height, pdf and 'pdf')
+  ctx = canvas.getContext('2d')
+  ctx.textDrawingMode = 'glyph' if pdf
+  erase_background()
+  draw_page ctx
+  unless pdf
+    filename = "test.pdf"
+    fs.writeFile build_directory + filename, canvas.toBuffer()
+
+grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
+  page cols * cell_width, header_height + rows * cell_height, (ctx) ->
+    i = 0
+    draw_page (draw_cell) ->
+      ctx.save()
+      ctx.translate (i % cols) * cell_width, header_height + Math.floor(i / cols) * cell_height
+      draw_cell()
+      ctx.restore()
+      i += 1
+
+book = (filename, draw_book) ->
+  pdf = true
+  mode = 'draw'
+  draw_book (draw_page) ->
+    draw_page()
+    ctx.addPage()
+  fs.writeFile build_directory + filename, canvas.toBuffer()
+
+
+#
+# Layout Options
+#
 h_gutter = 10
 v_gutter = 10
 string_spacing = 20
@@ -14,6 +119,10 @@ fret_width = 45
 fret_overhang = .3 * fret_width
 padded_fretboard_width = 2 * v_gutter + fret_width * fret_count + fret_overhang
 padded_fretboard_height = 2 * h_gutter + (string_count - 1) * string_spacing
+
+#
+# Drawing Fretboard and Diagrams
+#
 
 draw_diagrams = true
 if draw_diagrams
@@ -25,21 +134,6 @@ if draw_diagrams
   note_radius = 1
   padded_fretboard_width = 2 * h_gutter + (string_count - 1) * string_spacing
   padded_fretboard_height = 2 * v_gutter + fret_height * fret_count + fret_overhang
-
-build_directory = __dirname + '/build/'
-canvas = null
-ctx = null
-
-string_note_numbers = ((string_count - n) * 5 for n in strings)
-
-intervals = ['P8', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7']
-long_intervals_names = [
-  'Octave', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
-  'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th']
-
-erase_background = ->
-  ctx.fillStyle = 'white'
-  ctx.fillRect 0, 0, canvas.width, canvas.height
 
 draw_strings = ->
   for n, i in strings
@@ -119,34 +213,16 @@ draw_fingerboard = (fingerings) ->
       ctx.fillStyle = 'black'
       ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter - 2.5
 
-fingering_note_number = ({string, fret}) ->
-  string_note_numbers[string - 1] + fret
-
-finger_positions_each = (fn) ->
-  for string in strings
-    for fret in frets
-      fn string: string, fret: fret
-
-save_canvas_to_png = (canvas, fname) ->
-  out = fs.createWriteStream(build_directory + fname)
-  stream = canvas.pngStream()
-  stream.on 'data', (chunk) -> out.write(chunk)
-  stream.on 'end', () -> console.log "Saved #{fname}"
-
-intervals_from = (fingering, semitones) ->
-  root_note_number = fingering_note_number(fingering)
-  fingerings = []
-  finger_positions_each (fingering) ->
-    return unless (fingering_note_number(fingering) - root_note_number + 120) % 12 == semitones
-    fingerings.push fingering
-  return fingerings
-
 draw_intervals_from = (root_fingering, semitones, color) ->
   root_note_number = fingering_note_number(root_fingering)
   draw_fingering root_fingering, is_root: true #, color: color
   for fingering in intervals_from(root_fingering, semitones)
     continue if fingering.string == root_fingering.string and fingering.fret == root_fingering.fret
     draw_fingering fingering, color: color
+
+#
+# Specific Cards and Pages
+#
 
 interval_cards = ->
   finger_positions_each (string, fret) ->
@@ -158,7 +234,7 @@ interval_cards = ->
     filename = "#{string}-#{fret}.png"
     save_canvas_to_png canvas, filename
 
-    for interval_name, semitones in intervals
+    for interval_name, semitones in Intervals
       canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
       ctx = canvas.getContext('2d')
       erase_background()
@@ -172,7 +248,7 @@ intervals_from_position_page = (fingering) ->
   canvas_gutter = 20
   header_height = 20
   grid 3, 4, padded_fretboard_width + canvas_gutter, padded_fretboard_height + header_height, 0, (cell) ->
-    for interval_name, semitones in intervals
+    for interval_name, semitones in Intervals
       cell ->
         ctx.translate 0, header_height
         draw_fingerboard()
@@ -196,7 +272,7 @@ intervals_page = (semitones) ->
   rows = string_count
 
   grid cols, rows, padded_fretboard_width + canvas_gutter, padded_fretboard_height + canvas_gutter, header_height, (cell) ->
-    title = long_intervals_names[semitones] + " Intervals"
+    title = LongIntervalNames[semitones] + " Intervals"
     ctx.font = '25px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText title, canvas_gutter / 2, 30
@@ -207,7 +283,7 @@ intervals_page = (semitones) ->
         draw_intervals_from fingering, semitones
 
   # unless pdf
-  #   long_interval_name = intervals[semitones].replace(/^m/, 'min').replace(/^M/, 'Maj')
+  #   long_interval_name = Intervals[semitones].replace(/^m/, 'min').replace(/^M/, 'Maj')
   #   filename = "interval-#{long_interval_name}-study-sheet.pdf"
   #   fs.writeFile build_directory + filename, canvas.toBuffer()
 
@@ -218,33 +294,8 @@ intervals_book = ({by_root}) ->
         page -> intervals_from_position_page fingering
   else
     book "Fretboard Intervals.pdf", (page) ->
-      for _, semitones in intervals
+      for _, semitones in Intervals
         page -> intervals_page semitones
-
-mode = null
-pdf = false
-page = (width, height, draw_page) ->
-  return [width, height] if mode == 'measure'
-  canvas ||= new Canvas(width, height, pdf and 'pdf')
-  ctx = canvas.getContext('2d')
-  ctx.textDrawingMode = 'glyph' if pdf
-  erase_background()
-  draw_page ctx
-  unless pdf
-    filename = "test.pdf"
-    fs.writeFile build_directory + filename, canvas.toBuffer()
-
-grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
-  page cols * cell_width, header_height + rows * cell_height, (ctx) ->
-    i = 0
-    draw_page (draw_cell) ->
-      ctx.save()
-      ctx.translate (i % cols) * cell_width, header_height + Math.floor(i / cols) * cell_height
-      draw_cell()
-      ctx.restore()
-      i += 1
-
-NoteNames = "E F F# G G# A A# B C C# D D#".split(/\s/)
 
 chord_page = (chord) ->
   diagram_gutter = 20
@@ -283,38 +334,12 @@ chord_page = (chord) ->
             fingerings.push {string, fret, color: colors[si]}
         draw_fingerboard fingerings
 
-book = (filename, draw_book) ->
-  pdf = true
-  mode = 'draw'
-  draw_book (draw_page) ->
-    draw_page()
-    ctx.addPage()
-  fs.writeFile build_directory + filename, canvas.toBuffer()
-
-Chords = [
-  {name: 'Major', abbr: '', offsets: [0, 4, 7]},
-  {name: 'Minor', abbr: 'm', offsets: [0, 3, 7]},
-  {name: 'Aug', abbr: '+', offsets: [0, 4, 8]},
-  {name: 'Dim', abbr: '°', offsets: [0, 3, 6]},
-  {name: 'Sus2', abbr: 'sus2', offsets: [0, 2, 7]},
-  {name: 'Sus4', abbr: 'sus4', offsets: [0, 5, 7]},
-  {name: 'Dom 7th', abbr: '7', offsets: [0, 4, 7, 10]},
-  {name: 'Major 7th', abbr: 'maj7', offsets: [0, 4, 7, 11]},
-  {name: 'Minor 7th', abbr: 'min7', offsets: [0, 3, 7, 10]},
-  {name: 'Dim 7th', abbr: '°7', offsets: [0, 3, 6, 9]},
-  {name: 'Dom 7 b5', abbr: '7b5', offsets: [0, 4, 6, 10]},
-  {name: 'Min 7th b5', abbr: 'm7b5', offsets: [0, 3, 6, 10]},
-  # {name: 'Aug 7th', abbr: '7aug', offsets: [0, 4, 8, 10]},
-  {name: 'Dim Maj 7th', abbr: '°maj7', offsets: [0, 3, 6, 11]},
-  {name: 'Min Maj 7th', abbr: 'min-maj7', offsets: [0, 3, 7, 11]},
-  # {name: '6th', abbr: '6', offsets: [0, 4, 7, 9]},
-]
-
 chord_book = ->
   book "Combined Fretboard Chords.pdf", (page) ->
     for chord in Chords
       page -> chord_page chord
 
 # chord_page Chords[0]
-# chord_book()
-intervals_book by_root: false
+# intervals_book by_root: true
+# intervals_book by_root: false
+chord_book()
