@@ -126,7 +126,7 @@ draw_fingerboard = (fingerings) ->
       continue if is_fretted or string_number < 1
       ctx.font = '4pt Helvetica'
       ctx.fillStyle = 'black'
-      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter - 2
+      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter - 2.5
 
 
 note_number_at = (string, fret) ->
@@ -148,7 +148,6 @@ intervals_from = (root_string, root_fret, semitones) ->
   fingerings = []
   for string in strings
     for fret in frets
-      continue if string == root_string and fret == root_fret
       continue unless (note_number_at(string, fret) - root_note_number + 120) % 12 == semitones
       fingerings.push string: string, fret: fret
   return fingerings
@@ -157,6 +156,7 @@ draw_intervals_from = (semitones, root_string, root_fret, color) ->
   root_note_number = note_number_at(root_string, root_fret)
   draw_note root_string, root_fret, true, color
   for {string, fret} in intervals_from(root_string, root_fret, semitones)
+    continue if string == root_string and fret == root_fret
     draw_note string, fret, false, color
 
 interval_cards = ->
@@ -297,7 +297,7 @@ grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
       ctx.restore()
       i += 1
 
-chord_page = (title, intervals, outervals, pdf) ->
+chord_page = (chord_name, abbr, intervals, outervals, pdf) ->
   outervals ||= []
 
   diagram_gutter = 20
@@ -321,7 +321,7 @@ chord_page = (title, intervals, outervals, pdf) ->
   grid cols, rows, padded_fretboard_width + diagram_gutter, padded_fretboard_height + diagram_gutter, diagram_title_height, (ctx, draw_cell) ->
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
-    ctx.fillText "#{title} Chords", diagram_gutter / 2, header_height / 2
+    ctx.fillText "#{chord_name} Chords", diagram_gutter / 2, header_height / 2
 
     for ix in [0...12]
       pitch_number = (ix * 5 + 7) % 12
@@ -332,7 +332,7 @@ chord_page = (title, intervals, outervals, pdf) ->
         ctx.font = '20px Impact'
         ctx.font = '5pt Times' if draw_diagrams
         ctx.fillStyle = 'rgb(10,20,30)'
-        ctx.fillText note_names[pitch_number] + ' ' + title, h_gutter, -3
+        ctx.fillText note_names[pitch_number] + abbr, h_gutter, -3
         fingerings = []
         # for semitones, si in outervals
         #   continue if semitones in intervals
@@ -354,20 +354,25 @@ book = (filename, draw_book) ->
 
 chord_book = ->
   chords = [
-    {name: 'Major', offsets: [0, 4, 7], relative: [0, 3, 7]},
-    {name: 'Minor', offsets: [0, 3, 7], relative: [0, 4, 7]},
-    {name: 'Aug', offsets: [0, 4, 8], relative: [0, 4, 7]},
-    {name: 'Dim', offsets: [0, 3, 6], relative: [0, 3, 7]},
-    {name: '7th', offsets: [0, 4, 7, 10]},
-    {name: 'Maj7', offsets: [0, 4, 7, 11]},
-    {name: 'Sus2', offsets: [0, 2, 7], relative: [0, 4, 7]},
-    {name: 'Sus4', offsets: [0, 5, 7], relative: [0, 4, 7]},
-    {name: 'Min7', offsets: [0, 3, 7, 10], relative: [0, 4, 7, 10]},
-    {name: 'Dim7', offsets: [0, 3, 6, 9]},
-    {name: '6th', offsets: [0, 4, 7, 9]},
+    {name: 'Major', abbr: '', offsets: [0, 4, 7], relative: [0, 3, 7]},
+    {name: 'Minor', abbr: 'm', offsets: [0, 3, 7], relative: [0, 4, 7]},
+    {name: 'Aug', abbr: '+', offsets: [0, 4, 8], relative: [0, 4, 7]},
+    {name: 'Dim', abbr: '°', offsets: [0, 3, 6], relative: [0, 3, 7]},
+    {name: 'Sus2', abbr: 'sus2', offsets: [0, 2, 7], relative: [0, 4, 7]},
+    {name: 'Sus4', abbr: 'sus4', offsets: [0, 5, 7], relative: [0, 4, 7]},
+    {name: 'Dom 7th', abbr: '7', offsets: [0, 4, 7, 10]},
+    {name: 'Major 7th', abbr: 'maj7', offsets: [0, 4, 7, 11]},
+    {name: 'Minor 7th', abbr: 'min7', offsets: [0, 3, 7, 10], relative: [0, 4, 7, 10]},
+    {name: 'Dim 7th', abbr: '°7', offsets: [0, 3, 6, 9]},
+    {name: 'Dom 7 b5', abbr: '7b5', offsets: [0, 4, 6, 10]},
+    {name: 'Min 7th b5', abbr: 'm7b5', offsets: [0, 3, 6, 10]},
+    # {name: 'Aug 7th', abbr: '7aug', offsets: [0, 4, 8, 10]},
+    {name: 'Dim Maj 7th', abbr: '°maj7', offsets: [0, 3, 6, 11]},
+    {name: 'Min Maj 7th', abbr: 'min-maj7', offsets: [0, 3, 7, 11]},
+    # {name: '6th', abbr: '6', offsets: [0, 4, 7, 9]},
   ]
   book "Combined Fretboard Chords.pdf", (page) ->
-    for {name, offsets, relative} in chords
-      page -> chord_page name, offsets, relative
+    for {name, abbr, offsets, relative} in chords
+      page -> chord_page name, abbr, offsets, relative
 
 chord_book()
