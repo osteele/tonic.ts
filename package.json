@@ -1,0 +1,29 @@
+{
+  "name": "Chords",
+  "version": "0.0.1",
+  "author": {
+    "name": "Oliver Steele",
+    "email": "steele@osteele.com"
+  },
+  "private": true,
+  "dependencies": {
+    "canvas": "*"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-contrib-watch": "~0.4.2",
+    "grunt-shell": "~0.2.2"
+  },
+  "description": "Tools for generating guitar chord diagrams for study",
+  "main": "intervals.coffee",
+  "scripts": {
+    "test": "coffee intervals.coffee"
+  },
+  "keywords": [
+    "music",
+    "chords",
+    "guitar",
+    "diagrams"
+  ],
+  "license": "MIT"
+}
