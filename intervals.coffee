@@ -1,4 +1,5 @@
 fs = require('fs')
+_ = require 'underscore'
 Canvas = require('canvas')
 
 #
@@ -37,6 +38,7 @@ Chords = [
 #
 # Fretboard
 #
+
 StringNumbers = [1..6]
 StringCount = StringNumbers.length
 
@@ -64,16 +66,83 @@ intervals_from = (fingering, semitones) ->
   root_note_number = fingering_note_number(fingering)
   fingerings = []
   finger_positions_each (fingering) ->
-    return unless (fingering_note_number(fingering) - root_note_number + 120) % 12 == semitones
+    return unless (fingering_note_number(fingering) - root_note_number + 240) % 12 == semitones
     fingerings.push fingering
   return fingerings
+
+fingerings_for = (chord, root_note) ->
+  fingerings = do (fs=[]) ->
+    finger_positions_each (f) ->
+      n = (fingering_note_number(f) - root_note + 240) % 12
+      i = chord.offsets.indexOf(n)
+      fs.push {string: f.string, fret: f.fret, note_number: i} if i >= 0
+    fs
+
+  frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
+    for fingering in fingerings
+      strings[fingering.string - 1].push fingering
+    strings
+
+  compute_choices = (by_string) ->
+    return [[]] unless by_string.length
+    frets = by_string[0]
+    remaining = compute_choices(by_string[1..])
+    return remaining.concat(([n].concat(right) \
+      for n in frets for right in remaining)...)
+
+  count_distinct_notes = (fs) ->
+    _.chain(fs).pluck('note_number').uniq().value().length
+
+  chord_note_count = count_distinct_notes(fingerings)
+  # console.info note_count
+
+  has_all_notes = (fs) ->
+    return count_distinct_notes(fs) == chord_note_count
+
+  closed_medial_strings = (fs) ->
+    string_frets = (-1 for s in StringNumbers)
+    string_frets[f.string - 1] = f.fret for f in fs
+    p = ((if x >= 0 then 'o' else 'x') for x in string_frets).join('')
+    return p.match(/ox+o/)
+
+  closed_treble_strings = (fs) ->
+    string_frets = (-1 for s in StringNumbers)
+    string_frets[f.string - 1] = f.fret for f in fs
+    p = ((if x >= 0 then 'o' else 'x') for x in string_frets).join('')
+    return p.match(/x$/)
+
+  finger_count = (fs) ->
+    (f for f in fs when f.fret).length
+
+  high_note_count = (fs) -> fs.length
+
+  has_low_fingering = (fs) ->
+    (f for f in fs when f.fret).length
+
+  is_first_position = (fs) ->
+    _(fs).sortBy((f) -> -f.string)[0].note_number == 0
+
+  cmp = (fn) -> (x...) -> !fn(x...)
+  choices = compute_choices(frets_per_string)
+  choices = (choice for choice in choices when has_all_notes(choice))
+  choices = (choice for choice in choices when not closed_medial_strings(choice))
+  # choices = (choice for choice in choices when not closed_treble_strings(choice))
+  choices = (choice for choice in choices when finger_count(choice) <= 4)
+  choices = _(choices).sortBy(has_low_fingering)
+  choices = _(choices).sortBy(cmp(high_note_count))
+  choices = _(choices).sortBy(cmp(is_first_position))
+  return choices
+
+best_fingering_for = (chord, root_note) ->
+  return fingerings_for(chord, root_note)[0]
 
 
 #
 # Drawing
 #
 
-build_directory = __dirname + '/build/'
+BuildDirectory = __dirname + '/build/'
+DefaultFilename = null
 canvas = null
 ctx = null
 
@@ -81,8 +150,10 @@ erase_background = ->
   ctx.fillStyle = 'white'
   ctx.fillRect 0, 0, canvas.width, canvas.height
 
+filename = (name) -> DefaultFilename = name
+
 save_canvas_to_png = (canvas, fname) ->
-  out = fs.createWriteStream(build_directory + fname)
+  out = fs.createWriteStream(BuildDirectory + fname)
   stream = canvas.pngStream()
   stream.on 'data', (chunk) -> out.write(chunk)
   stream.on 'end', () -> console.log "Saved #{fname}"
@@ -97,8 +168,8 @@ page = (width, height, draw_page) ->
   erase_background()
   draw_page ctx
   unless pdf
-    filename = "test.png"
-    fs.writeFile build_directory + filename, canvas.toBuffer()
+    filename = "#{DefaultFilename or 'test'}.png"
+    fs.writeFile BuildDirectory + filename, canvas.toBuffer()
 
 grid = ({cols, rows, cell_width, cell_height, header_height}, draw_page) ->
   header_height ||= 0
@@ -117,12 +188,13 @@ book = (filename, draw_book) ->
   draw_book (draw_page) ->
     draw_page()
     ctx.addPage()
-  fs.writeFile build_directory + filename, canvas.toBuffer()
+  fs.writeFile BuildDirectory + filename, canvas.toBuffer()
 
 
 #
 # Layout Options
 #
+
 h_gutter = 10
 v_gutter = 10
 string_spacing = 20
@@ -130,6 +202,7 @@ fret_width = 45
 fret_overhang = .3 * fret_width
 padded_fretboard_width = 2 * v_gutter + fret_width * FretCount + fret_overhang
 padded_fretboard_height = 2 * h_gutter + (StringCount - 1) * string_spacing
+
 
 #
 # Drawing Fretboard and Diagrams
@@ -143,8 +216,18 @@ if draw_diagrams
   h_gutter = 5
   v_gutter = 5
   note_radius = 1
+  closed_string_fontsize = 4
   padded_fretboard_width = 2 * h_gutter + (StringCount - 1) * string_spacing
   padded_fretboard_height = 2 * v_gutter + fret_height * FretCount + fret_overhang
+  above_fretboard = fret_height
+
+if true
+  string_spacing = 12
+  fret_height = 16
+  note_radius = 3
+  closed_string_fontsize = 8
+  padded_fretboard_width = 2 * h_gutter + (StringCount - 1) * string_spacing
+  padded_fretboard_height = 2 * v_gutter + (fret_height + 2) * FretCount + fret_overhang
 
 draw_strings = ->
   for n, i in StringNumbers
@@ -184,23 +267,23 @@ if draw_diagrams
     for n, i in StringNumbers
       x = i * string_spacing + h_gutter
       ctx.beginPath()
-      ctx.moveTo x, v_gutter
-      ctx.lineTo x, v_gutter + FretCount * fret_height + fret_overhang
+      ctx.moveTo x, v_gutter + above_fretboard
+      ctx.lineTo x, v_gutter + above_fretboard + FretCount * fret_height + fret_overhang
       ctx.stroke()
 
   draw_frets = ->
-    for fret_number in FretNumbers
-      y = fret_number * fret_height + v_gutter
+    for fret in FretNumbers
+      y = v_gutter + above_fretboard + fret * fret_height
       ctx.beginPath()
-      ctx.moveTo v_gutter-.5, y
-      ctx.lineTo v_gutter+.5 + (StringCount - 1) * string_spacing, y
-      ctx.lineWidth = 3 if fret_number == 0
+      ctx.moveTo v_gutter - 0.5, y
+      ctx.lineTo v_gutter + 0.5 + (StringCount - 1) * string_spacing, y
+      ctx.lineWidth = 3 if fret == 0
       ctx.stroke()
       ctx.lineWidth = 1
 
   draw_fingering = ({string, fret}, options) ->
     {is_root, color} = options || {}
-    y = v_gutter + (fret - 1) * fret_height + fret_height / 2
+    y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
     ctx.fillStyle = color or (if is_root then 'red' else 'white')
     ctx.strokeStyle = color or (if is_root then 'red' else 'black')
     ctx.lineWidth = 1
@@ -220,9 +303,9 @@ draw_fingerboard = (fingerings) ->
       draw_fingering fingering, fingering
     for string_number in StringNumbers
       continue if fretted_strings[string_number]
-      ctx.font = '4pt Helvetica'
+      ctx.font = "#{closed_string_fontsize}pt Helvetica"
       ctx.fillStyle = 'black'
-      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter - 2.5
+      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter + above_fretboard - 2.5
 
 draw_intervals_from = (root_fingering, semitones, color) ->
   root_note_number = fingering_note_number(root_fingering)
@@ -230,6 +313,7 @@ draw_intervals_from = (root_fingering, semitones, color) ->
   for fingering in intervals_from(root_fingering, semitones)
     continue if fingering.string == root_fingering.string and fingering.fret == root_fingering.fret
     draw_fingering fingering, color: color
+
 
 #
 # Specific Cards and Pages
@@ -303,7 +387,7 @@ intervals_page = (semitones) ->
   # unless pdf
   #   long_interval_name = Intervals[semitones].replace(/^m/, 'min').replace(/^M/, 'Maj')
   #   filename = "interval-#{long_interval_name}-study-sheet.pdf"
-  #   fs.writeFile build_directory + filename, canvas.toBuffer()
+  #   fs.writeFile BuildDirectory + filename, canvas.toBuffer()
 
 intervals_book = ({by_root}) ->
   if by_root
@@ -314,6 +398,15 @@ intervals_book = ({by_root}) ->
     book "Fretboard Intervals.pdf", (page) ->
       for _, semitones in Intervals
         page -> intervals_page semitones
+
+chord_fingerings_page = (chord, root_note) ->
+  fingerings = fingerings_for(chord, root_note)
+  filename "Fingerings"
+  cols = 10
+  rows = 10
+  grid {cols, rows, cell_width: padded_fretboard_width + 10, cell_height: padded_fretboard_height + 5}, (cell) ->
+    for fingering, i in fingerings[...(cols * rows)]
+      cell -> draw_fingerboard(fingering)
 
 chord_page = (chord, options) ->
   {best_fingering} = options || {}
@@ -355,34 +448,21 @@ chord_page = (chord, options) ->
         fingerings = []
         for semitones, note_number in chord.offsets
           for {string, fret} in intervals_from(root_fingering, semitones)
-            fingerings.push {string, fret, note_number, color: colors[note_number]}
-        fingerings = optimize_fingers(fingerings) if best_fingering
+            fingerings.push {string, fret, note_number}
+        fingerings = best_fingering_for(chord, pitch_number) if best_fingering
+        for f in fingerings
+          f.color = colors[f.note_number]
         draw_fingerboard fingerings
 
-optimize_fingers = (fingerings) ->
-  bystring = ([] for _ in OpenStringNoteNumbers)
-  bynote = ([] for _ in [0..10])
-  for fingering in fingerings
-    bystring[fingering.string - 1].push fingering
-    bynote[fingering.note_number].push fingering
-  # Discard strings below the root
-  # TODO only do this if the note is still represented on a higher string
-  # TODO choose the highest root s.t. each note is on a unique higher string
-  bass_root = bynote[0].sort((a, b) -> b.string - a.string)[0]
-  fingerings = (f for f in fingerings when f == bass_root or f.string < bass_root.string)
-  # Select the lowest fret per string
-  # TODO only if each note is represented
-  for string in StringNumbers
-    fret = (f.fret for f in fingerings when f.string == string).sort()[0]
-    fingerings = (f for f in fingerings when f.string != string or f.fret == fret)
-  return fingerings
-
 chord_book = (options) ->
+  page_count = options.pages
   book "Combined Fretboard Chords.pdf", (page) ->
-    for chord in Chords
+    for chord, i in Chords
       page -> chord_page chord, options
+      break if page_count and i + 1 >= page_count
 
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: false
+chord_book best_fingering: 0, pages: 0
+# chord_fingerings_page Chords[0], 44

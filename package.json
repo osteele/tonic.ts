@@ -7,10 +7,11 @@
   },
   "private": true,
   "dependencies": {
-    "canvas": "*"
+    "canvas": "~1.0.2",
+    "underscore": "~1.4.4"
   },
   "devDependencies": {
-    "grunt": "latest",
+    "grunt": "~0.4.1",
     "grunt-contrib-watch": "~0.4.2",
     "grunt-shell": "~0.2.2",
     "grunt-coffeelint": "0.0.6"
