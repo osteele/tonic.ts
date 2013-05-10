@@ -21,15 +21,16 @@ Chords = [
   {name: 'Sus2', abbr: 'sus2', offsets: [0, 2, 7]},
   {name: 'Sus4', abbr: 'sus4', offsets: [0, 5, 7]},
   {name: 'Dom 7th', abbr: '7', offsets: [0, 4, 7, 10]},
-  {name: 'Major 7th', abbr: 'maj7', offsets: [0, 4, 7, 11]},
+  {name: 'Major 7th', abbr: 'Maj7', offsets: [0, 4, 7, 11]},
   {name: 'Minor 7th', abbr: 'min7', offsets: [0, 3, 7, 10]},
   {name: 'Dim 7th', abbr: '°7', offsets: [0, 3, 6, 9]},
   {name: 'Dom 7 b5', abbr: '7b5', offsets: [0, 4, 6, 10]},
   {name: 'Min 7th b5', abbr: 'm7b5', offsets: [0, 3, 6, 10]},
   # {name: 'Aug 7th', abbr: '7aug', offsets: [0, 4, 8, 10]},
-  {name: 'Dim Maj 7th', abbr: '°maj7', offsets: [0, 3, 6, 11]},
+  {name: 'Dim Maj 7th', abbr: '°Maj7', offsets: [0, 3, 6, 11]},
   {name: 'Min Maj 7th', abbr: 'min-maj7', offsets: [0, 3, 7, 11]},
   # {name: '6th', abbr: '6', offsets: [0, 4, 7, 9]},
+  # half-diminished øØ
 ]
 
 
@@ -93,7 +94,7 @@ page = (width, height, draw_page) ->
   erase_background()
   draw_page ctx
   unless pdf
-    filename = "test.pdf"
+    filename = "test.png"
     fs.writeFile build_directory + filename, canvas.toBuffer()
 
 grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
@@ -277,7 +278,11 @@ intervals_page = (semitones) ->
   cols = fret_count + 1
   rows = string_count
 
-  grid cols, rows, padded_fretboard_width + canvas_gutter, padded_fretboard_height + canvas_gutter, header_height, (cell) ->
+  grid cols, rows
+  , padded_fretboard_width + canvas_gutter
+  , padded_fretboard_height + canvas_gutter
+  , header_height
+  , (cell) ->
     title = LongIntervalNames[semitones] + " Intervals"
     ctx.font = '25px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
@@ -303,7 +308,9 @@ intervals_book = ({by_root}) ->
       for _, semitones in Intervals
         page -> intervals_page semitones
 
-chord_page = (chord) ->
+chord_page = (chord, options) ->
+  {best_fingering} = options || {}
+
   diagram_gutter = 20
   header_height = 40
   diagram_title_height = 30
@@ -321,7 +328,11 @@ chord_page = (chord) ->
   colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  grid cols, rows, padded_fretboard_width + diagram_gutter, padded_fretboard_height + diagram_gutter, diagram_title_height, (cell) ->
+  grid cols, rows
+  , padded_fretboard_width + diagram_gutter
+  , padded_fretboard_height + diagram_gutter
+  , diagram_title_height
+  , (cell) ->
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
@@ -335,17 +346,36 @@ chord_page = (chord) ->
         ctx.fillStyle = 'rgb(10,20,30)'
         ctx.fillText "#{NoteNames[pitch_number]}#{chord.abbr}", h_gutter, -3
         fingerings = []
-        for semitones, si in chord.offsets
+        for semitones, note_number in chord.offsets
           for {string, fret} in intervals_from(root_fingering, semitones)
-            fingerings.push {string, fret, color: colors[si]}
+            fingerings.push {string, fret, note_number, color: colors[note_number]}
+        fingerings = optimize_fingers(fingerings) if best_fingering
         draw_fingerboard fingerings
 
-chord_book = ->
+optimize_fingers = (fingerings) ->
+  bystring = ([] for _ in strings)
+  bynote = ([] for _ in [0..10])
+  for fingering in fingerings
+    bystring[fingering.string - 1].push fingering
+    bynote[fingering.note_number].push fingering
+  # Discard strings below the root
+  # TODO only do this if the note is still represented on a higher string
+  # TODO choose the highest root s.t. each note is on a unique higher string
+  bass_root = bynote[0].sort((a, b) -> b.string - a.string)[0]
+  fingerings = (f for f in fingerings when f == bass_root or f.string < bass_root.string)
+  # Select the lowest fret per string
+  # TODO only if each note is represented
+  for string in strings
+    fret = (f.fret for f in fingerings when f.string == string).sort()[0]
+    fingerings = (f for f in fingerings when f.string != string or f.fret == fret)
+  return fingerings
+
+chord_book = (options) ->
   book "Combined Fretboard Chords.pdf", (page) ->
     for chord in Chords
-      page -> chord_page chord
+      page -> chord_page chord, options
 
-# chord_page Chords[0]
+# chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book()
+chord_book best_fingering: false
