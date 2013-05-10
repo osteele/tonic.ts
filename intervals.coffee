@@ -40,18 +40,20 @@ Chords = [
 StringNumbers = [1..6]
 StringCount = StringNumbers.length
 
-FretNumbers = [0..4]  # includes nuNumbert
-FretCount = FretNumbers.length - 1  # doesn't include nuNumbert
+FretNumbers = [0..4]  # includes nut
+FretCount = FretNumbers.length - 1  # doesn't include nut
 
+# FIXME these are backwards from the string numbers
 StringIntervals = [5, 5, 5, 4, 5]
-StringNoteNumbers = (->
-  numbers = [0]
+
+OpenStringNoteNumbers = do (numbers=[]) ->
+  numbers.push 44
   for interval, i in StringIntervals
     numbers.push numbers[i] + interval
-  numbers.reverse())()
+  numbers.reverse()
 
 fingering_note_number = ({string, fret}) ->
-  StringNoteNumbers[string - 1] + fret
+  OpenStringNoteNumbers[string - 1] + fret
 
 finger_positions_each = (fn) ->
   for string in StringNumbers
@@ -358,7 +360,7 @@ chord_page = (chord, options) ->
         draw_fingerboard fingerings
 
 optimize_fingers = (fingerings) ->
-  bystring = ([] for _ in StringsNumber)
+  bystring = ([] for _ in OpenStringNoteNumbers)
   bynote = ([] for _ in [0..10])
   for fingering in fingerings
     bystring[fingering.string - 1].push fingering
