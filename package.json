@@ -12,7 +12,8 @@
   "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-watch": "~0.4.2",
-    "grunt-shell": "~0.2.2"
+    "grunt-shell": "~0.2.2",
+    "grunt-coffeelint": "0.0.6"
   },
   "description": "Tools for generating guitar chord diagrams for study",
   "main": "intervals.coffee",

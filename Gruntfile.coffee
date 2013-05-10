@@ -2,6 +2,10 @@ module.exports = (grunt) ->
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
+    coffeelint:
+      app: ['**/*.coffee']
+      options:
+        max_line_length: { value: 120 }
     shell:
       makeBuildDir:
         command: 'mkdir test'
@@ -9,14 +13,16 @@ module.exports = (grunt) ->
         command: 'coffee intervals.coffee'
         options:
           stdout: true
+          stderr: true
     watch:
       scripts:
         files: ['**/*.coffee']
-        tasks: ['shell:makeBuildDir', 'shell:runIntervals']
+        tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runIntervals']
         options:
           nospawn: true,
 
+  grunt.loadNpmTasks 'grunt-coffeelint'
   grunt.loadNpmTasks 'grunt-contrib-watch'
-  grunt.loadNpmTasks('grunt-shell')
+  grunt.loadNpmTasks 'grunt-shell'
 
   grunt.registerTask 'default', ['watch']
