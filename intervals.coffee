@@ -94,7 +94,6 @@ fingerings_for = (chord, root_note) ->
     _.chain(fs).pluck('note_number').uniq().value().length
 
   chord_note_count = count_distinct_notes(fingerings)
-  # console.info note_count
 
   has_all_notes = (fs) ->
     return count_distinct_notes(fs) == chord_note_count
@@ -102,35 +101,49 @@ fingerings_for = (chord, root_note) ->
   closed_medial_strings = (fs) ->
     string_frets = (-1 for s in StringNumbers)
     string_frets[f.string - 1] = f.fret for f in fs
-    p = ((if x >= 0 then 'o' else 'x') for x in string_frets).join('')
-    return p.match(/ox+o/)
+    p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
+    return p.match(/\dx+\d/)
 
   closed_treble_strings = (fs) ->
     string_frets = (-1 for s in StringNumbers)
     string_frets[f.string - 1] = f.fret for f in fs
-    p = ((if x >= 0 then 'o' else 'x') for x in string_frets).join('')
+    p = ((if x >= 0 then x else 'x') for x in string_frets).reverse().join('')
     return p.match(/x$/)
 
   finger_count = (fs) ->
     (f for f in fs when f.fret).length
 
-  high_note_count = (fs) -> fs.length
-
-  has_low_fingering = (fs) ->
-    (f for f in fs when f.fret).length
+  high_note_count = (fs) -> -fs.length
 
   is_first_position = (fs) ->
     _(fs).sortBy((f) -> -f.string)[0].note_number == 0
 
   cmp = (fn) -> (x...) -> !fn(x...)
+
+  filters = [
+    {name: 'has all chord notes', filter: has_all_notes},
+    {name: 'no muted medial strings', filter: cmp(closed_medial_strings)},
+    {name: 'no muted treble strings', filter: cmp(closed_treble_strings)}
+  ]
+
+  sorts = [
+    finger_count,
+    high_note_count,
+    cmp(is_first_position)
+  ]
+
+  chord_name = "#{NoteNames[root_note % 12]}#{chord.abbr}"
   choices = compute_choices(frets_per_string)
-  choices = (choice for choice in choices when has_all_notes(choice))
-  choices = (choice for choice in choices when not closed_medial_strings(choice))
-  # choices = (choice for choice in choices when not closed_treble_strings(choice))
-  choices = (choice for choice in choices when finger_count(choice) <= 4)
-  choices = _(choices).sortBy(has_low_fingering)
-  choices = _(choices).sortBy(cmp(high_note_count))
-  choices = _(choices).sortBy(cmp(is_first_position))
+  for {name, filter} in filters
+    filtered = (choice for choice in choices when filter(choice))
+    unless filtered.length
+      console.error "#{chord_name}: fatal filter #{name}"
+      filtered = choices
+    choices = filtered
+  for sort in sorts
+    choices = _(choices).sortBy(sort)
+  # for choice in choices
+  #   console.info finger_count(choice)
   return choices
 
 best_fingering_for = (chord, root_note) ->
@@ -176,6 +189,7 @@ grid = ({cols, rows, cell_width, cell_height, header_height}, draw_page) ->
   page cols * cell_width, header_height + rows * cell_height, (ctx) ->
     i = 0
     draw_page (draw_cell) ->
+      return if i >= cols * rows
       ctx.save()
       ctx.translate (i % cols) * cell_width, header_height + Math.floor(i / cols) * cell_height
       draw_cell()
@@ -188,7 +202,7 @@ book = (filename, draw_book) ->
   draw_book (draw_page) ->
     draw_page()
     ctx.addPage()
-  fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+  fs.writeFile BuildDirectory + filename + ".pdf", canvas.toBuffer()
 
 
 #
@@ -391,21 +405,22 @@ intervals_page = (semitones) ->
 
 intervals_book = ({by_root}) ->
   if by_root
-    book "Fretboard Intervals by Root.pdf", (page) ->
+    book "Fretboard Intervals by Root", (page) ->
       finger_positions_each (fingering) ->
         page -> intervals_from_position_page fingering
   else
-    book "Fretboard Intervals.pdf", (page) ->
+    book "Fretboard Intervals", (page) ->
       for _, semitones in Intervals
         page -> intervals_page semitones
 
 chord_fingerings_page = (chord, root_note) ->
   fingerings = fingerings_for(chord, root_note)
   filename "Fingerings"
-  cols = 10
-  rows = 10
-  grid {cols, rows, cell_width: padded_fretboard_width + 10, cell_height: padded_fretboard_height + 5}, (cell) ->
-    for fingering, i in fingerings[...(cols * rows)]
+  grid cols: 10, rows: 10
+  , cell_width: padded_fretboard_width + 10
+  , cell_height: padded_fretboard_height + 5
+  , (cell) ->
+    for fingering, i in fingerings
       cell -> draw_fingerboard(fingering)
 
 chord_page = (chord, options) ->
@@ -414,25 +429,23 @@ chord_page = (chord, options) ->
   diagram_gutter = 20
   header_height = 40
   diagram_title_height = 30
-  cols = 3
-  rows = 4
   if draw_diagrams
     diagram_title_height = 35
     diagram_gutter = 10
 
   pitch_fingers = []
   finger_positions_each (fingering) ->
-    pitch_number = fingering_note_number(fingering) % 12
+    pitch_number = (fingering_note_number(fingering) - 44 + 120) % 12
     pitch_fingers[pitch_number] = fingering
 
   colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  grid {cols, rows
+  grid cols: 3, rows: 4
   , cell_width: padded_fretboard_width + diagram_gutter
   , cell_height: padded_fretboard_height + diagram_gutter
   , header_height: diagram_title_height
-  }, (cell) ->
+  , (cell) ->
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
@@ -440,23 +453,23 @@ chord_page = (chord, options) ->
     for ix in [0...12]
       pitch_number = (ix * 5 + 7) % 12
       root_fingering = pitch_fingers[pitch_number]
+      chord_name = "#{NoteNames[pitch_number]}#{chord.abbr}"
       cell ->
-        ctx.font = '20px Impact'
-        ctx.font = '5pt Times' if draw_diagrams
-        ctx.fillStyle = 'rgb(10,20,30)'
-        ctx.fillText "#{NoteNames[pitch_number]}#{chord.abbr}", h_gutter, -3
         fingerings = []
         for semitones, note_number in chord.offsets
           for {string, fret} in intervals_from(root_fingering, semitones)
             fingerings.push {string, fret, note_number}
         fingerings = best_fingering_for(chord, pitch_number) if best_fingering
-        for f in fingerings
-          f.color = colors[f.note_number]
+        f.color = colors[f.note_number] for f in fingerings
+        ctx.font = '20px Impact'
+        ctx.font = '5pt Times' if draw_diagrams
+        ctx.fillStyle = 'rgb(10,20,30)'
+        ctx.fillText chord_name, h_gutter, -3
         draw_fingerboard fingerings
 
 chord_book = (options) ->
   page_count = options.pages
-  book "Combined Fretboard Chords.pdf", (page) ->
+  book "Combined Fretboard Chords", (page) ->
     for chord, i in Chords
       page -> chord_page chord, options
       break if page_count and i + 1 >= page_count
@@ -465,4 +478,4 @@ chord_book = (options) ->
 # intervals_book by_root: true
 # intervals_book by_root: false
 chord_book best_fingering: 0, pages: 0
-# chord_fingerings_page Chords[0], 44
+# chord_fingerings_page Chords[0], 44 + 3
