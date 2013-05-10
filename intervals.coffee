@@ -37,11 +37,11 @@ Chords = [
 #
 # Fretboard
 #
-strings = [1..6]
-string_count = strings.length
+StringNumbers = [1..6]
+StringCount = StringNumbers.length
 
-frets = [0..4]  # includes nut
-fret_count = frets.length - 1  # doesn't include nut
+FretNumbers = [0..4]  # includes nuNumbert
+FretCount = FretNumbers.length - 1  # doesn't include nuNumbert
 
 StringIntervals = [5, 5, 5, 4, 5]
 StringNoteNumbers = (->
@@ -54,8 +54,8 @@ fingering_note_number = ({string, fret}) ->
   StringNoteNumbers[string - 1] + fret
 
 finger_positions_each = (fn) ->
-  for string in strings
-    for fret in frets
+  for string in StringNumbers
+    for fret in FretNumbers
       fn string: string, fret: fret
 
 intervals_from = (fingering, semitones) ->
@@ -65,6 +65,7 @@ intervals_from = (fingering, semitones) ->
     return unless (fingering_note_number(fingering) - root_note_number + 120) % 12 == semitones
     fingerings.push fingering
   return fingerings
+
 
 #
 # Drawing
@@ -97,7 +98,8 @@ page = (width, height, draw_page) ->
     filename = "test.png"
     fs.writeFile build_directory + filename, canvas.toBuffer()
 
-grid = (cols, rows, cell_width, cell_height, header_height, draw_page) ->
+grid = ({cols, rows, cell_width, cell_height, header_height}, draw_page) ->
+  header_height ||= 0
   page cols * cell_width, header_height + rows * cell_height, (ctx) ->
     i = 0
     draw_page (draw_cell) ->
@@ -124,8 +126,8 @@ v_gutter = 10
 string_spacing = 20
 fret_width = 45
 fret_overhang = .3 * fret_width
-padded_fretboard_width = 2 * v_gutter + fret_width * fret_count + fret_overhang
-padded_fretboard_height = 2 * h_gutter + (string_count - 1) * string_spacing
+padded_fretboard_width = 2 * v_gutter + fret_width * FretCount + fret_overhang
+padded_fretboard_height = 2 * h_gutter + (StringCount - 1) * string_spacing
 
 #
 # Drawing Fretboard and Diagrams
@@ -139,24 +141,24 @@ if draw_diagrams
   h_gutter = 5
   v_gutter = 5
   note_radius = 1
-  padded_fretboard_width = 2 * h_gutter + (string_count - 1) * string_spacing
-  padded_fretboard_height = 2 * v_gutter + fret_height * fret_count + fret_overhang
+  padded_fretboard_width = 2 * h_gutter + (StringCount - 1) * string_spacing
+  padded_fretboard_height = 2 * v_gutter + fret_height * FretCount + fret_overhang
 
 draw_strings = ->
-  for n, i in strings
+  for n, i in StringNumbers
     y = i * string_spacing + h_gutter
     ctx.beginPath()
     ctx.moveTo h_gutter, y
-    ctx.lineTo h_gutter + fret_count * fret_width + fret_overhang, y
+    ctx.lineTo h_gutter + FretCount * fret_width + fret_overhang, y
     ctx.lineWidth = 1
     ctx.stroke()
 
 draw_frets = ->
-  for fret_number in frets
+  for fret_number in FretNumbers
     x = fret_number * fret_width + h_gutter
     ctx.beginPath()
     ctx.moveTo x, h_gutter
-    ctx.lineTo x, h_gutter + (string_count - 1) * string_spacing
+    ctx.lineTo x, h_gutter + (StringCount - 1) * string_spacing
     ctx.lineWidth = 3 if fret_number == 0
     ctx.stroke()
     ctx.lineWidth = 1
@@ -177,19 +179,19 @@ draw_fingering = ({string, fret}, options) ->
 
 if draw_diagrams
   draw_strings = ->
-    for n, i in strings
+    for n, i in StringNumbers
       x = i * string_spacing + h_gutter
       ctx.beginPath()
       ctx.moveTo x, v_gutter
-      ctx.lineTo x, v_gutter + fret_count * fret_height + fret_overhang
+      ctx.lineTo x, v_gutter + FretCount * fret_height + fret_overhang
       ctx.stroke()
 
   draw_frets = ->
-    for fret_number in frets
+    for fret_number in FretNumbers
       y = fret_number * fret_height + v_gutter
       ctx.beginPath()
       ctx.moveTo v_gutter-.5, y
-      ctx.lineTo v_gutter+.5 + (string_count - 1) * string_spacing, y
+      ctx.lineTo v_gutter+.5 + (StringCount - 1) * string_spacing, y
       ctx.lineWidth = 3 if fret_number == 0
       ctx.stroke()
       ctx.lineWidth = 1
@@ -214,7 +216,7 @@ draw_fingerboard = (fingerings) ->
     for fingering in fingerings
       fretted_strings[fingering.string] = true
       draw_fingering fingering, fingering
-    for string_number in strings
+    for string_number in StringNumbers
       continue if fretted_strings[string_number]
       ctx.font = '4pt Helvetica'
       ctx.fillStyle = 'black'
@@ -254,7 +256,10 @@ interval_cards = ->
 intervals_from_position_page = (fingering) ->
   canvas_gutter = 20
   header_height = 20
-  grid 3, 4, padded_fretboard_width + canvas_gutter, padded_fretboard_height + header_height, 0, (cell) ->
+  grid {cols: 3, rows: 4
+  , cell_width: padded_fretboard_width + canvas_gutter
+  , cell_height: padded_fretboard_height + header_height}
+  , (cell) ->
     for interval_name, semitones in Intervals
       cell ->
         ctx.translate 0, header_height
@@ -275,14 +280,14 @@ intervals_from_note_sheets = ->
 intervals_page = (semitones) ->
   canvas_gutter = 5
   header_height = 40
-  cols = fret_count + 1
-  rows = string_count
+  cols = FretCount + 1
+  rows = StringCount
 
-  grid cols, rows
-  , padded_fretboard_width + canvas_gutter
-  , padded_fretboard_height + canvas_gutter
+  grid {cols, rows
+  , cell_width: padded_fretboard_width + canvas_gutter
+  , cell_height: padded_fretboard_height + canvas_gutter
   , header_height
-  , (cell) ->
+  }, (cell) ->
     title = LongIntervalNames[semitones] + " Intervals"
     ctx.font = '25px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
@@ -328,11 +333,11 @@ chord_page = (chord, options) ->
   colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  grid cols, rows
-  , padded_fretboard_width + diagram_gutter
-  , padded_fretboard_height + diagram_gutter
-  , diagram_title_height
-  , (cell) ->
+  grid {cols, rows
+  , cell_width: padded_fretboard_width + diagram_gutter
+  , cell_height: padded_fretboard_height + diagram_gutter
+  , header_height: diagram_title_height
+  }, (cell) ->
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
@@ -353,7 +358,7 @@ chord_page = (chord, options) ->
         draw_fingerboard fingerings
 
 optimize_fingers = (fingerings) ->
-  bystring = ([] for _ in strings)
+  bystring = ([] for _ in StringsNumber)
   bynote = ([] for _ in [0..10])
   for fingering in fingerings
     bystring[fingering.string - 1].push fingering
@@ -365,7 +370,7 @@ optimize_fingers = (fingerings) ->
   fingerings = (f for f in fingerings when f == bass_root or f.string < bass_root.string)
   # Select the lowest fret per string
   # TODO only if each note is represented
-  for string in strings
+  for string in StringNumbers
     fret = (f.fret for f in fingerings when f.string == string).sort()[0]
     fingerings = (f for f in fingerings when f.string != string or f.fret == fret)
   return fingerings
