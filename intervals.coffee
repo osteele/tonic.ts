@@ -395,7 +395,7 @@ draw_fingerboard = (positions, options={}) ->
       ctx.beginPath()
       ctx.arc h_gutter + string * string_spacing, y, string_spacing / 2, Math.PI/2, Math.PI*3/2, false
       ctx.arc h_gutter + (string + string_count - 1) * string_spacing, y, string_spacing / 2
-        , Math.PI*3/2, Math.PI/2, false
+        , Math.PI * 3/2, Math.PI * 1/2, false
       ctx.fillStyle = 'rgba(0,0,0, 0.5)'
       ctx.fill()
     # positions = remove_barre_fingerings(barres, positions)
@@ -408,7 +408,10 @@ draw_fingerboard = (positions, options={}) ->
       continue if fretted_strings[string_number]
       ctx.font = "#{closed_string_fontsize}pt Helvetica"
       ctx.fillStyle = 'black'
-      ctx.fillText "x", h_gutter + string_number * string_spacing - 1, v_gutter + above_fretboard - 2.5
+      m = ctx.measureText("x")
+      ctx.fillText "x"
+      , h_gutter + string_number * string_spacing - m.width / 2
+      , v_gutter + above_fretboard - fret_height * 0.5 + m.emHeightDescent
 
 draw_intervals_from = (root_position, semitones, color) ->
   root_note_number = pitch_number_for_position(root_position)
