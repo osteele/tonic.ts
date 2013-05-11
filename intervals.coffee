@@ -27,8 +27,8 @@ Chords = [
   {name: 'Major 7th', abbr: 'maj7', pitch_classes: '047e'},
   {name: 'Minor 7th', abbr: 'min7', pitch_classes: '037t'},
   {name: 'Dom 7 b5', abbr: '7b5', pitch_classes: '046t'},
-  {name: 'Min 7th b5', abbr: 'm7b5', pitch_classes: '036t'},
-  {name: 'Half-diminished 7th', abbrs: ['ø', 'Ø'], pitch_classes: '036t'},
+  # following is also half-diminished 7th
+  {name: 'Min 7th b5', abbr: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
   {name: 'Dim Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
   {name: 'Min Maj 7th', abbrs: ['min/maj7', 'min(maj7)'], pitch_classes: '037e'},
   {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitch_classes: '0479'},
@@ -329,7 +329,7 @@ draw_fingerboard = (positions, options={}) ->
   {barres} = options
   draw_strings()
   draw_frets()
-  if barres and (pos for pos in positions when pos.fret > 0).length >= 4
+  if barres and (pos for pos in positions when pos.fret > 0).length > 4
     fret_rows = for fn in FretNumbers
       (for sn in StringNumbers
         if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
@@ -461,6 +461,29 @@ chord_fingerings_page = (chord, root_note) ->
     for fingering, i in fingerings
       cell -> draw_fingerboard(fingering)
 
+draw_pitch_diagram = (pitch_classes, degree_colors) ->
+  r = 10
+  pitch_names = '1 2b 2 3b 3 4 T 5 6b 6 7b 7'.split(/\s/)
+  pitch_names = 'R m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7'.split(/\s/)
+  pitch_class_angle = (pitch_class) -> (-3 + pitch_class) * 2 * Math.PI / 12
+  for pitch_class, degree_index in pitch_classes
+    a = pitch_class_angle(pitch_class)
+    ctx.beginPath()
+    ctx.moveTo 0, 0
+    ctx.lineTo r * Math.cos(a), r * Math.sin(a)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.arc r * Math.cos(a), r * Math.sin(a), 2, 0, 2 * Math.PI, false
+    ctx.fillStyle = degree_colors[degree_index]
+    ctx.fill()
+  ctx.font = '4pt Times' if draw_diagrams
+  ctx.fillStyle = 'black'
+  for class_name, pitch_class in pitch_names
+    a = pitch_class_angle(pitch_class)
+    r2 = r + 7
+    m = ctx.measureText(class_name)
+    ctx.fillText class_name, r2 * Math.cos(a) - m.width / 2, r2 * Math.sin(a) + m.emHeightDescent
+
 chord_page = (chord, options) ->
   {best_fingering} = options || {}
 
@@ -484,9 +507,16 @@ chord_page = (chord, options) ->
   , cell_height: padded_fretboard_height + diagram_gutter
   , header_height: diagram_title_height
   , (cell) ->
+
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
+
+    ctx.save()
+    ctx.translate 205, 20
+    ctx.scale 0.85,0.85
+    draw_pitch_diagram chord.pitch_classes, degree_colors
+    ctx.restore()
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     for pitch in pitches
@@ -507,12 +537,13 @@ chord_page = (chord, options) ->
 
 chord_book = (options) ->
   page_count = options.pages
-  book "Combined Fretboard Chords", pages: options.pages, (page) ->
+  title = if options.best_fingering then "Fretboard Chords" else "Combined Fretboard Chords"
+  book title, pages: options.pages, (page) ->
     for chord in Chords
       page -> chord_page chord, options
 
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 1, pages: 0
+chord_book best_fingering: 0, pages: 0
 # chord_fingerings_page Chords[0], 44 + 3
