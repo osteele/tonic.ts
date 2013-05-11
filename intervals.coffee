@@ -52,23 +52,22 @@ interval_class_between = (pca, pcb) ->
 # Fretboard
 #
 
-StringNumbers = [1..6]
+StringNumbers = [0..5]
 StringCount = StringNumbers.length
 
 FretNumbers = [0..4]  # includes nut
 FretCount = FretNumbers.length - 1  # doesn't include nut
 
-# FIXME these are backwards from the string numbers
 StringIntervals = [5, 5, 5, 4, 5]
 
 OpenStringNoteNumbers = do (numbers=[]) ->
-  numbers.push 44
+  numbers.push 20
   for interval, i in StringIntervals
     numbers.push numbers[i] + interval
-  numbers.reverse()
+  numbers
 
 pitch_number_for_position = ({string, fret}) ->
-  OpenStringNoteNumbers[string - 1] + fret
+  OpenStringNoteNumbers[string] + fret
 
 finger_positions_each = (fn) ->
   for string in StringNumbers
@@ -92,8 +91,7 @@ fingerings_for = (chord, root_note) ->
     positions
 
   frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
-    for position in positions
-      strings[position.string - 1].push position
+    strings[position.string].push position for position in positions
     strings
 
   compute_choices = (by_string) ->
@@ -113,14 +111,14 @@ fingerings_for = (chord, root_note) ->
 
   closed_medial_strings = (fs) ->
     string_frets = (-1 for s in StringNumbers)
-    string_frets[f.string - 1] = f.fret for f in fs
+    string_frets[pos.string] = pos.fret for pos in fs
     p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
     return p.match(/\dx+\d/)
 
   closed_treble_strings = (fs) ->
     string_frets = (-1 for s in StringNumbers)
-    string_frets[f.string - 1] = f.fret for f in fs
-    p = ((if x >= 0 then x else 'x') for x in string_frets).reverse().join('')
+    string_frets[pos.string] = pos.fret for pos in fs
+    p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
     return p.match(/x$/)
 
   finger_count = (fs) ->
@@ -129,7 +127,7 @@ fingerings_for = (chord, root_note) ->
   high_note_count = (fs) -> -fs.length
 
   is_first_position = (fs) ->
-    _(fs).sortBy((f) -> -f.string)[0].degree_index == 0
+    _(fs).sortBy((f) -> f.string)[0].degree_index == 0
 
   cmp = (fn) -> (x...) -> !fn(x...)
 
@@ -262,7 +260,7 @@ if true
   padded_fretboard_height = 2 * v_gutter + (fret_height + 2) * FretCount + fret_overhang
 
 draw_strings = ->
-  for n, i in StringNumbers
+  for i in StringNumbers
     y = i * string_spacing + h_gutter
     ctx.beginPath()
     ctx.moveTo h_gutter, y
@@ -285,7 +283,7 @@ draw_finger_position = ({string, fret}, options) ->
   x = h_gutter + (fret - 1) * fret_width + fret_width / 2
   x = h_gutter if fret == 0
   ctx.beginPath()
-  ctx.arc x, v_gutter + (string - 1) * string_spacing, 7, 0, 2 * Math.PI, false
+  ctx.arc x, v_gutter + (6 - string) * string_spacing, 7, 0, 2 * Math.PI, false
   ctx.fillStyle = 'red'
   ctx.fillStyle = color or 'white' unless is_root
   ctx.lineWidth = 2 unless is_root
@@ -296,7 +294,7 @@ draw_finger_position = ({string, fret}, options) ->
 
 if draw_diagrams
   draw_strings = ->
-    for n, i in StringNumbers
+    for i in StringNumbers
       x = i * string_spacing + h_gutter
       ctx.beginPath()
       ctx.moveTo x, v_gutter + above_fretboard
@@ -320,32 +318,35 @@ if draw_diagrams
     ctx.strokeStyle = color or (if is_root then 'red' else 'black')
     ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.arc h_gutter + (6 - string) * string_spacing, y, note_radius, 0, 2 * Math.PI, false
+    ctx.arc h_gutter + string * string_spacing, y, note_radius, 0, 2 * Math.PI, false
     ctx.fill() if fret or is_root
     ctx.stroke()
     ctx.strokeStyle = 'black'
+
+find_barres = (positions) ->
+  fret_rows = for fn in FretNumbers
+    (for sn in StringNumbers
+      if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
+        '.'
+      else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
+        '-'
+      else if _.find(positions, (pos) -> pos.string == sn and pos.fret == fn)
+        'x'
+      else
+        ' ').join('')
+  barres = []
+  for fp, fn in fret_rows
+    continue if fn == 0
+    m = fp.match(/^[^x]*(x[\.x]+x\.+?)$/)
+    barres.push fret: fn, string: m[0].length - m[1].length, string_count: m[1].length if m
+  barres
 
 draw_fingerboard = (positions, options={}) ->
   {barres} = options
   draw_strings()
   draw_frets()
   if barres and (pos for pos in positions when pos.fret > 0).length > 4
-    fret_rows = for fn in FretNumbers
-      (for sn in StringNumbers
-        if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
-          '.'
-        else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
-          '-'
-        else if _.find(positions, (pos) -> pos.string == sn and pos.fret == fn)
-          'x'
-        else
-          ' ').reverse().join('')
-    barres = []
-    for fp, fn in fret_rows
-      continue if fn == 0
-      m = fp.match(/^[^x]*(x[\.x]+x)$/)
-      barres.push fret: fn, string: m[0].length - m[1].length, string_count: m[1].length if m
-    for {fret, string, fret, string_count} in barres
+    for {fret, string, fret, string_count} in find_barres(positions)
       y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
       ctx.beginPath()
       ctx.arc h_gutter + string * string_spacing, y, string_spacing / 2, Math.PI/2, Math.PI*3/2, false
@@ -362,7 +363,7 @@ draw_fingerboard = (positions, options={}) ->
       continue if fretted_strings[string_number]
       ctx.font = "#{closed_string_fontsize}pt Helvetica"
       ctx.fillStyle = 'black'
-      ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter + above_fretboard - 2.5
+      ctx.fillText "x", h_gutter + string_number * string_spacing - 1, v_gutter + above_fretboard - 2.5
 
 draw_intervals_from = (root_position, semitones, color) ->
   root_note_number = pitch_number_for_position(root_position)
@@ -522,17 +523,19 @@ chord_page = (chord, options) ->
     for pitch in pitches
       root_fingering = pitch_fingers[pitch]
       chord_name = "#{NoteNames[pitch]}#{chord.abbr}"
+      continue if options.only unless chord_name == options.only
       cell ->
+        ctx.font = '7pt Times'
+        ctx.fillStyle = 'rgb(10,20,30)'
+        ctx.fillText chord_name, h_gutter, -3
+
         fingering = []
         for semitones, degree_index in chord.pitch_classes
           for {string, fret} in intervals_from(root_fingering, semitones)
             fingering.push {string, fret, degree_index}
         fingering = best_fingering_for(chord, pitch) if best_fingering
+
         position.color = degree_colors[position.degree_index] for position in fingering
-        ctx.font = '20px Impact'
-        ctx.font = '5pt Times' if draw_diagrams
-        ctx.fillStyle = 'rgb(10,20,30)'
-        ctx.fillText chord_name, h_gutter, -3
         draw_fingerboard fingering, barres: best_fingering
 
 chord_book = (options) ->
@@ -545,5 +548,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 0, pages: 0
+chord_book best_fingering: 1, pages: 1#, only: 'G#'
 # chord_fingerings_page Chords[0], 44 + 3
