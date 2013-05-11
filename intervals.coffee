@@ -18,7 +18,7 @@ Chords = [
   {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
   {name: 'Minor', abbr: 'm', pitch_classes: '037'},
   {name: 'Aug', abbrs: ['+', 'aug'], pitch_classes: '048'},
-  {name: 'Dim', abbr: ['°', 'dim'], pitch_classes: '036'},
+  {name: 'Dim', abbrs: ['°', 'dim'], pitch_classes: '036'},
   {name: 'Sus2', abbr: 'sus2', pitch_classes: '027'},
   {name: 'Sus4', abbr: 'sus4', pitch_classes: '057'},
   {name: 'Dom 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
@@ -42,6 +42,11 @@ do ->
     chord.abbr ||= chord.abbrs[0]
     chord.pitch_classes = (keys[c] or parseInt(c, 10) for c in chord.pitch_classes)
 
+interval_class_between = (pca, pcb) ->
+  n = (pcb - pca) % 12
+  n += 12 while n < 0
+  return n
+
 
 #
 # Fretboard
@@ -62,7 +67,7 @@ OpenStringNoteNumbers = do (numbers=[]) ->
     numbers.push numbers[i] + interval
   numbers.reverse()
 
-fingering_note_number = ({string, fret}) ->
+pitch_number_for_position = ({string, fret}) ->
   OpenStringNoteNumbers[string - 1] + fret
 
 finger_positions_each = (fn) ->
@@ -70,21 +75,21 @@ finger_positions_each = (fn) ->
     for fret in FretNumbers
       fn string: string, fret: fret
 
-intervals_from = (fingering, semitones) ->
-  root_note_number = fingering_note_number(fingering)
-  fingerings = []
-  finger_positions_each (fingering) ->
-    return unless (fingering_note_number(fingering) - root_note_number + 240) % 12 == semitones
-    fingerings.push fingering
-  return fingerings
+intervals_from = (root_position, semitones) ->
+  root_note_number = pitch_number_for_position(root_position)
+  positions = []
+  finger_positions_each (finger_position) ->
+    return unless interval_class_between(root_note_number, pitch_number_for_position(finger_position)) == semitones
+    positions.push finger_position
+  return positions
 
 fingerings_for = (chord, root_note) ->
-  fingerings = do (fingering=[]) ->
+  positions = do (positions=[]) ->
     finger_positions_each (pos) ->
-      interval_class = (fingering_note_number(pos) - root_note + 240) % 12
-      degree_index = chord.offsets.indexOf(interval_class)
-      fingering.push {string: pos.string, fret: pos.fret, degree_index: i} if degree_index >= 0
-    fingering
+      interval_class = interval_class_between(root_note, pitch_number_for_position(pos))
+      degree_index = chord.pitch_classes.indexOf(interval_class)
+      positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
+    positions
 
   frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
     for position in positions
@@ -101,7 +106,7 @@ fingerings_for = (chord, root_note) ->
   count_distinct_notes = (fs) ->
     _.chain(fs).pluck('degree_index').uniq().value().length
 
-  chord_note_count = count_distinct_notes(fingerings)
+  chord_note_count = count_distinct_notes(positions)
 
   has_all_notes = (fs) ->
     return count_distinct_notes(fs) == chord_note_count
@@ -145,7 +150,7 @@ fingerings_for = (chord, root_note) ->
   for {name, filter} in filters
     filtered = (choice for choice in choices when filter(choice))
     unless filtered.length
-      console.error "#{chord_name}: fatal filter #{name}"
+      console.error "#{chord_name}: no fingerings pass filter \"#{name}\""
       filtered = choices
     choices = filtered
   for sort in sorts
@@ -335,7 +340,7 @@ draw_fingerboard = (finger_positions) ->
       ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter + above_fretboard - 2.5
 
 draw_intervals_from = (root_position, semitones, color) ->
-  root_note_number = fingering_note_number(root_position)
+  root_note_number = pitch_number_for_position(root_position)
   draw_finger_position root_position, is_root: true #, color: color
   for position in intervals_from(root_position, semitones)
     continue if position.string == root_position.string and position.fret == root_position.fret
@@ -443,7 +448,7 @@ chord_page = (chord, options) ->
 
   pitch_fingers = []
   finger_positions_each (finger_position) ->
-    pitch = fingering_note_number(finger_position) % 12
+    pitch = pitch_number_for_position(finger_position) % 12
     pitch_fingers[pitch] = finger_position
 
   colors = ['red', 'blue', 'green', 'orange']
@@ -484,5 +489,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 0, pages: 2
+chord_book best_fingering: 1, pages: 0
 # chord_fingerings_page Chords[0], 44 + 3
