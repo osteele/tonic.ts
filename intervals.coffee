@@ -15,24 +15,32 @@ LongIntervalNames = [
 NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
 
 Chords = [
-  {name: 'Major', abbr: '', offsets: [0, 4, 7]},
-  {name: 'Minor', abbr: 'm', offsets: [0, 3, 7]},
-  {name: 'Aug', abbr: '+', offsets: [0, 4, 8]},
-  {name: 'Dim', abbr: '°', offsets: [0, 3, 6]},
-  {name: 'Sus2', abbr: 'sus2', offsets: [0, 2, 7]},
-  {name: 'Sus4', abbr: 'sus4', offsets: [0, 5, 7]},
-  {name: 'Dom 7th', abbr: '7', offsets: [0, 4, 7, 10]},
-  {name: 'Major 7th', abbr: 'Maj7', offsets: [0, 4, 7, 11]},
-  {name: 'Minor 7th', abbr: 'min7', offsets: [0, 3, 7, 10]},
-  {name: 'Dim 7th', abbr: '°7', offsets: [0, 3, 6, 9]},
-  {name: 'Dom 7 b5', abbr: '7b5', offsets: [0, 4, 6, 10]},
-  {name: 'Min 7th b5', abbr: 'm7b5', offsets: [0, 3, 6, 10]},
-  # {name: 'Aug 7th', abbr: '7aug', offsets: [0, 4, 8, 10]},
-  {name: 'Dim Maj 7th', abbr: '°Maj7', offsets: [0, 3, 6, 11]},
-  {name: 'Min Maj 7th', abbr: 'min-maj7', offsets: [0, 3, 7, 11]},
-  # {name: '6th', abbr: '6', offsets: [0, 4, 7, 9]},
-  # half-diminished øØ
+  {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
+  {name: 'Minor', abbr: 'm', pitch_classes: '037'},
+  {name: 'Aug', abbrs: ['+', 'aug'], pitch_classes: '048'},
+  {name: 'Dim', abbr: ['°', 'dim'], pitch_classes: '036'},
+  {name: 'Sus2', abbr: 'sus2', pitch_classes: '027'},
+  {name: 'Sus4', abbr: 'sus4', pitch_classes: '057'},
+  {name: 'Dom 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
+  {name: 'Aug 7th', abbrs: ['+7', '7aug'], pitch_classes: '048t'},
+  {name: 'Dim 7th', abbrs: ['°7', 'dim7'], pitch_classes: '0369'},
+  {name: 'Major 7th', abbr: 'maj7', pitch_classes: '047e'},
+  {name: 'Minor 7th', abbr: 'min7', pitch_classes: '037t'},
+  {name: 'Dom 7 b5', abbr: '7b5', pitch_classes: '046t'},
+  {name: 'Min 7th b5', abbr: 'm7b5', pitch_classes: '036t'},
+  {name: 'Half-diminished 7th', abbrs: ['ø', 'Ø'], pitch_classes: '036t'},
+  {name: 'Dim Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
+  {name: 'Min Maj 7th', abbrs: ['min/maj7', 'min(maj7)'], pitch_classes: '037e'},
+  {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitch_classes: '0479'},
+  {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitch_classes: '0379'},
 ]
+
+do ->
+  keys = {'t': 10, 'e': 11}
+  for chord in Chords
+    chord.abbrs = chord.abbrs.split(/s/) if typeof chord.abbrs == 'string'
+    chord.abbr ||= chord.abbrs[0]
+    chord.pitch_classes = (keys[c] or parseInt(c, 10) for c in chord.pitch_classes)
 
 
 #
@@ -73,9 +81,9 @@ intervals_from = (fingering, semitones) ->
 fingerings_for = (chord, root_note) ->
   fingerings = do (fingering=[]) ->
     finger_positions_each (pos) ->
-      n = (fingering_note_number(pos) - root_note + 240) % 12
-      i = chord.offsets.indexOf(n)
-      fingering.push {string: pos.string, fret: pos.fret, note_number: i} if i >= 0
+      interval_class = (fingering_note_number(pos) - root_note + 240) % 12
+      degree_index = chord.offsets.indexOf(interval_class)
+      fingering.push {string: pos.string, fret: pos.fret, degree_index: i} if degree_index >= 0
     fingering
 
   frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
@@ -91,7 +99,7 @@ fingerings_for = (chord, root_note) ->
       for n in frets for right in remaining)...)
 
   count_distinct_notes = (fs) ->
-    _.chain(fs).pluck('note_number').uniq().value().length
+    _.chain(fs).pluck('degree_index').uniq().value().length
 
   chord_note_count = count_distinct_notes(fingerings)
 
@@ -116,7 +124,7 @@ fingerings_for = (chord, root_note) ->
   high_note_count = (fs) -> -fs.length
 
   is_first_position = (fs) ->
-    _(fs).sortBy((f) -> -f.string)[0].note_number == 0
+    _(fs).sortBy((f) -> -f.string)[0].degree_index == 0
 
   cmp = (fn) -> (x...) -> !fn(x...)
 
@@ -456,11 +464,11 @@ chord_page = (chord, options) ->
       chord_name = "#{NoteNames[pitch]}#{chord.abbr}"
       cell ->
         fingerings = []
-        for semitones, note_number in chord.offsets
+        for semitones, degree_index in chord.pitch_classes
           for {string, fret} in intervals_from(root_fingering, semitones)
-            fingerings.push {string, fret, note_number}
+            fingerings.push {string, fret, degree_index}
         fingerings = best_fingering_for(chord, pitch) if best_fingering
-        f.color = colors[f.note_number] for f in fingerings
+        f.color = colors[f.degree_index] for f in fingerings
         ctx.font = '20px Impact'
         ctx.font = '5pt Times' if draw_diagrams
         ctx.fillStyle = 'rgb(10,20,30)'
