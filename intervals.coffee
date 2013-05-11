@@ -28,7 +28,7 @@ Chords = [
   {name: 'Minor 7th', abbr: 'min7', pitch_classes: '037t'},
   {name: 'Dom 7 b5', abbr: '7b5', pitch_classes: '046t'},
   # following is also half-diminished 7th
-  {name: 'Min 7th b5', abbr: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
+  {name: 'Min 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
   {name: 'Dim Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
   {name: 'Min Maj 7th', abbrs: ['min/maj7', 'min(maj7)'], pitch_classes: '037e'},
   {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitch_classes: '0479'},
@@ -41,6 +41,9 @@ do ->
     chord.abbrs = chord.abbrs.split(/s/) if typeof chord.abbrs == 'string'
     chord.abbr ||= chord.abbrs[0]
     chord.pitch_classes = (keys[c] or parseInt(c, 10) for c in chord.pitch_classes)
+
+compute_chord_name = (chord_root, chord) ->
+  "#{NoteNames[chord_root]}#{chord.abbr}"
 
 interval_class_between = (pca, pcb) ->
   n = (pcb - pca) % 12
@@ -82,7 +85,35 @@ intervals_from = (root_position, semitones) ->
     positions.push finger_position
   return positions
 
+find_barres = (positions) ->
+  fret_rows = for fn in FretNumbers
+    (for sn in StringNumbers
+      if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
+        '.'
+      else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
+        '-'
+      else if _.find(positions, (pos) -> pos.string == sn and pos.fret == fn)
+        'x'
+      else
+        ' ').join('')
+  barres = []
+  for fp, fn in fret_rows
+    continue if fn == 0
+    m = fp.match(/^[^x]*(x[\.x]+x\.*)$/)
+    continue unless m
+    barres.push
+      fret: fn
+      string: m[0].length - m[1].length
+      string_count: m[1].length
+      subsumption_count: m[1].match(/x/g).length
+  # console.info fret_rows.join("\n")
+  # console.info barres
+  barres
+
 fingerings_for = (chord, root_note) ->
+  #
+  # Generate
+  #
   positions = do (positions=[]) ->
     finger_positions_each (pos) ->
       interval_class = interval_class_between(root_note, pitch_number_for_position(pos))
@@ -94,12 +125,14 @@ fingerings_for = (chord, root_note) ->
     strings[position.string].push position for position in positions
     strings
 
-  compute_choices = (by_string) ->
+  collect_fingerings = (by_string) ->
     return [[]] unless by_string.length
     frets = by_string[0]
-    remaining = compute_choices(by_string[1..])
+    remaining = collect_fingerings(by_string[1..])
     return remaining.concat(([n].concat(right) \
       for n in frets for right in remaining)...)
+
+  generate_fingerings = -> collect_fingerings(frets_per_string)
 
   count_distinct_notes = (fs) ->
     _.chain(fs).pluck('degree_index').uniq().value().length
@@ -124,18 +157,42 @@ fingerings_for = (chord, root_note) ->
   finger_count = (fs) ->
     (f for f in fs when f.fret).length
 
-  high_note_count = (fs) -> -fs.length
-
-  is_first_position = (fs) ->
-    _(fs).sortBy((f) -> f.string)[0].degree_index == 0
+  few_fingers = (fs) ->
+    barres = find_barres(fs)
+    n = (f for f in fs when f.fret).length
+    n -= barre.subsumption_count for barre in barres
+    return n <= 4
 
   cmp = (fn) -> (x...) -> !fn(x...)
+
+  #
+  # Filter
+  #
 
   filters = [
     {name: 'has all chord notes', filter: has_all_notes},
     {name: 'no muted medial strings', filter: cmp(closed_medial_strings)},
-    {name: 'no muted treble strings', filter: cmp(closed_treble_strings)}
+    {name: 'no muted treble strings', filter: cmp(closed_treble_strings)},
+    {name: 'no more than four fingers', filter: few_fingers}
   ]
+
+  filter_fingerings = (fingerings) ->
+    for {name, filter} in filters
+      filtered = (fingering for fingering in fingerings when filter(fingering))
+      unless filtered.length
+        console.error "#{chord_name}: no fingerings pass filter \"#{name}\""
+        filtered = fingerings
+      fingerings = filtered
+    return fingerings
+
+  #
+  # Sort
+  #
+
+  high_note_count = (fs) -> -fs.length
+
+  is_first_position = (fs) ->
+    _(fs).sortBy((f) -> f.string)[0].degree_index == 0
 
   sorts = [
     finger_count,
@@ -143,19 +200,23 @@ fingerings_for = (chord, root_note) ->
     cmp(is_first_position)
   ]
 
+  sort_fingerings = (fingerings) ->
+    for sort in sorts
+      fingerings = _(fingerings).sortBy(sort)
+    return fingerings
+
+  #
+  # Generate, filter, and sort
+  #
+
   chord_name = "#{NoteNames[root_note % 12]}#{chord.abbr}"
-  choices = compute_choices(frets_per_string)
-  for {name, filter} in filters
-    filtered = (choice for choice in choices when filter(choice))
-    unless filtered.length
-      console.error "#{chord_name}: no fingerings pass filter \"#{name}\""
-      filtered = choices
-    choices = filtered
-  for sort in sorts
-    choices = _(choices).sortBy(sort)
-  # for choice in choices
-  #   console.info finger_count(choice)
-  return choices
+  fingerings = generate_fingerings()
+  fingerings = filter_fingerings(fingerings)
+  fingerings = sort_fingerings(fingerings)
+
+  # for fingering in fingerings
+  #   few_fingers(fingering)
+  return fingerings
 
 best_fingering_for = (chord, root_note) ->
   return fingerings_for(chord, root_note)[0]
@@ -323,30 +384,13 @@ if draw_diagrams
     ctx.stroke()
     ctx.strokeStyle = 'black'
 
-find_barres = (positions) ->
-  fret_rows = for fn in FretNumbers
-    (for sn in StringNumbers
-      if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
-        '.'
-      else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
-        '-'
-      else if _.find(positions, (pos) -> pos.string == sn and pos.fret == fn)
-        'x'
-      else
-        ' ').join('')
-  barres = []
-  for fp, fn in fret_rows
-    continue if fn == 0
-    m = fp.match(/^[^x]*(x[\.x]+x\.+?)$/)
-    barres.push fret: fn, string: m[0].length - m[1].length, string_count: m[1].length if m
-  barres
-
 draw_fingerboard = (positions, options={}) ->
-  {barres} = options
+  {draw_barres} = options
   draw_strings()
   draw_frets()
-  if barres and (pos for pos in positions when pos.fret > 0).length > 4
-    for {fret, string, fret, string_count} in find_barres(positions)
+  if draw_barres and (pos for pos in positions when pos.fret > 0).length > 4
+    barres = find_barres(positions)
+    for {fret, string, fret, string_count} in barres
       y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
       ctx.beginPath()
       ctx.arc h_gutter + string * string_spacing, y, string_spacing / 2, Math.PI/2, Math.PI*3/2, false
@@ -354,6 +398,7 @@ draw_fingerboard = (positions, options={}) ->
         , Math.PI*3/2, Math.PI/2, false
       ctx.fillStyle = 'rgba(0,0,0, 0.5)'
       ctx.fill()
+    # positions = remove_barre_fingerings(barres, positions)
   if positions
     fretted_strings = []
     for position in positions
@@ -452,15 +497,16 @@ intervals_book = ({by_root}) ->
       for _, semitones in Intervals
         page -> intervals_page semitones
 
-chord_fingerings_page = (chord, root_note) ->
-  fingerings = fingerings_for(chord, root_note)
-  filename "Fingerings"
+chord_fingerings_page = (chord, chord_root) ->
+  chord_root = NoteNames.indexOf(chord_root) if typeof chord_root == 'string'
+  fingerings = fingerings_for(chord, chord_root)
+  filename "Fingerings for #{compute_chord_name chord_root, chord}"
   grid cols: 10, rows: 10
   , cell_width: padded_fretboard_width + 10
   , cell_height: padded_fretboard_height + 5
   , (cell) ->
-    for fingering, i in fingerings
-      cell -> draw_fingerboard(fingering)
+    for positions in fingerings
+      cell -> draw_fingerboard positions, draw_barres: true
 
 draw_pitch_diagram = (pitch_classes, degree_colors) ->
   r = 10
@@ -522,7 +568,7 @@ chord_page = (chord, options) ->
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     for pitch in pitches
       root_fingering = pitch_fingers[pitch]
-      chord_name = "#{NoteNames[pitch]}#{chord.abbr}"
+      chord_name = compute_chord_name pitch, chord
       continue if options.only unless chord_name == options.only
       cell ->
         ctx.font = '7pt Times'
@@ -536,7 +582,7 @@ chord_page = (chord, options) ->
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
         position.color = degree_colors[position.degree_index] for position in fingering
-        draw_fingerboard fingering, barres: best_fingering
+        draw_fingerboard fingering, draw_barres: best_fingering
 
 chord_book = (options) ->
   page_count = options.pages
@@ -548,5 +594,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 1, pages: 1#, only: 'G#'
-# chord_fingerings_page Chords[0], 44 + 3
+chord_book best_fingering: 1, pages: 0#, only: 'G#'
+# chord_fingerings_page Chords[6], 'F'
