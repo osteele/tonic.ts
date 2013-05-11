@@ -71,16 +71,16 @@ intervals_from = (fingering, semitones) ->
   return fingerings
 
 fingerings_for = (chord, root_note) ->
-  fingerings = do (fs=[]) ->
-    finger_positions_each (f) ->
-      n = (fingering_note_number(f) - root_note + 240) % 12
+  fingerings = do (fingering=[]) ->
+    finger_positions_each (pos) ->
+      n = (fingering_note_number(pos) - root_note + 240) % 12
       i = chord.offsets.indexOf(n)
-      fs.push {string: f.string, fret: f.fret, note_number: i} if i >= 0
-    fs
+      fingering.push {string: pos.string, fret: pos.fret, note_number: i} if i >= 0
+    fingering
 
   frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
-    for fingering in fingerings
-      strings[fingering.string - 1].push fingering
+    for position in positions
+      strings[position.string - 1].push position
     strings
 
   compute_choices = (by_string) ->
@@ -151,7 +151,7 @@ best_fingering_for = (chord, root_note) ->
 
 
 #
-# Drawing
+# Drawing and Layout
 #
 
 BuildDirectory = __dirname + '/build/'
@@ -267,7 +267,7 @@ draw_frets = ->
     ctx.stroke()
     ctx.lineWidth = 1
 
-draw_fingering = ({string, fret}, options) ->
+draw_finger_position = ({string, fret}, options) ->
   {is_root, color} = options || {}
   x = h_gutter + (fret - 1) * fret_width + fret_width / 2
   x = h_gutter if fret == 0
@@ -300,7 +300,7 @@ if draw_diagrams
       ctx.stroke()
       ctx.lineWidth = 1
 
-  draw_fingering = ({string, fret}, options) ->
+  draw_finger_position = ({string, fret}, options) ->
     {is_root, color} = options || {}
     y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
     ctx.fillStyle = color or (if is_root then 'red' else 'white')
@@ -312,26 +312,26 @@ if draw_diagrams
     ctx.stroke()
     ctx.strokeStyle = 'black'
 
-draw_fingerboard = (fingerings) ->
+draw_fingerboard = (finger_positions) ->
   draw_strings()
   draw_frets()
-  if fingerings
+  if finger_positions
     fretted_strings = []
-    for fingering in fingerings
-      fretted_strings[fingering.string] = true
-      draw_fingering fingering, fingering
+    for position in finger_positions
+      fretted_strings[position.string] = true
+      draw_finger_position position, position
     for string_number in StringNumbers
       continue if fretted_strings[string_number]
       ctx.font = "#{closed_string_fontsize}pt Helvetica"
       ctx.fillStyle = 'black'
       ctx.fillText "x", h_gutter + (6 - string_number) * string_spacing - 1, v_gutter + above_fretboard - 2.5
 
-draw_intervals_from = (root_fingering, semitones, color) ->
-  root_note_number = fingering_note_number(root_fingering)
-  draw_fingering root_fingering, is_root: true #, color: color
-  for fingering in intervals_from(root_fingering, semitones)
-    continue if fingering.string == root_fingering.string and fingering.fret == root_fingering.fret
-    draw_fingering fingering, color: color
+draw_intervals_from = (root_position, semitones, color) ->
+  root_note_number = fingering_note_number(root_position)
+  draw_finger_position root_position, is_root: true #, color: color
+  for position in intervals_from(root_position, semitones)
+    continue if position.string == root_position.string and position.fret == root_position.fret
+    draw_finger_position position, color: color
 
 
 #
@@ -339,7 +339,7 @@ draw_intervals_from = (root_fingering, semitones, color) ->
 #
 
 interval_cards = ->
-  finger_positions_each (string, fret) ->
+  finger_positions_each ({string, fret}) ->
     canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
     ctx = canvas.getContext('2d')
     erase_background()
@@ -358,7 +358,7 @@ interval_cards = ->
       filename = "#{string}-#{fret}-#{interval_long_name}.png"
       save_canvas_to_png canvas, filename
 
-intervals_from_position_page = (fingering) ->
+intervals_from_position_page = (finger_position) ->
   canvas_gutter = 20
   header_height = 20
   grid {cols: 3, rows: 4
@@ -369,7 +369,7 @@ intervals_from_position_page = (fingering) ->
       cell ->
         ctx.translate 0, header_height
         draw_fingerboard()
-        draw_intervals_from fingering, semitones
+        draw_intervals_from finger_position, semitones
         canvas_label = interval_name
         ctx.font = '10px Times'
         ctx.fillStyle = 'rgb(10,20,30)'
@@ -379,7 +379,7 @@ intervals_from_position_page = (fingering) ->
   # save_canvas_to_png canvas, filename unless pdf
 
 intervals_from_note_sheets = ->
-  finger_positions_each (string, fret) ->
+  finger_positions_each ({string, fret}) ->
     intervals_from_note_sheet string, fret
 
 intervals_page = (semitones) ->
@@ -398,21 +398,16 @@ intervals_page = (semitones) ->
     ctx.fillStyle = 'rgb(128, 128, 128)'
     ctx.fillText title, canvas_gutter / 2, 30
 
-    finger_positions_each (fingering) ->
+    finger_positions_each (finger_position) ->
       cell ->
         draw_fingerboard()
-        draw_intervals_from fingering, semitones
-
-  # unless pdf
-  #   long_interval_name = Intervals[semitones].replace(/^m/, 'min').replace(/^M/, 'Maj')
-  #   filename = "interval-#{long_interval_name}-study-sheet.pdf"
-  #   fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+        draw_intervals_from finger_position, semitones
 
 intervals_book = ({by_root}) ->
   if by_root
     book "Fretboard Intervals by Root", (page) ->
-      finger_positions_each (fingering) ->
-        page -> intervals_from_position_page fingering
+      finger_positions_each (finger_position) ->
+        page -> intervals_from_position_page finger_position
   else
     book "Fretboard Intervals", (page) ->
       for _, semitones in Intervals
@@ -439,9 +434,9 @@ chord_page = (chord, options) ->
     diagram_gutter = 10
 
   pitch_fingers = []
-  finger_positions_each (fingering) ->
-    pitch_number = fingering_note_number(fingering) % 12
-    pitch_fingers[pitch_number] = fingering
+  finger_positions_each (finger_position) ->
+    pitch = fingering_note_number(finger_position) % 12
+    pitch_fingers[pitch] = finger_position
 
   colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
@@ -456,15 +451,15 @@ chord_page = (chord, options) ->
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
 
     for ix in [0...12]
-      pitch_number = (ix * 5 + 3) % 12
-      root_fingering = pitch_fingers[pitch_number]
-      chord_name = "#{NoteNames[pitch_number]}#{chord.abbr}"
+      pitch = (ix * 5 + 3) % 12
+      root_fingering = pitch_fingers[pitch]
+      chord_name = "#{NoteNames[pitch]}#{chord.abbr}"
       cell ->
         fingerings = []
         for semitones, note_number in chord.offsets
           for {string, fret} in intervals_from(root_fingering, semitones)
             fingerings.push {string, fret, note_number}
-        fingerings = best_fingering_for(chord, pitch_number) if best_fingering
+        fingerings = best_fingering_for(chord, pitch) if best_fingering
         f.color = colors[f.note_number] for f in fingerings
         ctx.font = '20px Impact'
         ctx.font = '5pt Times' if draw_diagrams
@@ -481,5 +476,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 0, pages: 1
+chord_book best_fingering: 0, pages: 2
 # chord_fingerings_page Chords[0], 44 + 3
