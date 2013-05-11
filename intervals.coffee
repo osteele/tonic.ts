@@ -12,7 +12,7 @@ LongIntervalNames = [
   'Octave', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
   'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th']
 
-NoteNames = "E F F# G G# A A# B C C# D D#".split(/\s/)
+NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
 
 Chords = [
   {name: 'Major', abbr: '', offsets: [0, 4, 7]},
@@ -196,10 +196,15 @@ grid = ({cols, rows, cell_width, cell_height, header_height}, draw_page) ->
       ctx.restore()
       i += 1
 
-book = (filename, draw_book) ->
+book = (filename, options, draw_book) ->
+  draw_book = options if typeof options == 'function'
   pdf = true
   mode = 'draw'
+  page_limit = options.pages
+  page_count = 0
   draw_book (draw_page) ->
+    return if page_limit and page_limit <= page_count
+    page_count += 1
     draw_page()
     ctx.addPage()
   fs.writeFile BuildDirectory + filename + ".pdf", canvas.toBuffer()
@@ -435,7 +440,7 @@ chord_page = (chord, options) ->
 
   pitch_fingers = []
   finger_positions_each (fingering) ->
-    pitch_number = (fingering_note_number(fingering) - 44 + 120) % 12
+    pitch_number = fingering_note_number(fingering) % 12
     pitch_fingers[pitch_number] = fingering
 
   colors = ['red', 'blue', 'green', 'orange']
@@ -451,7 +456,7 @@ chord_page = (chord, options) ->
     ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
 
     for ix in [0...12]
-      pitch_number = (ix * 5 + 7) % 12
+      pitch_number = (ix * 5 + 3) % 12
       root_fingering = pitch_fingers[pitch_number]
       chord_name = "#{NoteNames[pitch_number]}#{chord.abbr}"
       cell ->
@@ -469,13 +474,12 @@ chord_page = (chord, options) ->
 
 chord_book = (options) ->
   page_count = options.pages
-  book "Combined Fretboard Chords", (page) ->
-    for chord, i in Chords
+  book "Combined Fretboard Chords", pages: options.pages, (page) ->
+    for chord in Chords
       page -> chord_page chord, options
-      break if page_count and i + 1 >= page_count
 
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 0, pages: 0
+chord_book best_fingering: 0, pages: 1
 # chord_fingerings_page Chords[0], 44 + 3
