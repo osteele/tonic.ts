@@ -421,35 +421,40 @@ draw_chord_diagram_frets = ->
     ctx.stroke()
     ctx.lineWidth = 1
 
-draw_chord_diagram_finger_position = ({string, fret}, options={}) ->
-  {is_root, color} = options
-  style = ChordDiagramStyle
-  y = style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
-  ctx.fillStyle = color or (if is_root then 'red' else 'white')
-  ctx.strokeStyle = color or (if is_root then 'red' else 'black')
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.arc style.h_gutter + string * style.string_spacing, y, style.note_radius, 0, 2 * Math.PI, false
-  ctx.fill() if fret or is_root
-  ctx.stroke()
-  ctx.strokeStyle = 'black'
-
 draw_chord_diagram = (positions, options={}) ->
   {barres} = options
   style = ChordDiagramStyle
 
+  finger_coordinates = ({string, fret}) ->
+    return {
+      x: style.h_gutter + string * style.string_spacing,
+      y: style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
+    }
+
+  draw_finger_position = (position, options={}) ->
+    {is_root, color} = options
+    {x, y} = finger_coordinates(position)
+    ctx.fillStyle = color or (if is_root then 'red' else 'white')
+    ctx.strokeStyle = color or (if is_root then 'red' else 'black')
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.arc x, y, style.note_radius, 0, Math.PI * 2, false
+    ctx.fill() if position.fret > 0 or is_root
+    ctx.stroke()
+    ctx.strokeStyle = 'black'
+
   draw_barres = ->
     for {fret, string, fret, string_count} in barres
-      y = style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
-      ctx.beginPath()
-      ctx.arc style.h_gutter + string * style.string_spacing, y, style.string_spacing / 2, Math.PI/2, Math.PI*3/2, false
-      ctx.arc style.h_gutter + (string + string_count - 1) * style.string_spacing, y, style.string_spacing / 2
-        , Math.PI * 3/2, Math.PI * 1/2, false
+      {x: x1, y} = finger_coordinates(string: string, fret: fret)
+      {x: x2} = finger_coordinates(string: string + string_count - 1, fret: fret)
       ctx.fillStyle = 'rgba(0,0,0, 0.5)'
+      ctx.beginPath()
+      ctx.arc x1, y, style.string_spacing / 2, Math.PI * 1/2, Math.PI * 3/2, false
+      ctx.arc x2, y, style.string_spacing / 2, Math.PI * 3/2, Math.PI * 1/2, false
       ctx.fill()
 
   draw_finger_positions = ->
-    draw_chord_diagram_finger_position position, position for position in positions
+    draw_finger_position position, position for position in positions
 
   draw_closed_strings = ->
     fretted_strings = []
