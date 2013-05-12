@@ -10,7 +10,7 @@ module.exports = (grunt) ->
       makeBuildDir:
         command: 'mkdir test'
       runIntervals:
-        command: 'coffee intervals.coffee'
+        command: 'coffee intervals.coffee flipbook'
         options:
           stdout: true
           stderr: true

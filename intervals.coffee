@@ -671,12 +671,49 @@ chord_flipbook = (options) ->
 
 
 #
-# Output Commands
+# CLI
 #
 
-# chord_page Chords[0], best_fingering: true
-# intervals_book by_root: true, pages: 1
-# intervals_book by_root: false
-chord_book best_fingering: 0, pages: 0
-# chord_flipbook pages: 0
-# chord_fingerings_page Chords[6], 'F'
+program = require('commander')
+
+program
+  .version('0.0.1')
+
+program
+  .command('chordbook')
+  .description('Create a chord bible')
+  .option('-a, --combined', 'Combine all fingerings onto each chord chart')
+  .option("-e, --exec_mode <mode>", "Which exec mode to use")
+  .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .action (options) ->
+    chord_book best_fingering: not options.combined, pages: options.pages
+
+program
+  .command('fingerings')
+  .description('Fingerings for a specific chord')
+  .action (options) ->
+    chord_fingerings_page Chords[6], 'F'
+
+program
+  .command('intervals')
+  .description('Intervals on the fretboard')
+  .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .action (options) ->
+    intervals_book by_root: true, pages: options.pages
+
+program
+  .command('flipbook')
+  .description('Flipbook showing the animations of a chord')
+  .action (options) ->
+    chord_flipbook pages: 0
+
+program
+  .command('*')
+  .action ->
+    console.log 'Commands:'
+    console.log '  chordbook'
+    console.log '  fingerings'
+    console.log '  intervals'
+    console.log '  flipbook'
+
+program.parse(process.argv)

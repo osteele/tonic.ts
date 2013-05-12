@@ -1,31 +1,39 @@
 {
   "name": "Chords",
+  "description": "Tools for generating guitar chord diagrams for study",
   "version": "0.0.1",
   "author": {
     "name": "Oliver Steele",
     "email": "steele@osteele.com"
   },
-  "private": true,
-  "dependencies": {
-    "canvas": "~1.0.2",
-    "underscore": "~1.4.4"
-  },
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-watch": "~0.4.2",
-    "grunt-shell": "~0.2.2",
-    "grunt-coffeelint": "0.0.6"
-  },
-  "description": "Tools for generating guitar chord diagrams for study",
-  "main": "intervals.coffee",
-  "scripts": {
-    "test": "coffee intervals.coffee"
-  },
+  "license": "MIT",
   "keywords": [
     "music",
     "chords",
     "guitar",
     "diagrams"
   ],
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/osteele/fretboard-logic.git"
+  },
+  "bugs": {
+    "url": "http://github.com/osteele/fretboard-logic/issues"
+  },
+  "private": true,
+  "dependencies": {
+    "canvas": "~1.0.2",
+    "underscore": "~1.4.4",
+    "commander": "~1.1.1"
+  },
+  "devDependencies": {
+    "grunt": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-shell": "*",
+    "grunt-coffeelint": "*"
+  },
+  "main": "intervals.coffee",
+  "scripts": {
+    "test": "coffee intervals.coffee"
+  }
 }

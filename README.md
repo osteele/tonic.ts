@@ -15,14 +15,27 @@ Given this, I don't know whether `brew install cairo` is actually necessary.
 
     brew install node cairo
     PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig npm install
-npm install canvas
 
 
 # Usage
 
-I keep modifying `intervals.coffee` to generate whatever output I'm working on at the moment.
+    coffee intervals.coffee chordbook
 
-Edit the bottom of that file, and run `coffee intervals.coffee` to create a file in the `build` directory.
+Create a PDF that shows the easiest fingering for each chord.
+
+    coffee intervals.coffee chordbook --combined
+
+Create a PDF that shows all the fretboard positions that corresponds to the notes for each chord.
+This can be used to select from among multiple fingerings; also to see how the chord shapes relate to each other.
+
+    coffee intervals.coffee intervals
+
+Create a PDF that displays all the interval classes from each
+fretboard position.
+
+    coffee intervals.coffee flipbook
+
+Create a flipbook that shows how the different keys relate to each other.
 
 
 # License
