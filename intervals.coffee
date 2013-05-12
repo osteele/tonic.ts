@@ -21,12 +21,12 @@ Chords = [
   {name: 'Diminished', abbrs: ['°', 'dim'], pitch_classes: '036'},
   {name: 'Sus2', abbr: 'sus2', pitch_classes: '027'},
   {name: 'Sus4', abbr: 'sus4', pitch_classes: '057'},
-  {name: 'Dom 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
-  {name: 'Aug 7th', abbrs: ['+7', '7aug'], pitch_classes: '048t'},
-  {name: 'Dim 7th', abbrs: ['°7', 'dim7'], pitch_classes: '0369'},
+  {name: 'Dominant 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
+  {name: 'Augmented 7th', abbrs: ['+7', '7aug'], pitch_classes: '048t'},
+  {name: 'Diminished 7th', abbrs: ['°7', 'dim7'], pitch_classes: '0369'},
   {name: 'Major 7th', abbr: 'maj7', pitch_classes: '047e'},
   {name: 'Minor 7th', abbr: 'min7', pitch_classes: '037t'},
-  {name: 'Dom 7 b5', abbr: '7b5', pitch_classes: '046t'},
+  {name: 'Dominant 7 b5', abbr: '7b5', pitch_classes: '046t'},
   # following is also half-diminished 7th
   {name: 'Min 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
   {name: 'Dim Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
@@ -42,8 +42,8 @@ do ->
     chord.abbr ||= chord.abbrs[0]
     chord.pitch_classes = (keys[c] or parseInt(c, 10) for c in chord.pitch_classes)
 
-compute_chord_name = (chord_root, chord) ->
-  "#{NoteNames[chord_root]}#{chord.abbr}"
+compute_chord_name = (root_pitch, chord) ->
+  "#{NoteNames[root_pitch]}#{chord.abbr}"
 
 interval_class_between = (pca, pcb) ->
   n = (pcb - pca) % 12
@@ -63,14 +63,14 @@ FretCount = FretNumbers.length - 1  # doesn't include nut
 
 StringIntervals = [5, 5, 5, 4, 5]
 
-OpenStringNoteNumbers = do (numbers=[]) ->
+OpenStringPitches = do (numbers=[]) ->
   numbers.push 20
   for interval, i in StringIntervals
     numbers.push numbers[i] + interval
   numbers
 
 pitch_number_for_position = ({string, fret}) ->
-  OpenStringNoteNumbers[string] + fret
+  OpenStringPitches[string] + fret
 
 finger_positions_each = (fn) ->
   for string in StringNumbers
@@ -121,53 +121,54 @@ fingerings_for = (chord, root_note) ->
       positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
     positions
 
-  frets_per_string = do (strings=([] for __ in OpenStringNoteNumbers)) ->
+  frets_per_string = do (strings=([] for __ in OpenStringPitches)) ->
     strings[position.string].push position for position in positions
     strings
 
-  collect_fingerings = (by_string) ->
-    return [[]] unless by_string.length
-    frets = by_string[0]
-    remaining = collect_fingerings(by_string[1..])
-    return remaining.concat(([n].concat(right) \
-      for n in frets for right in remaining)...)
+  collect_fingerings = (string_frets) ->
+    return [[]] unless string_frets.length
+    frets = string_frets[0]
+    following_finger_positions = collect_fingerings(string_frets[1..])
+    return following_finger_positions.concat(([n].concat(right) \
+      for n in frets for right in following_finger_positions)...)
 
-  generate_fingerings = -> collect_fingerings(frets_per_string)
+  generate_fingerings = ->
+    ({positions} for positions in collect_fingerings(frets_per_string))
 
-  count_distinct_notes = (fs) ->
-    _.chain(fs).pluck('degree_index').uniq().value().length
+  chord_note_count = chord.pitch_classes.length
 
-  chord_note_count = count_distinct_notes(positions)
 
-  has_all_notes = (fs) ->
-    return count_distinct_notes(fs) == chord_note_count
+  #
+  # Filters
+  #
 
-  closed_medial_strings = (fs) ->
+  count_distinct_notes = (fingering) ->
+    _.chain(fingering.positions).pluck('degree_index').uniq().value().length
+
+  has_all_notes = (fingering) ->
+    return count_distinct_notes(fingering) == chord_note_count
+
+  closed_medial_strings = (fingering) ->
     string_frets = (-1 for s in StringNumbers)
-    string_frets[pos.string] = pos.fret for pos in fs
+    string_frets[pos.string] = pos.fret for pos in fingering.positions
     p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
     return p.match(/\dx+\d/)
 
-  closed_treble_strings = (fs) ->
+  closed_treble_strings = (fingering) ->
     string_frets = (-1 for s in StringNumbers)
-    string_frets[pos.string] = pos.fret for pos in fs
+    string_frets[pos.string] = pos.fret for pos in fingering.positions
     p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
     return p.match(/x$/)
 
-  finger_count = (fs) ->
-    (f for f in fs when f.fret).length
+  finger_count = (fingering) ->
+    fingering.barres ||= find_barres(fingering)
+    n = (pos for pos in fingering.positions when pos.fret).length
+    n -= barre.subsumption_count for barre in fingering.barres
 
-  few_fingers = (fs) ->
-    barres = find_barres(fs)
-    n = (f for f in fs when f.fret).length
-    n -= barre.subsumption_count for barre in barres
-    return n <= 4
+  few_fingers = (fingering) ->
+    return finger_count(fingering) <= 4
 
   cmp = (fn) -> (x...) -> !fn(x...)
-
-  #
-  # Filter
-  #
 
   filters = [
     {name: 'has all chord notes', filter: has_all_notes},
@@ -189,10 +190,10 @@ fingerings_for = (chord, root_note) ->
   # Sort
   #
 
-  high_note_count = (fs) -> -fs.length
+  high_note_count = (fingering) -> -fingering.positions.length
 
-  is_first_position = (fs) ->
-    _(fs).sortBy((f) -> f.string)[0].degree_index == 0
+  is_first_position = (fingering) ->
+    _(fingering.positions).sortBy((pos) -> pos.string)[0].degree_index == 0
 
   sorts = [
     finger_count,
@@ -209,14 +210,14 @@ fingerings_for = (chord, root_note) ->
   # Generate, filter, and sort
   #
 
-  chord_name = "#{NoteNames[root_note % 12]}#{chord.abbr}"
+  chord_name = compute_chord_name root_note, chord
   fingerings = generate_fingerings()
   fingerings = filter_fingerings(fingerings)
   fingerings = sort_fingerings(fingerings)
 
   # for fingering in fingerings
   #   few_fingers(fingering)
-  return fingerings
+  return _.pluck(fingerings, 'positions')
 
 best_fingering_for = (chord, root_note) ->
   return fingerings_for(chord, root_note)[0]
@@ -630,5 +631,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 0, pages: 0
+chord_book best_fingering: 1, pages: 0
 # chord_fingerings_page Chords[6], 'F'
