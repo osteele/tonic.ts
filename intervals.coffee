@@ -148,13 +148,13 @@ fingerings_for = (chord, root_note) ->
   has_all_notes = (fingering) ->
     return count_distinct_notes(fingering) == chord_note_count
 
-  closed_medial_strings = (fingering) ->
+  muted_medial_strings = (fingering) ->
     string_frets = (-1 for s in StringNumbers)
     string_frets[pos.string] = pos.fret for pos in fingering.positions
     p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
     return p.match(/\dx+\d/)
 
-  closed_treble_strings = (fingering) ->
+  muted_treble_strings = (fingering) ->
     string_frets = (-1 for s in StringNumbers)
     string_frets[pos.string] = pos.fret for pos in fingering.positions
     p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
@@ -173,8 +173,8 @@ fingerings_for = (chord, root_note) ->
 
   filters = [
     {name: 'has all chord notes', filter: has_all_notes},
-    {name: 'no muted medial strings', filter: cmp(closed_medial_strings)},
-    {name: 'no muted treble strings', filter: cmp(closed_treble_strings)},
+    {name: 'no muted medial strings', filter: cmp(muted_medial_strings)},
+    {name: 'no muted treble strings', filter: cmp(muted_treble_strings)},
     {name: 'no more than four fingers', filter: few_fingers}
   ]
 
@@ -285,6 +285,7 @@ page = (width, height, options, draw_page) ->
   unless pdf
     filename = "#{DefaultFilename or 'test'}.png"
     fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+    console.info "Saved #{filename}"
 
 grid = (options, draw_page) ->
   {cols, rows, cell_width, cell_height, header_height} = options
@@ -321,68 +322,49 @@ book = (filename, options, draw_book) ->
 
 
 #
-# Layout Options
-#
-
-h_gutter = 10
-v_gutter = 10
-string_spacing = 20
-fret_width = 45
-fret_overhang = .3 * fret_width
-padded_fretboard_width = 2 * v_gutter + fret_width * FretCount + fret_overhang
-padded_fretboard_height = 2 * h_gutter + (StringCount - 1) * string_spacing
-
-
-#
 # Drawing Fretboard and Diagrams
 #
 
-draw_diagrams = true
-if draw_diagrams
-  string_spacing = 6
-  fret_height = 8
-  fret_overhang = 0
-  h_gutter = 5
-  v_gutter = 5
-  note_radius = 1
-  closed_string_fontsize = 4
-  padded_fretboard_width = 2 * h_gutter + (StringCount - 1) * string_spacing
-  padded_fretboard_height = 2 * v_gutter + fret_height * FretCount + fret_overhang
-  above_fretboard = fret_height
+FretboardStyle =
+  h_gutter: 10
+  v_gutter: 10
+  string_spacing: 20
+  fret_width: 45
+  fret_overhang: .3 * 45
 
-if true
-  string_spacing = 12
-  fret_height = 16
-  note_radius = 3
-  closed_string_fontsize = 8
-  padded_fretboard_width = 2 * h_gutter + (StringCount - 1) * string_spacing
-  padded_fretboard_height = 2 * v_gutter + (fret_height + 2) * FretCount + fret_overhang
+padded_fretboard_width = do (style=FretboardStyle) ->
+  2 * style.v_gutter + style.fret_width * FretCount + style.fret_overhang
+padded_fretboard_height = do (style=FretboardStyle) ->
+  2 * style.h_gutter + (StringCount - 1) * style.string_spacing
 
-draw_strings = ->
-  for i in StringNumbers
-    y = i * string_spacing + h_gutter
+draw_fretboard_strings = ->
+  style = FretboardStyle
+  for string in StringNumbers
+    y = string * style.string_spacing + style.h_gutter
     ctx.beginPath()
-    ctx.moveTo h_gutter, y
-    ctx.lineTo h_gutter + FretCount * fret_width + fret_overhang, y
+    ctx.moveTo style.h_gutter, y
+    ctx.lineTo style.h_gutter + FretCount * style.fret_width + style.fret_overhang, y
     ctx.lineWidth = 1
     ctx.stroke()
 
-draw_frets = ->
-  for fret_number in FretNumbers
-    x = fret_number * fret_width + h_gutter
+draw_fretboard_frets = ->
+  style = FretboardStyle
+  for fret in FretNumbers
+    x = fret * style.fret_width + h_gutter
     ctx.beginPath()
-    ctx.moveTo x, h_gutter
-    ctx.lineTo x, h_gutter + (StringCount - 1) * string_spacing
+    ctx.moveTo x, style.h_gutter
+    ctx.lineTo x, style.h_gutter + (StringCount - 1) * style.string_spacing
     ctx.lineWidth = 3 if fret_number == 0
     ctx.stroke()
     ctx.lineWidth = 1
 
-draw_finger_position = ({string, fret}, options) ->
+draw_fretboard_finger_position = ({string, fret}, options) ->
   {is_root, color} = options || {}
-  x = h_gutter + (fret - 1) * fret_width + fret_width / 2
+  style = FretboardStyle
+  x = h_gutter + (fret - 1) * style.fret_width + style.fret_width / 2
   x = h_gutter if fret == 0
   ctx.beginPath()
-  ctx.arc x, v_gutter + (6 - string) * string_spacing, 7, 0, 2 * Math.PI, false
+  ctx.arc x, v_gutter + (6 - string) * style.string_spacing, 7, 0, 2 * Math.PI, false
   ctx.fillStyle = 'red'
   ctx.fillStyle = color or 'white' unless is_root
   ctx.lineWidth = 2 unless is_root
@@ -391,63 +373,102 @@ draw_finger_position = ({string, fret}, options) ->
   ctx.strokeStyle = 'black'
   ctx.lineWidth = 1
 
-if draw_diagrams
-  draw_strings = ->
-    for i in StringNumbers
-      x = i * string_spacing + h_gutter
-      ctx.beginPath()
-      ctx.moveTo x, v_gutter + above_fretboard
-      ctx.lineTo x, v_gutter + above_fretboard + FretCount * fret_height + fret_overhang
-      ctx.stroke()
 
-  draw_frets = ->
-    for fret in FretNumbers
-      y = v_gutter + above_fretboard + fret * fret_height
-      ctx.beginPath()
-      ctx.moveTo v_gutter - 0.5, y
-      ctx.lineTo v_gutter + 0.5 + (StringCount - 1) * string_spacing, y
-      ctx.lineWidth = 3 if fret == 0
-      ctx.stroke()
-      ctx.lineWidth = 1
+#
+# Drawing Chord Diagrams
+#
 
-  draw_finger_position = ({string, fret}, options={}) ->
-    {is_root, color} = options
-    y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
-    ctx.fillStyle = color or (if is_root then 'red' else 'white')
-    ctx.strokeStyle = color or (if is_root then 'red' else 'black')
-    ctx.lineWidth = 1
+ChordDiagramStyle =
+  h_gutter: 5
+  v_gutter: 5
+  string_spacing: 6
+  fret_height: 8
+  above_fretboard: 8
+  note_radius: 1
+  closed_string_fontsize: 4
+
+# padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + ChordDiagramStyle.fret_height * FretCount
+
+ChordDiagramStyle =
+  h_gutter: 5
+  v_gutter: 5
+  string_spacing: 12
+  fret_height: 16
+  above_fretboard: 8
+  note_radius: 3
+  closed_string_fontsize: 8
+
+padded_chord_diagram_width = 2 * ChordDiagramStyle.h_gutter + (StringCount - 1) * ChordDiagramStyle.string_spacing
+padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + (ChordDiagramStyle.fret_height + 2) * FretCount
+
+draw_chord_diagram_strings = ->
+  style = ChordDiagramStyle
+  for i in StringNumbers
+    x = i * style.string_spacing + style.h_gutter
     ctx.beginPath()
-    ctx.arc h_gutter + string * string_spacing, y, note_radius, 0, 2 * Math.PI, false
-    ctx.fill() if fret or is_root
+    ctx.moveTo x, style.v_gutter + style.above_fretboard
+    ctx.lineTo x, style.v_gutter + style.above_fretboard + FretCount * style.fret_height
     ctx.stroke()
-    ctx.strokeStyle = 'black'
 
-draw_fingerboard = (positions, options={}) ->
+draw_chord_diagram_frets = ->
+  style = ChordDiagramStyle
+  for fret in FretNumbers
+    y = style.v_gutter + style.above_fretboard + fret * style.fret_height
+    ctx.beginPath()
+    ctx.moveTo style.v_gutter - 0.5, y
+    ctx.lineTo style.v_gutter + 0.5 + (StringCount - 1) * style.string_spacing, y
+    ctx.lineWidth = 3 if fret == 0
+    ctx.stroke()
+    ctx.lineWidth = 1
+
+draw_chord_diagram_finger_position = ({string, fret}, options={}) ->
+  {is_root, color} = options
+  style = ChordDiagramStyle
+  y = style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
+  ctx.fillStyle = color or (if is_root then 'red' else 'white')
+  ctx.strokeStyle = color or (if is_root then 'red' else 'black')
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.arc style.h_gutter + string * style.string_spacing, y, style.note_radius, 0, 2 * Math.PI, false
+  ctx.fill() if fret or is_root
+  ctx.stroke()
+  ctx.strokeStyle = 'black'
+
+draw_chord_diagram = (positions, options={}) ->
   {barres} = options
-  draw_strings()
-  draw_frets()
-  if barres
+  style = ChordDiagramStyle
+
+  draw_barres = ->
     for {fret, string, fret, string_count} in barres
-      y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
+      y = style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
       ctx.beginPath()
-      ctx.arc h_gutter + string * string_spacing, y, string_spacing / 2, Math.PI/2, Math.PI*3/2, false
-      ctx.arc h_gutter + (string + string_count - 1) * string_spacing, y, string_spacing / 2
+      ctx.arc style.h_gutter + string * style.string_spacing, y, style.string_spacing / 2, Math.PI/2, Math.PI*3/2, false
+      ctx.arc style.h_gutter + (string + string_count - 1) * style.string_spacing, y, style.string_spacing / 2
         , Math.PI * 3/2, Math.PI * 1/2, false
       ctx.fillStyle = 'rgba(0,0,0, 0.5)'
       ctx.fill()
-  if positions
+
+  draw_finger_positions = ->
+    draw_chord_diagram_finger_position position, position for position in positions
+
+  draw_closed_strings = ->
     fretted_strings = []
-    for position in positions
-      fretted_strings[position.string] = true
-      draw_finger_position position, position
-    for string_number in StringNumbers
-      continue if fretted_strings[string_number]
-      ctx.font = "#{closed_string_fontsize}pt Helvetica"
-      ctx.fillStyle = 'black'
-      m = ctx.measureText("x")
-      ctx.fillText "x"
-      , h_gutter + string_number * string_spacing - m.width / 2
-      , v_gutter + above_fretboard - fret_height * 0.5 + m.emHeightDescent
+    fretted_strings[position.string] = true for position in positions
+    closed_strings = (string for string in StringNumbers when not fretted_strings[string])
+    ctx.font = "#{style.closed_string_fontsize}pt Helvetica"
+    ctx.fillStyle = 'black'
+    label = 'x'
+    for string_number in closed_strings
+      m = ctx.measureText(label)
+      ctx.fillText label
+      , style.h_gutter + string_number * style.string_spacing - m.width / 2
+      , style.v_gutter + style.above_fretboard - style.fret_height * 0.5 + m.emHeightDescent
+
+  draw_chord_diagram_strings()
+  draw_chord_diagram_frets()
+  draw_barres() if barres
+  draw_finger_positions() if positions
+  draw_closed_strings() if positions
 
 draw_intervals_from = (root_position, semitones, color) ->
   root_note_number = pitch_number_for_position(root_position)
@@ -470,6 +491,7 @@ interval_cards = ->
     draw_note string_number: string, fret_number: fret
     filename = "#{string}-#{fret}.png"
     save_canvas_to_png canvas, filename
+    console.info "Saved #{filename}"
 
     for interval_name, semitones in Intervals
       canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
@@ -541,15 +563,15 @@ chord_fingerings_page = (chord, chord_root) ->
   fingerings = fingerings_for(chord, chord_root)
   filename "#{compute_chord_name chord_root, chord} Fingerings"
   grid cols: 10, rows: 10
-  , cell_width: padded_fretboard_width + 10
-  , cell_height: padded_fretboard_height + 5
+  , cell_width: padded_chord_diagram_width + 10
+  , cell_height: padded_chord_diagram_height + 5
   , header_height: 40
   , (cell) ->
     ctx.fillStyle = 'black'
     draw_title "#{compute_chord_name chord_root, chord} Fingerings"
     , x: 0, y: 20, font: '25px Impact'
     for fingering in fingerings
-      cell -> draw_fingerboard fingering.positions, barres: fingering.barres
+      cell -> draw_chord_diagram fingering.positions, barres: fingering.barres
 
 draw_pitch_diagram = (pitch_classes, degree_colors) ->
   r = 10
@@ -566,7 +588,7 @@ draw_pitch_diagram = (pitch_classes, degree_colors) ->
     ctx.arc r * Math.cos(a), r * Math.sin(a), 2, 0, 2 * Math.PI, false
     ctx.fillStyle = degree_colors[degree_index]
     ctx.fill()
-  ctx.font = '4pt Times' if draw_diagrams
+  ctx.font = '4pt Times'
   ctx.fillStyle = 'black'
   for class_name, pitch_class in pitch_names
     a = pitch_class_angle(pitch_class)
@@ -586,8 +608,8 @@ chord_page = (chord, options) ->
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
   grid cols: 4, rows: 3
-  , cell_width: padded_fretboard_width
-  , cell_height: padded_fretboard_height
+  , cell_width: padded_chord_diagram_width
+  , cell_height: padded_chord_diagram_height
   , gutter_height: 20
   , header_height: 40
   , (cell) ->
@@ -611,9 +633,9 @@ chord_page = (chord, options) ->
       chord_name = compute_chord_name pitch, chord
       continue if options.only unless chord_name == options.only
       cell ->
-        ctx.font = '8pt Times'
+        ctx.font = '10pt Times'
         ctx.fillStyle = 'rgb(10,20,30)'
-        ctx.fillText chord_name, h_gutter, -3
+        ctx.fillText chord_name, 0, -3
 
         fingering = do (positions=[]) ->
           for semitones, degree_index in chord.pitch_classes
@@ -623,7 +645,7 @@ chord_page = (chord, options) ->
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
         position.color = degree_colors[position.degree_index] for position in fingering.positions
-        draw_fingerboard fingering.positions, barres: fingering.barres
+        draw_chord_diagram fingering.positions, barres: fingering.barres
 
 chord_book = (options) ->
   page_count = options.pages
@@ -635,5 +657,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-# chord_book best_fingering: 1, pages: 0
-chord_fingerings_page Chords[6], 'F'
+chord_book best_fingering: 1, pages: 0
+# chord_fingerings_page Chords[6], 'F'
