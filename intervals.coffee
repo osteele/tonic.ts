@@ -161,9 +161,10 @@ fingerings_for = (chord, root_note) ->
     return p.match(/x$/)
 
   finger_count = (fingering) ->
-    fingering.barres ||= find_barres(fingering)
+    fingering.barres ||= find_barres(fingering.positions)
     n = (pos for pos in fingering.positions when pos.fret).length
     n -= barre.subsumption_count for barre in fingering.barres
+    n
 
   few_fingers = (fingering) ->
     return finger_count(fingering) <= 4
@@ -216,8 +217,8 @@ fingerings_for = (chord, root_note) ->
   fingerings = sort_fingerings(fingerings)
 
   # for fingering in fingerings
-  #   few_fingers(fingering)
-  return _.pluck(fingerings, 'positions')
+  #   console.info finger_count(fingering)
+  return fingerings
 
 best_fingering_for = (chord, root_note) ->
   return fingerings_for(chord, root_note)[0]
@@ -236,7 +237,7 @@ erase_background = ->
   ctx.fillStyle = 'white'
   ctx.fillRect 0, 0, canvas.width, canvas.height
 
-draw_title = (text, {font, x, y, gravity}) ->
+draw_title = (text, {font, x, y, gravity}={}) ->
   gravity ||= ''
   ctx.font = font if font
   m = ctx.measureText(text)
@@ -422,11 +423,10 @@ if draw_diagrams
     ctx.strokeStyle = 'black'
 
 draw_fingerboard = (positions, options={}) ->
-  {draw_barres} = options
+  {barres} = options
   draw_strings()
   draw_frets()
-  if draw_barres and (pos for pos in positions when pos.fret > 0).length > 4
-    barres = find_barres(positions)
+  if barres
     for {fret, string, fret, string_count} in barres
       y = v_gutter + above_fretboard + (fret - 1) * fret_height + fret_height / 2
       ctx.beginPath()
@@ -435,7 +435,6 @@ draw_fingerboard = (positions, options={}) ->
         , Math.PI * 3/2, Math.PI * 1/2, false
       ctx.fillStyle = 'rgba(0,0,0, 0.5)'
       ctx.fill()
-    # positions = remove_barre_fingerings(barres, positions)
   if positions
     fretted_strings = []
     for position in positions
@@ -544,9 +543,13 @@ chord_fingerings_page = (chord, chord_root) ->
   grid cols: 10, rows: 10
   , cell_width: padded_fretboard_width + 10
   , cell_height: padded_fretboard_height + 5
+  , header_height: 40
   , (cell) ->
-    for positions in fingerings
-      cell -> draw_fingerboard positions, draw_barres: true
+    ctx.fillStyle = 'black'
+    draw_title "#{compute_chord_name chord_root, chord} Fingerings"
+    , x: 0, y: 20, font: '25px Impact'
+    for fingering in fingerings
+      cell -> draw_fingerboard fingering.positions, barres: fingering.barres
 
 draw_pitch_diagram = (pitch_classes, degree_colors) ->
   r = 10
@@ -612,14 +615,15 @@ chord_page = (chord, options) ->
         ctx.fillStyle = 'rgb(10,20,30)'
         ctx.fillText chord_name, h_gutter, -3
 
-        fingering = []
-        for semitones, degree_index in chord.pitch_classes
-          for {string, fret} in intervals_from(root_fingering, semitones)
-            fingering.push {string, fret, degree_index}
+        fingering = do (positions=[]) ->
+          for semitones, degree_index in chord.pitch_classes
+            for {string, fret} in intervals_from(root_fingering, semitones)
+              positions.push {string, fret, degree_index}
+          {positions}
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
-        position.color = degree_colors[position.degree_index] for position in fingering
-        draw_fingerboard fingering, draw_barres: best_fingering
+        position.color = degree_colors[position.degree_index] for position in fingering.positions
+        draw_fingerboard fingering.positions, barres: fingering.barres
 
 chord_book = (options) ->
   page_count = options.pages
@@ -631,5 +635,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 1, pages: 0
-# chord_fingerings_page Chords[6], 'F'
+# chord_book best_fingering: 1, pages: 0
+chord_fingerings_page Chords[6], 'F'
