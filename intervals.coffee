@@ -17,8 +17,8 @@ NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
 Chords = [
   {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
   {name: 'Minor', abbr: 'm', pitch_classes: '037'},
-  {name: 'Aug', abbrs: ['+', 'aug'], pitch_classes: '048'},
-  {name: 'Dim', abbrs: ['°', 'dim'], pitch_classes: '036'},
+  {name: 'Augmented', abbrs: ['+', 'aug'], pitch_classes: '048'},
+  {name: 'Diminished', abbrs: ['°', 'dim'], pitch_classes: '036'},
   {name: 'Sus2', abbr: 'sus2', pitch_classes: '027'},
   {name: 'Sus4', abbr: 'sus4', pitch_classes: '057'},
   {name: 'Dom 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
@@ -245,25 +245,38 @@ save_canvas_to_png = (canvas, fname) ->
 
 mode = null
 pdf = false
-page = (width, height, draw_page) ->
+page = (width, height, options, draw_page) ->
+  [draw_page, options] = [options, null] if _.isFunction(options)
+  page_margin = 10
   return [width, height] if mode == 'measure'
-  canvas ||= new Canvas(width, height, pdf and 'pdf')
+  canvas ||= new Canvas(width + 2 * page_margin, height + 2 * page_margin, pdf and 'pdf')
   ctx = canvas.getContext('2d')
   ctx.textDrawingMode = 'glyph' if pdf
   erase_background()
+  ctx.save()
+  ctx.translate page_margin, page_margin
   draw_page ctx
+  ctx.restore()
   unless pdf
     filename = "#{DefaultFilename or 'test'}.png"
     fs.writeFile BuildDirectory + filename, canvas.toBuffer()
 
-grid = ({cols, rows, cell_width, cell_height, header_height}, draw_page) ->
+grid = (options, draw_page) ->
+  {cols, rows, cell_width, cell_height, header_height} = options
+  {gutter_width, gutter_height} = options
   header_height ||= 0
-  page cols * cell_width, header_height + rows * cell_height, (ctx) ->
+  gutter_width ||= 10
+  gutter_height ||= 10
+  page cols * cell_width + (cols - 1) * gutter_width
+  , header_height + rows * cell_height + (rows - 1) * gutter_height
+  , options
+  , (ctx) ->
     i = 0
     draw_page (draw_cell) ->
       return if i >= cols * rows
+      [col, row] = [i % cols, Math.floor(i / cols)]
       ctx.save()
-      ctx.translate (i % cols) * cell_width, header_height + Math.floor(i / cols) * cell_height
+      ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
       draw_cell()
       ctx.restore()
       i += 1
@@ -503,7 +516,7 @@ intervals_book = ({by_root}) ->
 chord_fingerings_page = (chord, chord_root) ->
   chord_root = NoteNames.indexOf(chord_root) if typeof chord_root == 'string'
   fingerings = fingerings_for(chord, chord_root)
-  filename "Fingerings for #{compute_chord_name chord_root, chord}"
+  filename "#{compute_chord_name chord_root, chord} Fingerings"
   grid cols: 10, rows: 10
   , cell_width: padded_fretboard_width + 10
   , cell_height: padded_fretboard_height + 5
@@ -537,8 +550,7 @@ draw_pitch_diagram = (pitch_classes, degree_colors) ->
 chord_page = (chord, options) ->
   {best_fingering} = options || {}
 
-  diagram_gutter = 20
-  header_height = 40
+  header_height = 50
   diagram_title_height = 30
   if draw_diagrams
     diagram_title_height = 35
@@ -553,28 +565,30 @@ chord_page = (chord, options) ->
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
   grid cols: 3, rows: 4
-  , cell_width: padded_fretboard_width + diagram_gutter
-  , cell_height: padded_fretboard_height + diagram_gutter
+  , cell_width: padded_fretboard_width
+  , cell_height: padded_fretboard_height
+  , gutter_height: 20
   , header_height: diagram_title_height
   , (cell) ->
 
     ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
-    ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2
+    ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2 - 10
 
     ctx.save()
-    ctx.translate 205, 20
+    ctx.translate 215, 15
     ctx.scale 0.85,0.85
     draw_pitch_diagram chord.pitch_classes, degree_colors
     ctx.restore()
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
+    pitches = [8...12].concat([0...8]) unless best_fingering
     for pitch in pitches
       root_fingering = pitch_fingers[pitch]
       chord_name = compute_chord_name pitch, chord
       continue if options.only unless chord_name == options.only
       cell ->
-        ctx.font = '7pt Times'
+        ctx.font = '8pt Times'
         ctx.fillStyle = 'rgb(10,20,30)'
         ctx.fillText chord_name, h_gutter, -3
 
@@ -589,7 +603,7 @@ chord_page = (chord, options) ->
 
 chord_book = (options) ->
   page_count = options.pages
-  title = if options.best_fingering then "Fretboard Chords" else "Combined Fretboard Chords"
+  title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
   book title, pages: options.pages, (page) ->
     for chord in Chords
       page -> chord_page chord, options
@@ -597,5 +611,5 @@ chord_book = (options) ->
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true
 # intervals_book by_root: false
-chord_book best_fingering: 1, pages: 0#, only: 'G#'
+chord_book best_fingering: 0, pages: 0
 # chord_fingerings_page Chords[6], 'F'
