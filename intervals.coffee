@@ -235,6 +235,20 @@ erase_background = ->
   ctx.fillStyle = 'white'
   ctx.fillRect 0, 0, canvas.width, canvas.height
 
+draw_title = (text, {font, x, y, gravity}) ->
+  gravity ||= ''
+  ctx.font = font if font
+  m = ctx.measureText(text)
+  # x -= m.width / 2
+  y -= m.emHeightDescent if gravity.match(/^bottom$/)
+  y += m.emHeightAscent if gravity.match(/^top|topLeft|topRight$/)
+  ctx.fillText text, x, y
+
+with_context = (ctx, fn) ->
+  ctx.save()
+  fn()
+  ctx.restore()
+
 filename = (name) -> DefaultFilename = name
 
 save_canvas_to_png = (canvas, fname) ->
@@ -253,10 +267,19 @@ page = (width, height, options, draw_page) ->
   ctx = canvas.getContext('2d')
   ctx.textDrawingMode = 'glyph' if pdf
   erase_background()
+
   ctx.save()
   ctx.translate page_margin, page_margin
   draw_page ctx
   ctx.restore()
+
+  ctx.fillStyle = 'black'
+  license = "©2013 by Oliver Steele. "
+  license += "This work is licensed under a Creative Commons Attribution 3.0 United States License."
+  draw_title license
+  , font: "4pt Times", x: page_margin, y: canvas.height
+  , gravity: 'bottom'
+
   unless pdf
     filename = "#{DefaultFilename or 'test'}.png"
     fs.writeFile BuildDirectory + filename, canvas.toBuffer()
@@ -550,12 +573,6 @@ draw_pitch_diagram = (pitch_classes, degree_colors) ->
 chord_page = (chord, options) ->
   {best_fingering} = options || {}
 
-  header_height = 50
-  diagram_title_height = 30
-  if draw_diagrams
-    diagram_title_height = 35
-    diagram_gutter = 10
-
   pitch_fingers = []
   finger_positions_each (finger_position) ->
     pitch = pitch_number_for_position(finger_position) % 12
@@ -564,19 +581,21 @@ chord_page = (chord, options) ->
   degree_colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  grid cols: 3, rows: 4
+  grid cols: 4, rows: 3
   , cell_width: padded_fretboard_width
   , cell_height: padded_fretboard_height
   , gutter_height: 20
-  , header_height: diagram_title_height
+  , header_height: 40
   , (cell) ->
 
-    ctx.font = '20px Impact'
     ctx.fillStyle = 'rgb(128, 128, 128)'
-    ctx.fillText "#{chord.name} Chords", diagram_gutter / 2, header_height / 2 - 10
+    draw_title "#{chord.name} Chords", font: '20px Impact'
+    , x: 0
+    , y: 0
+    , gravity: 'top'
 
     ctx.save()
-    ctx.translate 215, 15
+    ctx.translate 285, 20
     ctx.scale 0.85,0.85
     draw_pitch_diagram chord.pitch_classes, degree_colors
     ctx.restore()
