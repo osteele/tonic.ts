@@ -429,13 +429,14 @@ draw_chord_diagram_frets = ->
     ctx.lineWidth = 1
 
 draw_chord_diagram = (positions, options={}) ->
-  {barres} = options
+  {barres, dy} = options
+  dy ||= 0
   style = ChordDiagramStyle
 
   finger_coordinates = ({string, fret}) ->
     return {
       x: style.h_gutter + string * style.string_spacing,
-      y: style.v_gutter + style.above_fretboard + (fret - 1) * style.fret_height + style.fret_height / 2
+      y: style.v_gutter + style.above_fretboard + (fret - 0.5) * style.fret_height + dy
     }
 
   draw_finger_position = (position, options={}) ->
@@ -606,8 +607,8 @@ draw_pitch_diagram = (pitch_classes, degree_colors) ->
     m = ctx.measureText(class_name)
     ctx.fillText class_name, r2 * Math.cos(a) - m.width / 2, r2 * Math.sin(a) + m.emHeightDescent
 
-chord_page = (chord, options) ->
-  {best_fingering} = options || {}
+chord_page = (chord, options={}) ->
+  {best_fingering, dy} = options
 
   pitch_fingers = []
   finger_positions_each (finger_position) ->
@@ -653,17 +654,29 @@ chord_page = (chord, options) ->
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
         position.color = degree_colors[position.degree_index] for position in fingering.positions
-        draw_chord_diagram fingering.positions, barres: fingering.barres
+        draw_chord_diagram fingering.positions, barres: fingering.barres, dy: dy
 
 chord_book = (options) ->
-  page_count = options.pages
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
   book title, pages: options.pages, (page) ->
     for chord in Chords
       page -> chord_page chord, options
 
+chord_flipbook = (options) ->
+  chord = Chords[0]
+  title = "Chord Flipbook"
+  book title, (page) ->
+    for dy in [0...ChordDiagramStyle.fret_height]
+      page -> chord_page chord, dy: dy, only: 'E'
+
+
+#
+# Output Commands
+#
+
 # chord_page Chords[0], best_fingering: true
 # intervals_book by_root: true, pages: 1
 # intervals_book by_root: false
-chord_book best_fingering: 1, pages: 0
+chord_book best_fingering: 0, pages: 0
+# chord_flipbook pages: 0
 # chord_fingerings_page Chords[6], 'F'
