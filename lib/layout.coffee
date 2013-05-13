@@ -4,8 +4,13 @@ Canvas = require('canvas')
 
 BuildDirectory = '.'
 DefaultFilename = null
+DefaultFooterTextOptions =
+  font: '4pt Times'
+  fillStyle: 'black'
+  gravity: 'bottom'
 canvas = null
 ctx = null
+page_footer = null
 
 erase_background = ->
   ctx.fillStyle = 'white'
@@ -28,6 +33,7 @@ with_context = (fn) ->
 
 directory = (path) -> BuildDirectory = path
 filename = (name) -> DefaultFilename = name
+set_page_footer = (options) -> page_footer = options
 
 save_canvas_to_png = (canvas, fname) ->
   out = fs.createWriteStream(BuildDirectory + fname)
@@ -51,11 +57,10 @@ page = (width, height, options, draw_page) ->
   draw_page()
   ctx.restore()
 
-  license = "©2013 by Oliver Steele. "
-  license += "This work is licensed under a Creative Commons Attribution 3.0 United States License."
-  draw_title license
-  , font: "4pt Times", fillStyle: 'black'
-  , x: page_margin, y: canvas.height, gravity: 'bottom'
+  if page_footer
+    options = _.extend(page_footer, DefaultFooterTextOptions)
+    options = _.extend({x: page_margin, y: canvas.height}, options)
+    draw_title page_footer.text, options
 
   unless pdf
     filename = "#{DefaultFilename or 'test'}.png"
@@ -93,7 +98,12 @@ book = (filename, options, draw_book) ->
     page_count += 1
     draw_page()
     ctx.addPage()
-  fs.writeFile BuildDirectory + filename + ".pdf", canvas.toBuffer()
+  pathname = BuildDirectory + filename + ".pdf"
+  fs.writeFile pathname, canvas.toBuffer(), (err) ->
+    if err
+      console.error "Error #{err.code} writing to #{err.path}"
+    else
+      console.info "Saved #{pathname}"
   canvas = null
   ctx = null
 
@@ -103,4 +113,5 @@ module.exports =
   draw_title: draw_title
   directory: directory
   filename: filename
+  set_page_footer: set_page_footer
   with_context: with_context

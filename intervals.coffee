@@ -13,7 +13,9 @@ Layout = require('./lib/layout')
 {erase_background, draw_title, with_context, save_canvas_to_png} = require('./lib/layout')
 {page, grid, book} = require('./lib/layout')
 
+CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
 Layout.directory __dirname + '/build/'
+Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
 
 #
 # Specific Cards and Pages
