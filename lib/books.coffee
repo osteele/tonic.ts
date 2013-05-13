@@ -1,20 +1,49 @@
 _ = require 'underscore'
 
-{Chords, NoteNames, Intervals, LongIntervalNames, compute_chord_name} =
-  require('./lib/theory')
-{FretCount, StringCount, fretboard_positions_each, intervals_from, pitch_number_for_position} =
-  require('./lib/fretboard')
-{ChordDiagramStyle, draw_chord_diagram, padded_chord_diagram_width, padded_chord_diagram_height} =
-  require('./lib/chord_diagram')
-{best_fingering_for, fingerings_for} = require('./lib/fingering')
-{draw_fretboard, padded_fretboard_height, padded_fretboard_width} = require('./lib/fretboard_diagram')
+{
+  Chords,
+  NoteNames,
+  Intervals,
+  LongIntervalNames,
+  compute_chord_name
+} = require('./theory')
 
-Layout = require('./lib/layout')
-{erase_background, draw_title, with_context, save_canvas_to_png} = require('./lib/layout')
-{page, grid, book} = require('./lib/layout')
+{
+  FretCount,
+  StringCount,
+  fretboard_positions_each,
+  intervals_from,
+  pitch_number_for_position
+} = require('./fretboard')
+
+{best_fingering_for, fingerings_for} = require('./fingering')
+
+{
+  ChordDiagramStyle,
+  draw_chord_diagram,
+  padded_chord_diagram_width,
+  padded_chord_diagram_height
+} = require('./chord_diagram')
+
+{
+  draw_fretboard,
+  padded_fretboard_height,
+  padded_fretboard_width
+} = require('./fretboard_diagram')
+
+Layout = require('./layout')
+{
+  erase_background,
+  draw_title,
+  with_context,
+  save_canvas_to_png
+  page,
+  grid,
+  book
+} = Layout
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
-Layout.directory __dirname + '/build/'
+Layout.directory './build/'
 Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
 
 #
@@ -204,61 +233,8 @@ chord_flipbook = (options) ->
       page -> chord_page chord, dy: dy, only: 'E'
 
 
-#
-# CLI
-#
-
-program = require('commander')
-
-program
-  .version('0.0.1')
-
-program
-  .command('chordbook')
-  .description('Create a chord bible')
-  .option('-a, --combined', 'Combine all fingerings onto each chord chart')
-  .option("-e, --exec_mode <mode>", "Which exec mode to use")
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
-  .action (options) ->
-    chord_book best_fingering: not options.combined, pages: options.pages
-
-program
-  .command('fingerings')
-  .description('Fingerings for a specific chord')
-  .action (options) ->
-    chord_fingerings_page Chords[6], 'F'
-
-program
-  .command('intervals')
-  .description('Intervals on the fretboard')
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
-  .action (options) ->
-    intervals_book by_root: true, pages: options.pages
-
-program
-  .command('flipbook')
-  .description('Flipbook showing the animations of a chord')
-  .action (options) ->
-    chord_flipbook pages: 0
-
-program
-  .command('all')
-  .action (options) ->
-    chord_flipbook()
-    intervals_book by_root: true
-    intervals_book by_root: false
-    chord_book best_fingering: true
-    chord_book best_fingering: false
-    # FIXME this doesn't actually render in this context
-    chord_fingerings_page Chords[6], 'F'
-
-program
-  .command('*')
-  .action ->
-    console.log 'Commands:'
-    console.log '  chordbook'
-    console.log '  fingerings'
-    console.log '  intervals'
-    console.log '  flipbook'
-
-program.parse(process.argv)
+module.exports =
+  chord_book: chord_book
+  chord_fingerings_page: chord_fingerings_page
+  chord_flipbook: chord_flipbook
+  intervals_book: intervals_book

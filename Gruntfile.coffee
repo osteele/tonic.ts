@@ -10,13 +10,13 @@ module.exports = (grunt) ->
       makeBuildDir:
         command: 'mkdir test'
       runIntervals:
-        command: 'coffee intervals.coffee flipbook'
+        command: './bin/make-chord-book all'
         options:
           stdout: true
           stderr: true
     watch:
       scripts:
-        files: ['**/*.coffee']
+        files: ['**/*.coffee', 'bin/make-chord-book']
         tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runIntervals']
         options:
           nospawn: true,

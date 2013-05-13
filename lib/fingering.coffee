@@ -1,6 +1,14 @@
 _ = require 'underscore'
+
 {compute_chord_name, interval_class_between} = require('./theory')
-{FretNumbers, OpenStringPitches, StringNumbers, fretboard_positions_each, pitch_number_for_position} = require('./fretboard')
+
+{
+  FretNumbers,
+  OpenStringPitches,
+  StringNumbers,
+  fretboard_positions_each,
+  pitch_number_for_position
+} = require('./fretboard')
 
 find_barres = (positions) ->
   fret_rows = for fn in FretNumbers
