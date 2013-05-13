@@ -8,3 +8,4 @@ module.exports =
   drawing:
     chord_diagram: require('./lib/chord_diagram')
     fretboard: require('./lib/fretboard_diagram')
+    pitch_diagram: require('./lib/pitch_diagram')

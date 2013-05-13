@@ -42,6 +42,8 @@ Layout = require('./layout')
   book
 } = Layout
 
+{draw_pitch_diagram} = require('./pitch_diagram')
+
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
 Layout.directory './build/'
 Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
@@ -146,29 +148,6 @@ chord_fingerings_page = (chord, chord_root) ->
     for fingering in fingerings
       with_context (ctx) ->
         cell -> draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
-
-draw_pitch_diagram = (ctx, pitch_classes, degree_colors) ->
-  r = 10
-  pitch_names = '1 2b 2 3b 3 4 T 5 6b 6 7b 7'.split(/\s/)
-  pitch_names = 'R m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7'.split(/\s/)
-  pitch_class_angle = (pitch_class) -> (-3 + pitch_class) * 2 * Math.PI / 12
-  for pitch_class, degree_index in pitch_classes
-    a = pitch_class_angle(pitch_class)
-    ctx.beginPath()
-    ctx.moveTo 0, 0
-    ctx.lineTo r * Math.cos(a), r * Math.sin(a)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.arc r * Math.cos(a), r * Math.sin(a), 2, 0, 2 * Math.PI, false
-    ctx.fillStyle = degree_colors[degree_index]
-    ctx.fill()
-    ctx.font = '4pt Times'
-    ctx.fillStyle = 'black'
-    for class_name, pitch_class in pitch_names
-      a = pitch_class_angle(pitch_class)
-      r2 = r + 7
-      m = ctx.measureText(class_name)
-      ctx.fillText class_name, r2 * Math.cos(a) - m.width / 2, r2 * Math.sin(a) + m.emHeightDescent
 
 chord_page = (chord, options={}) ->
   {best_fingering, dy} = options
