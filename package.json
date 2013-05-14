@@ -1,11 +1,8 @@
 {
-  "name": "Chords",
+  "name": "fretboard-logic",
   "description": "Tools for generating guitar chord diagrams for study",
   "version": "0.0.1",
-  "author": {
-    "name": "Oliver Steele",
-    "email": "steele@osteele.com"
-  },
+  "author": "Oliver Steele <steele@osteele.com>",
   "license": "MIT",
   "keywords": [
     "music",
@@ -20,11 +17,11 @@
   "bugs": {
     "url": "http://github.com/osteele/fretboard-logic/issues"
   },
-  "private": true,
   "dependencies": {
     "canvas": "~1.0.2",
-    "underscore": "~1.4.4",
-    "commander": "~1.1.1"
+    "commander": "~1.1.1",
+    "coffee-script": "*",
+    "underscore": "~1.4.4"
   },
   "devDependencies": {
     "grunt": "*",
