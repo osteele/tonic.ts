@@ -45,7 +45,6 @@ Layout = require('./layout')
 {draw_pitch_diagram} = require('./pitch_diagram')
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
-Layout.directory './build/'
 Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
 
 #
@@ -210,6 +209,7 @@ chord_flipbook = (options) ->
   book title, (page) ->
     for dy in [0...ChordDiagramStyle.fret_height]
       page -> chord_page chord, dy: dy, only: 'E'
+
 
 
 module.exports =
