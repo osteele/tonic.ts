@@ -53,7 +53,7 @@ program
       intervals_book by_root: true, pages: options.pages
 
 program
-  .command('chord-shape-animation')
+  .command('animation')
   .description('Flipbook showing the animations of a chord')
   .action (options) ->
     with_book_options (options), ->
@@ -78,6 +78,6 @@ program
     console.log '  chordbook'
     console.log '  fingerings'
     console.log '  intervals'
-    console.log '  flipbook'
+    console.log '  animation'
 
 program.parse(process.argv)

@@ -173,7 +173,7 @@ chord_page = (chord, options={}) ->
     with_graphics_context (ctx) ->
       ctx.translate 285, 20
       ctx.scale 0.85,0.85
-      draw_pitch_diagram ctx, chord.pitch_classes, ChordDegreeColors
+      draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDegreeColors
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     pitches = [8...12].concat([0...8]) unless best_fingering
@@ -199,18 +199,20 @@ chord_book = (options) ->
       page -> chord_page chord, options
 
 flipbook_page = (chord, root, options={}) ->
-  {dy} = options
+  {bend} = options
 
   with_page width: 600, height: 400, ->
-    draw_title "#{chord.name} Chords"
+    draw_title "#{chord.name} Chord Shapes"
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: 0, y: 0, gravity: 'top'
 
-    # TODO label by note, not interval
     with_graphics_context (ctx) ->
       ctx.translate 285, 20
       ctx.scale 0.85,0.85
-      draw_pitch_diagram ctx, chord.pitch_classes, ChordDegreeColors
+      draw_pitch_diagram ctx
+      , (pc + bend for pc in chord.pitch_classes)
+      , pitch_colors: ChordDegreeColors
+      , pitch_names: do (names=NoteNames) -> names[root..].concat(names[...root])
 
     chord_name = compute_chord_name root, chord
 
@@ -222,19 +224,48 @@ flipbook_page = (chord, root, options={}) ->
     position.color = ChordDegreeColors[position.degree_index] for position in positions
     with_graphics_context (ctx) ->
       ctx.translate 0, 50
-      draw_chord_diagram ctx, positions, dy: dy
-
+      draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
 chord_shape_flipbook = (options) ->
   chord = Chords[0]
+  animation_options =
+    bend_step: 1/2
+    drop_step_size: 20
+  if true
+    animation_options =
+      bend_step: 1/20
+      drop_step_size: 2
   with_book "Chord Shape Animation", (page) ->
     root = 0
-    dy = 0
+    bend = 0
+    diagrams = []
+    newest_chord_diagram = null
     while true
-      break if dy == ChordDiagramStyle.fret_height
+      if newest_chord_diagram and not newest_chord_diagram.has_dropped()
+        newest_chord_diagram.translate 0, animation_options.drop_step_size
+        for diagram in diagrams when diagram != newest_chord_diagram
+          diagram.translate animation_options.drop_step_size * 1/4, 0
+      else
+        bend += animation_options.bend_step
+        [root, bend] = [root + 1, 0] if bend >= 1.0
+        break if root >= 12
+        if bend == 0
+          do (x=0, y=0) ->
+            r = root
+            chord_name = compute_chord_name root, chord
+            fingering = best_fingering_for(chord, root)
+            newest_chord_diagram =
+              translate: (dx, dy) -> x += dx; y += dy
+              has_dropped: -> y >= 200
+              draw: ->
+                with_graphics_context (ctx) ->
+                  ctx.translate x, y
+                  draw_title chord_name, style: '20pt Times'
+                  draw_chord_diagram ctx, fingering.positions, fingering.barres
+            diagrams.push newest_chord_diagram
       page ->
-        flipbook_page chord, root, dy: dy
-      dy += 1
+        flipbook_page chord, root, bend: bend
+        diagram.draw() for diagram in diagrams
 
 
 module.exports =

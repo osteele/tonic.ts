@@ -33,9 +33,10 @@ This can be used to select from among multiple fingerings; also to see how the c
 Create a PDF that displays all the interval classes from each
 fretboard position.
 
-    coffee intervals.coffee flipbook
+    coffee intervals.coffee animation
 
-Create a flipbook that shows how the different keys relate to each other.
+Create a flipbook that shows how the different chord shapes relate to each other.
+This is very much in progress.
 
 
 # License
