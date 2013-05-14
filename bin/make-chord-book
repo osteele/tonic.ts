@@ -10,7 +10,7 @@ Layout = FreboardLogic.utils.layout
 {
   chord_book,
   chord_fingerings_page,
-  chord_flipbook,
+  chord_shape_flipbook,
   intervals_book
 } = require('../lib/books')
 
@@ -53,17 +53,17 @@ program
       intervals_book by_root: true, pages: options.pages
 
 program
-  .command('flipbook')
+  .command('chord-shape-animation')
   .description('Flipbook showing the animations of a chord')
   .action (options) ->
     with_book_options (options), ->
-      chord_flipbook pages: 0
+      chord_shape_flipbook pages: 0
 
 program
   .command('all')
   .action (options) ->
     with_book_options (options), ->
-      chord_flipbook()
+      chord_shape_flipbook()
       intervals_book by_root: true
       intervals_book by_root: false
       chord_book best_fingering: true

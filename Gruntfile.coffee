@@ -8,16 +8,16 @@ module.exports = (grunt) ->
         max_line_length: { value: 120 }
     shell:
       makeBuildDir:
-        command: 'mkdir test'
-      runIntervals:
+        command: 'mkdir build'
+      runAll:
         command: './bin/make-chord-book all'
         options:
           stdout: true
           stderr: true
     watch:
       scripts:
-        files: ['**/*.coffee', 'bin/make-chord-book']
-        tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runIntervals']
+        files: ['**/*.coffee', 'bin/make-chord-book flipbook']
+        tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runAll']
         options:
           nospawn: true,
 

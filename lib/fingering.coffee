@@ -35,16 +35,19 @@ find_barres = (positions) ->
   # console.info barres
   barres
 
-fingerings_for = (chord, root_note) ->
+finger_positions_on_chord = (chord, root) ->
+  positions = []
+  fretboard_positions_each (pos) ->
+    interval_class = interval_class_between(root, pitch_number_for_position(pos))
+    degree_index = chord.pitch_classes.indexOf(interval_class)
+    positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
+  positions
+
+fingerings_for = (chord, root) ->
   #
   # Generate
   #
-  positions = do (positions=[]) ->
-    fretboard_positions_each (pos) ->
-      interval_class = interval_class_between(root_note, pitch_number_for_position(pos))
-      degree_index = chord.pitch_classes.indexOf(interval_class)
-      positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
-    positions
+  positions = finger_positions_on_chord(chord, root)
 
   frets_per_string = do (strings=([] for __ in OpenStringPitches)) ->
     strings[position.string].push position for position in positions
@@ -136,7 +139,7 @@ fingerings_for = (chord, root_note) ->
   # Generate, filter, and sort
   #
 
-  chord_name = compute_chord_name root_note, chord
+  chord_name = compute_chord_name root, chord
   fingerings = generate_fingerings()
   fingerings = filter_fingerings(fingerings)
   fingerings = sort_fingerings(fingerings)
@@ -145,9 +148,10 @@ fingerings_for = (chord, root_note) ->
   #   console.info finger_count(fingering)
   return fingerings
 
-best_fingering_for = (chord, root_note) ->
-  return fingerings_for(chord, root_note)[0]
+best_fingering_for = (chord, root) ->
+  return fingerings_for(chord, root)[0]
 
 module.exports =
   best_fingering_for: best_fingering_for
   fingerings_for: fingerings_for
+  finger_positions_on_chord: finger_positions_on_chord

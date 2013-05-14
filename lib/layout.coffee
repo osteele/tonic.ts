@@ -2,15 +2,19 @@ fs = require('fs')
 _ = require 'underscore'
 Canvas = require('canvas')
 
-BuildDirectory = '.'
-DefaultFilename = null
 DefaultFooterTextOptions =
   font: '4pt Times'
   fillStyle: 'black'
   gravity: 'bottom'
+
+page_footer = null
+
+#
+# Drawing
+#
+
 canvas = null
 ctx = null
-page_footer = null
 
 erase_background = ->
   ctx.fillStyle = 'white'
@@ -26,14 +30,21 @@ draw_title = (text, {font, fillStyle, x, y, gravity}={}) ->
   y += m.emHeightAscent if gravity.match(/^top|topLeft|topRight$/)
   ctx.fillText text, x or 0, y or 0
 
-with_context = (fn) ->
+with_graphics_context = (fn) ->
   ctx.save()
   fn ctx
   ctx.restore()
 
+
+#
+# File Saving
+#
+
+BuildDirectory = '.'
+DefaultFilename = null
+
 directory = (path) -> BuildDirectory = path
 filename = (name) -> DefaultFilename = name
-set_page_footer = (options) -> page_footer = options
 
 save_canvas_to_png = (canvas, fname) ->
   out = fs.createWriteStream(BuildDirectory + fname)
@@ -41,12 +52,19 @@ save_canvas_to_png = (canvas, fname) ->
   stream.on 'data', (chunk) -> out.write(chunk)
   stream.on 'end', () -> console.info "Saved #{fname}"
 
+
+#
+# Layout
+#
+
 mode = null
 pdf = false
-page = (width, height, options, draw_page) ->
-  [draw_page, options] = [options, null] if _.isFunction(options)
-  page_margin = 10
-  return [width, height] if mode == 'measure'
+
+set_page_footer = (options) -> page_footer = options
+
+with_page = (options, draw_page) ->
+  defaults = {width: 100, height: 100, page_margin: 10}
+  {width, height, page_margin} = _.extend(defaults, options)
   canvas ||= new Canvas(width + 2 * page_margin, height + 2 * page_margin, pdf and 'pdf')
   ctx = canvas.getContext('2d')
   ctx.textDrawingMode = 'glyph' if pdf
@@ -67,16 +85,15 @@ page = (width, height, options, draw_page) ->
     fs.writeFile BuildDirectory + filename, canvas.toBuffer()
     console.info "Saved #{filename}"
 
-grid = (options, draw_page) ->
+with_grid = (options, draw_page) ->
   {cols, rows, cell_width, cell_height, header_height} = options
   {gutter_width, gutter_height} = options
   header_height ||= 0
   gutter_width ||= 10
   gutter_height ||= 10
-  page cols * cell_width + (cols - 1) * gutter_width
-  , header_height + rows * cell_height + (rows - 1) * gutter_height
-  , options
-  , ->
+  options.width ||= cols * cell_width + (cols - 1) * gutter_width
+  options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
+  with_page  options, ->
     i = 0
     draw_page (draw_cell) ->
       return if i >= cols * rows
@@ -87,7 +104,7 @@ grid = (options, draw_page) ->
       ctx.restore()
       i += 1
 
-book = (filename, options, draw_book) ->
+with_book = (filename, options, draw_book) ->
   draw_book = options if typeof options == 'function'
   pdf = true
   mode = 'draw'
@@ -108,10 +125,11 @@ book = (filename, options, draw_book) ->
   ctx = null
 
 module.exports =
-  book: book
-  grid: grid
+  with_book: with_book
+  with_grid: with_grid
+  with_page: with_page
   draw_title: draw_title
   directory: directory
   filename: filename
   set_page_footer: set_page_footer
-  with_context: with_context
+  with_graphics_context: with_graphics_context

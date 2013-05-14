@@ -16,7 +16,11 @@ _ = require 'underscore'
   pitch_number_for_position
 } = require('./fretboard')
 
-{best_fingering_for, fingerings_for} = require('./fingering')
+{
+  best_fingering_for,
+  fingerings_for,
+  finger_positions_on_chord
+} = require('./fingering')
 
 {
   ChordDiagramStyle,
@@ -35,17 +39,19 @@ Layout = require('./layout')
 {
   erase_background,
   draw_title,
-  with_context,
+  with_graphics_context,
   save_canvas_to_png
-  page,
-  grid,
-  book
+  with_page,
+  with_grid,
+  with_book
 } = Layout
 
 {draw_pitch_diagram} = require('./pitch_diagram')
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
 Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
+
+ChordDegreeColors = ['red', 'blue', 'green', 'orange']
 
 #
 # Specific Cards and Pages
@@ -75,13 +81,13 @@ interval_cards = ->
 intervals_from_position_page = (root_position) ->
   canvas_gutter = 20
   header_height = 20
-  grid cols: 3, rows: 4
+  with_grid cols: 3, rows: 4
   , cell_width: padded_fretboard_width + canvas_gutter
   , cell_height: padded_fretboard_height + header_height
   , (cell) ->
     for interval_name, semitones in Intervals
       cell ->
-        with_context (ctx) ->
+        with_graphics_context (ctx) ->
           ctx.translate 0,
           draw_title interval_name
           , font: '10px Times', fillStyle: 'rgb(10,20,30)'
@@ -108,7 +114,7 @@ intervals_page = (semitones) ->
   cols = FretCount + 1
   rows = StringCount
 
-  grid cols: cols, rows: rows
+  with_grid cols: cols, rows: rows
   , cell_width: padded_fretboard_width + canvas_gutter
   , cell_height: padded_fretboard_height + canvas_gutter
   , header_height: header_height
@@ -119,16 +125,16 @@ intervals_page = (semitones) ->
 
     fretboard_positions_each (finger_position) ->
       cell ->
-        with_context (ctx) ->
+        with_graphics_context (ctx) ->
           draw_fretboard ctx, intervals_from(finger_position, semitones)
 
 intervals_book = ({by_root, pages}={}) ->
   if by_root
-    book "Fretboard Intervals by Root", pages: pages, (page) ->
+    with_book "Fretboard Intervals by Root", pages: pages, (page) ->
       fretboard_positions_each (finger_position) ->
         page -> intervals_from_position_page finger_position
   else
-    book "Fretboard Intervals", pages: pages, (page) ->
+    with_book "Fretboard Intervals", pages: pages, (page) ->
       for __, semitones in Intervals
         page -> intervals_page semitones
 
@@ -136,7 +142,7 @@ chord_fingerings_page = (chord, chord_root) ->
   chord_root = NoteNames.indexOf(chord_root) if typeof chord_root == 'string'
   fingerings = fingerings_for(chord, chord_root)
   Layout.filename "#{compute_chord_name chord_root, chord} Fingerings"
-  grid cols: 10, rows: 10
+  with_grid cols: 10, rows: 10
   , cell_width: padded_chord_diagram_width + 10
   , cell_height: padded_chord_diagram_height + 5
   , header_height: 40
@@ -145,21 +151,15 @@ chord_fingerings_page = (chord, chord_root) ->
     , x: 0, y: 20
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
-      with_context (ctx) ->
+      with_graphics_context (ctx) ->
         cell -> draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
 chord_page = (chord, options={}) ->
-  {best_fingering, dy} = options
+  {best_fingering} = options
 
-  pitch_fingers = []
-  fretboard_positions_each (finger_position) ->
-    pitch = pitch_number_for_position(finger_position) % 12
-    pitch_fingers[pitch] = finger_position
-
-  degree_colors = ['red', 'blue', 'green', 'orange']
   other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
-  grid cols: 4, rows: 3
+  with_grid cols: 4, rows: 3
   , cell_width: padded_chord_diagram_width
   , cell_height: padded_chord_diagram_height
   , gutter_height: 20
@@ -170,15 +170,14 @@ chord_page = (chord, options={}) ->
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: 0, y: 0, gravity: 'top'
 
-    with_context (ctx) ->
+    with_graphics_context (ctx) ->
       ctx.translate 285, 20
       ctx.scale 0.85,0.85
-      draw_pitch_diagram ctx, chord.pitch_classes, degree_colors
+      draw_pitch_diagram ctx, chord.pitch_classes, ChordDegreeColors
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     pitches = [8...12].concat([0...8]) unless best_fingering
     for pitch in pitches
-      root_fingering = pitch_fingers[pitch]
       chord_name = compute_chord_name pitch, chord
       continue if options.only unless chord_name == options.only
       cell ->
@@ -186,34 +185,60 @@ chord_page = (chord, options={}) ->
         , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
 
-        fingering = do (positions=[]) ->
-          for semitones, degree_index in chord.pitch_classes
-            for {string, fret} in intervals_from(root_fingering, semitones)
-              positions.push {string, fret, degree_index}
-          {positions}
+        fingering = {positions: finger_positions_on_chord(chord, pitch)}
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
-        position.color = degree_colors[position.degree_index] for position in fingering.positions
-        with_context (ctx) ->
-          draw_chord_diagram ctx, fingering.positions, barres: fingering.barres, dy: dy
+        position.color = ChordDegreeColors[position.degree_index] for position in fingering.positions
+        with_graphics_context (ctx) ->
+          draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
 chord_book = (options) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
-  book title, pages: options.pages, (page) ->
+  with_book title, pages: options.pages, (page) ->
     for chord in Chords
       page -> chord_page chord, options
 
-chord_flipbook = (options) ->
-  chord = Chords[0]
-  title = "Chord Flipbook"
-  book title, (page) ->
-    for dy in [0...ChordDiagramStyle.fret_height]
-      page -> chord_page chord, dy: dy, only: 'E'
+flipbook_page = (chord, root, options={}) ->
+  {dy} = options
 
+  with_page width: 600, height: 400, ->
+    draw_title "#{chord.name} Chords"
+    , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
+    , x: 0, y: 0, gravity: 'top'
+
+    # TODO label by note, not interval
+    with_graphics_context (ctx) ->
+      ctx.translate 285, 20
+      ctx.scale 0.85,0.85
+      draw_pitch_diagram ctx, chord.pitch_classes, ChordDegreeColors
+
+    chord_name = compute_chord_name root, chord
+
+    # draw_title chord_name
+    # , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
+    # , x: 0, y: -3
+
+    positions = finger_positions_on_chord(chord, root)
+    position.color = ChordDegreeColors[position.degree_index] for position in positions
+    with_graphics_context (ctx) ->
+      ctx.translate 0, 50
+      draw_chord_diagram ctx, positions, dy: dy
+
+
+chord_shape_flipbook = (options) ->
+  chord = Chords[0]
+  with_book "Chord Shape Animation", (page) ->
+    root = 0
+    dy = 0
+    while true
+      break if dy == ChordDiagramStyle.fret_height
+      page ->
+        flipbook_page chord, root, dy: dy
+      dy += 1
 
 
 module.exports =
   chord_book: chord_book
   chord_fingerings_page: chord_fingerings_page
-  chord_flipbook: chord_flipbook
+  chord_shape_flipbook: chord_shape_flipbook
   intervals_book: intervals_book
