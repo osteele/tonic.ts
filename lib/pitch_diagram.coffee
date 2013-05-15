@@ -33,4 +33,5 @@ draw_pitch_diagram = (ctx, pitch_classes, options={}) ->
     m = ctx.measureText(class_name)
     ctx.fillText class_name, r_label * Math.cos(a) - m.width / 2, r_label * Math.sin(a) + m.emHeightDescent
 
-exports.draw_pitch_diagram = draw_pitch_diagram
+module.exports =
+  draw: draw_pitch_diagram

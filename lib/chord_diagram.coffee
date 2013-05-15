@@ -103,7 +103,7 @@ draw_chord_diagram = (ctx, positions, options={}) ->
   draw_closed_strings() if positions
 
 module.exports =
-  ChordDiagramStyle: ChordDiagramStyle
-  padded_chord_diagram_width: padded_chord_diagram_width
-  padded_chord_diagram_height: padded_chord_diagram_height
-  draw_chord_diagram: draw_chord_diagram
+  defaultStyle: ChordDiagramStyle
+  width: padded_chord_diagram_width
+  height: padded_chord_diagram_height
+  draw: draw_chord_diagram

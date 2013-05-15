@@ -3,17 +3,17 @@
 fs = require('fs')
 program = require('commander')
 
-FreboardLogic = require('../index')
-{Chords} = FreboardLogic.theory
-Layout = FreboardLogic.utils.layout
+FretboardLogic = require('../index')
+{Chords} = FretboardLogic.theory
+Layout = FretboardLogic.utils.layout
 
 {
   chord_book,
   chord_fingerings_page,
-  chord_shape_flipbook,
   intervals_book
 } = require('../lib/books')
 
+chord_shape_flipbook = require('../lib/chord-shape-flipbook')
 
 program
   .version('0.0.1')

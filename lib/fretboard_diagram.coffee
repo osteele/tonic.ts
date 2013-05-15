@@ -60,6 +60,6 @@ draw_fretboard = (ctx, positions) ->
   draw_fretboard_finger_position ctx, position, position for position in (positions or [])
 
 module.exports =
-  draw_fretboard: draw_fretboard
-  padded_fretboard_height: padded_fretboard_height
-  padded_fretboard_width: padded_fretboard_width
+  draw: draw_fretboard
+  height: padded_fretboard_height
+  width: padded_fretboard_width
