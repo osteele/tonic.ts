@@ -55,19 +55,20 @@ program
 program
   .command('animation')
   .description('Flipbook showing the animations of a chord')
+  .option('--quick', 'Quick test -- bigger animation skips; fewer pages')
   .action (options) ->
     with_book_options (options), ->
-      chord_shape_flipbook pages: 0
+      chord_shape_flipbook pages: 0, quick: options.quick
 
 program
   .command('all')
   .action (options) ->
     with_book_options (options), ->
-      chord_shape_flipbook()
       intervals_book by_root: true
       intervals_book by_root: false
       chord_book best_fingering: true
       chord_book best_fingering: false
+      chord_shape_flipbook quick: true
       # FIXME this doesn't actually render in this context
       chord_fingerings_page Chords[6], 'F'
 

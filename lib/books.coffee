@@ -84,18 +84,18 @@ intervals_from_position_page = (root_position) ->
   with_grid cols: 3, rows: 4
   , cell_width: padded_fretboard_width + canvas_gutter
   , cell_height: padded_fretboard_height + header_height
-  , (cell) ->
+  , (grid) ->
     for interval_name, semitones in Intervals
-      cell ->
-        with_graphics_context (ctx) ->
-          ctx.translate 0,
-          draw_title interval_name
-          , font: '10px Times', fillStyle: 'rgb(10,20,30)'
-          , x: 0, y: -3
-          positions = (pos for pos in intervals_from(root_position, semitones) \
-            when not (pos.string == root_position.string and pos.fret == root_position.fret))
-          positions.push string: root_position.string, fret: root_position.fret, is_root: true
-          draw_fretboard ctx, positions
+      grid.add_cell ->
+        # with_graphics_context (ctx) ->
+          # ctx.translate 0,
+        draw_title interval_name
+        , font: '10px Times', fillStyle: 'rgb(10,20,30)'
+        , x: 0, y: -3
+        positions = (pos for pos in intervals_from(root_position, semitones) \
+          when not (pos.string == root_position.string and pos.fret == root_position.fret))
+        positions.push string: root_position.string, fret: root_position.fret, is_root: true
+        draw_fretboard grid.context, positions
 
 draw_intervals_from = (root_position, semitones, color) ->
   root_note_number = pitch_number_for_position(root_position)
@@ -118,25 +118,24 @@ intervals_page = (semitones) ->
   , cell_width: padded_fretboard_width + canvas_gutter
   , cell_height: padded_fretboard_height + canvas_gutter
   , header_height: header_height
-  , (cell) ->
+  , (grid) ->
     draw_title "#{LongIntervalNames[semitones]} Intervals"
     , font: '25px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: canvas_gutter / 2, y: 30
 
     fretboard_positions_each (finger_position) ->
-      cell ->
-        with_graphics_context (ctx) ->
-          draw_fretboard ctx, intervals_from(finger_position, semitones)
+      grid.add_cell ->
+        draw_fretboard grid.context, intervals_from(finger_position, semitones)
 
 intervals_book = ({by_root, pages}={}) ->
   if by_root
-    with_book "Fretboard Intervals by Root", pages: pages, (page) ->
+    with_book "Fretboard Intervals by Root", pages: pages, (book) ->
       fretboard_positions_each (finger_position) ->
-        page -> intervals_from_position_page finger_position
+        book.add_page -> intervals_from_position_page finger_position
   else
-    with_book "Fretboard Intervals", pages: pages, (page) ->
+    with_book "Fretboard Intervals", pages: pages, (book) ->
       for __, semitones in Intervals
-        page -> intervals_page semitones
+        book.add_page -> intervals_page semitones
 
 chord_fingerings_page = (chord, chord_root) ->
   chord_root = NoteNames.indexOf(chord_root) if typeof chord_root == 'string'
@@ -146,13 +145,12 @@ chord_fingerings_page = (chord, chord_root) ->
   , cell_width: padded_chord_diagram_width + 10
   , cell_height: padded_chord_diagram_height + 5
   , header_height: 40
-  , (cell) ->
+  , (grid) ->
     draw_title "#{compute_chord_name chord_root, chord} Fingerings"
     , x: 0, y: 20
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
-      with_graphics_context (ctx) ->
-        cell -> draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
+      grid.add_cell -> draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 
 chord_page = (chord, options={}) ->
   {best_fingering} = options
@@ -164,7 +162,7 @@ chord_page = (chord, options={}) ->
   , cell_height: padded_chord_diagram_height
   , gutter_height: 20
   , header_height: 40
-  , (cell) ->
+  , (grid) ->
 
     draw_title "#{chord.name} Chords"
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
@@ -180,7 +178,7 @@ chord_page = (chord, options={}) ->
     for pitch in pitches
       chord_name = compute_chord_name pitch, chord
       continue if options.only unless chord_name == options.only
-      cell ->
+      grid.add_cell ->
         draw_title chord_name
         , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
@@ -189,19 +187,18 @@ chord_page = (chord, options={}) ->
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
         position.color = ChordDegreeColors[position.degree_index] for position in fingering.positions
-        with_graphics_context (ctx) ->
-          draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
+        draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 
 chord_book = (options) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
-  with_book title, pages: options.pages, (page) ->
+  with_book title, pages: options.pages, (book) ->
     for chord in Chords
-      page -> chord_page chord, options
+      book.add_page -> chord_page chord, options
 
 flipbook_page = (chord, root, options={}) ->
   {bend} = options
 
-  with_page width: 600, height: 400, ->
+  with_page width: 640, height: 480, ->
     draw_title "#{chord.name} Chord Shapes"
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: 0, y: 0, gravity: 'top'
@@ -226,16 +223,19 @@ flipbook_page = (chord, root, options={}) ->
       ctx.translate 0, 50
       draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
-chord_shape_flipbook = (options) ->
+chord_shape_flipbook = (options={}) ->
+  {quick} = options
   chord = Chords[0]
+
   animation_options =
-    bend_step: 1/2
-    drop_step_size: 20
-  if true
-    animation_options =
-      bend_step: 1/20
-      drop_step_size: 2
-  with_book "Chord Shape Animation", (page) ->
+    bend_step: 1/20
+    drop_step_size: 2
+  if quick
+    _.extend animation_options,
+      bend_step: 1/2
+      drop_step_size: 20
+
+  with_book "Chord Shape Animation", (book) ->
     root = 0
     bend = 0
     diagrams = []
@@ -256,14 +256,14 @@ chord_shape_flipbook = (options) ->
             fingering = best_fingering_for(chord, root)
             newest_chord_diagram =
               translate: (dx, dy) -> x += dx; y += dy
-              has_dropped: -> y >= 200
+              has_dropped: -> y >= 300
               draw: ->
                 with_graphics_context (ctx) ->
                   ctx.translate x, y
                   draw_title chord_name, style: '20pt Times'
                   draw_chord_diagram ctx, fingering.positions, fingering.barres
             diagrams.push newest_chord_diagram
-      page ->
+      book.add_page ->
         flipbook_page chord, root, bend: bend
         diagram.draw() for diagram in diagrams
 
