@@ -16,27 +16,23 @@ draw_pitch_diagram = require('./pitch_diagram').draw
 } = FretboardLogic.drawing.chord_diagram
 
 chord_shape_flipbook = (options={}) ->
-  {quick} = options
+  {quick, speed} = options
+  speed ||= (if quick then 10 else 1)
   chord = Chords[0]
 
-  animation_options =
-    bend_step: 1/20
-    drop_step_size: 2
-  if quick
-    _.extend animation_options,
-      bend_step: 1/2
-      drop_step_size: 20
+  ease = (s, x0, x1) ->x0 + s * (x1 - x0)
 
-  ease = (s, x0, x1) -> x0 + s * (x1 - x0)
+  easeAttr = (path, aname, s, defaultValue) ->
+    return defaultValue unless path and aname of path[0]
+    ease(s, path[0][aname], path[1][aname])
 
   sprite_position_at = (sprite, t) ->
     s = Math.min(1, (t - sprite.t0) / (sprite.t1 - sprite.t0))
     s = Math.min(1, t - sprite.t0) unless 't1' of sprite
-    x = y = 0
-    if sprite.path
-      x = ease(s, sprite.path[0].x, sprite.path[1].x)
-      y = ease(s, sprite.path[0].y, sprite.path[1].y)
-    {x, y}
+    {
+      x: easeAttr(sprite.path, 'x', s, 0)
+      y: easeAttr(sprite.path, 'y', s, 0)
+    }
 
   with_book "Chord Shape Animation", (book) ->
     ctx = book.context
@@ -54,6 +50,7 @@ chord_shape_flipbook = (options={}) ->
         bend = s - pitch
         positions = finger_positions_on_chord(chord, pitch)
         position.color = ChordDegreeColors[position.degree_index] for position in positions
+        position.is_root = (position.degree_index == 0) for position in positions
         with_graphics_context (ctx) ->
           draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
@@ -61,6 +58,7 @@ chord_shape_flipbook = (options={}) ->
         bend -= 1
         positions = finger_positions_on_chord(chord, pitch)
         position.color = ChordDegreeColors[position.degree_index] for position in positions
+        position.is_root = (position.degree_index == 0) for position in positions
         with_graphics_context (ctx) ->
           draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
     sprites.push master
@@ -76,17 +74,17 @@ chord_shape_flipbook = (options={}) ->
           t0: t0
           path:
             0: pos
-            1: {x: col * 120, y: pos.y + 100 + row * 100}
+            1: {x: 50 + col * 130, y: pos.y + 100 + row * 115}
           draw: (dt) ->
             with_graphics_context (ctx) ->
-              draw_title chord_name, font: '15pt Times', color: 'black'
+              draw_title "#{chord_name} Major", font: '12pt Times', fillStyle: 'black', y: -3
               position.color = ChordDegreeColors[position.degree_index] for position in fingering.positions
               draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
     t_end = Math.max(_.chain(sprites).pluck('t1').compact().value()...)
+    t_end += 1
     t = 0
-    t_step = 1/20
-    t_step = .5 if options.quick
+    t_step = 1/20 * speed
     while t < t_end
       book.add_page ->
         with_page width: 640, height: 480, ->

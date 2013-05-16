@@ -65,7 +65,11 @@ draw_chord_diagram = (ctx, positions, options={}) ->
     ctx.strokeStyle = color or (if is_root then 'red' else 'black')
     ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.arc x, y, style.note_radius, 0, Math.PI * 2, false
+    if is_root and position.fret
+      do (r=style.note_radius) ->
+        ctx.rect x - r, y - r, 2 * r, 2 * r
+    else
+      ctx.arc x, y, style.note_radius, 0, Math.PI * 2, false
     ctx.fill() if position.fret > 0 or is_root
     ctx.stroke()
     ctx.strokeStyle = 'black'

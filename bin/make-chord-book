@@ -56,9 +56,10 @@ program
   .command('animation')
   .description('Flipbook showing the animations of a chord')
   .option('--quick', 'Quick test -- bigger animation skips; fewer pages')
+  .option('--speed <f>', 'Slower by a factor of <f>', parseFloat)
   .action (options) ->
     with_book_options (options), ->
-      chord_shape_flipbook pages: 0, quick: options.quick
+      chord_shape_flipbook pages: 0, quick: options.quick, speed: options.speed
 
 program
   .command('all')

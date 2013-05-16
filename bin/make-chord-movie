@@ -1,0 +1,25 @@
+#!/bin/bash -ue
+
+BUILD_DIR=`dirname "${BASH_SOURCE[0]}"`/../build
+PDF_NAME='Chord Shape Animation.pdf'
+MOVIE_FILE="$BUILD_DIR/Chord Shapes.mp4"
+
+BIN_DIR=`dirname "${BASH_SOURCE[0]}"`
+TMP_DIR=`mktemp -d -t chord-movie`
+
+trap "rm -rf $TMP_DIR" EXIT
+
+$BIN_DIR/make-chord-book animation $*
+cp "$BUILD_DIR/$PDF_NAME" $TMP_DIR
+
+echo "Creating PNG files..."
+pdf2image -q "$TMP_DIR/$PDF_NAME"
+
+echo "Creating $MOVIE_FILE..."
+ffmpeg -v warning -r 30 \
+  -i "$TMP_DIR/${PDF_NAME%.*}"_%0d.png \
+  -s:v 1280x720 -c:v libx264 -profile:v high -crf 23 -pix_fmt yuv420p -r 30 \
+  "$MOVIE_FILE" \
+  -y
+
+echo "Created $MOVIE_FILE"
