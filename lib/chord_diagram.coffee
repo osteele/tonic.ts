@@ -76,14 +76,31 @@ draw_chord_diagram = (ctx, positions, options={}) ->
     ctx.strokeStyle = 'black'
 
   draw_barres = ->
+    ctx.fillStyle = 'black'
     for {fret, string, fret, string_count} in barres
-      {x: x1, y} = finger_coordinates(string: string, fret: fret)
-      {x: x2} = finger_coordinates(string: string + string_count - 1, fret: fret)
-      ctx.fillStyle = 'rgba(0,0,0, 0.5)'
+      {x: x1, y} = finger_coordinates {string, fret}
+      {x: x2} = finger_coordinates {string: string + string_count - 1, fret}
+      w = (x2 - x1)
+      ctx.save()
+      ctx.translate (x1 + x2) / 2, y - style.fret_height * .25
       ctx.beginPath()
-      ctx.arc x1, y, style.string_spacing / 2, Math.PI * 1/2, Math.PI * 3/2, false
-      ctx.arc x2, y, style.string_spacing / 2, Math.PI * 3/2, Math.PI * 1/2, false
+      do ->
+        ctx.save()
+        ctx.scale w, 10
+        ctx.arc 0, 0, style.string_spacing / 2 / 1/10, Math.PI, 0, false
+        ctx.restore()
+      do ->
+        ctx.save()
+        ctx.scale w, 14
+        ctx.arc 0, 0, style.string_spacing / 2 / 1/10, 0, Math.PI, true
+        ctx.restore()
       ctx.fill()
+      ctx.restore()
+      # ctx.fillStyle = 'rgba(0,0,0, 0.5)'
+      # ctx.beginPath()
+      # ctx.arc x1, y, style.string_spacing / 2, Math.PI * 1/2, Math.PI * 3/2, false
+      # ctx.arc x2, y, style.string_spacing / 2, Math.PI * 3/2, Math.PI * 1/2, false
+      # ctx.fill()
 
   draw_finger_positions = ->
     for position in positions
@@ -96,14 +113,17 @@ draw_chord_diagram = (ctx, positions, options={}) ->
     fretted_strings = []
     fretted_strings[position.string] = true for position in positions
     closed_strings = (string for string in StringNumbers when not fretted_strings[string])
-    ctx.font = "#{style.closed_string_fontsize}pt Helvetica"
+    r = style.note_radius
     ctx.fillStyle = 'black'
-    label = 'x'
-    for string_number in closed_strings
-      m = ctx.measureText(label)
-      ctx.fillText label
-      , style.h_gutter + string_number * style.string_spacing - m.width / 2
-      , style.v_gutter + style.above_fretboard - style.fret_height * 0.5 + m.emHeightDescent
+    for string in closed_strings
+      {x, y} = finger_coordinates {string, fret: 0}
+      ctx.strokeStyle = 'black'
+      ctx.beginPath()
+      ctx.moveTo x - r, y - r
+      ctx.lineTo x + r, y + r
+      ctx.moveTo x - r, y + r
+      ctx.lineTo x + r, y - r
+      ctx.stroke()
 
   draw_chord_diagram_strings(ctx)
   draw_chord_diagram_frets(ctx)
