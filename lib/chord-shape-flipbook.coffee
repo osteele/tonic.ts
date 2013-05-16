@@ -8,7 +8,6 @@ FretboardLogic = require('../index')
 Layout = FretboardLogic.utils.layout
 {with_book, with_page, draw_title, with_graphics_context} = Layout
 
-{ChordDegreeColors} = require('./books')
 draw_pitch_diagram = require('./pitch_diagram').draw
 {
   defaultStyle: ChordDiagramStyle
@@ -49,16 +48,12 @@ chord_shape_flipbook = (options={}) ->
         pitch = Math.floor(s)
         bend = s - pitch
         positions = finger_positions_on_chord(chord, pitch)
-        position.color = ChordDegreeColors[position.degree_index] for position in positions
-        position.is_root = (position.degree_index == 0) for position in positions
         with_graphics_context (ctx) ->
           draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
         pitch = (pitch + 1) % 12
         bend -= 1
         positions = finger_positions_on_chord(chord, pitch)
-        position.color = ChordDegreeColors[position.degree_index] for position in positions
-        position.is_root = (position.degree_index == 0) for position in positions
         with_graphics_context (ctx) ->
           draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
     sprites.push master
@@ -78,7 +73,6 @@ chord_shape_flipbook = (options={}) ->
           draw: (dt) ->
             with_graphics_context (ctx) ->
               draw_title "#{chord_name} Major", font: '12pt Times', fillStyle: 'black', y: -3
-              position.color = ChordDegreeColors[position.degree_index] for position in fingering.positions
               draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
     t_end = Math.max(_.chain(sprites).pluck('t1').compact().value()...)

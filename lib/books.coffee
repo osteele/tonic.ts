@@ -51,7 +51,6 @@ draw_pitch_diagram = require('./pitch_diagram').draw
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
 Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
 
-ChordDegreeColors = ['red', 'blue', 'green', 'orange']
 
 #
 # Specific Cards and Pages
@@ -169,7 +168,7 @@ chord_page = (chord, options={}) ->
     with_graphics_context (ctx) ->
       ctx.translate 285, 20
       ctx.scale 0.85,0.85
-      draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDegreeColors
+      draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     pitches = [8...12].concat([0...8]) unless best_fingering
@@ -184,7 +183,6 @@ chord_page = (chord, options={}) ->
         fingering = {positions: finger_positions_on_chord(chord, pitch)}
         fingering = best_fingering_for(chord, pitch) if best_fingering
 
-        position.color = ChordDegreeColors[position.degree_index] for position in fingering.positions
         draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 
 chord_book = (options) ->
@@ -194,7 +192,6 @@ chord_book = (options) ->
       book.add_page -> chord_page chord, options
 
 module.exports =
-  ChordDegreeColors: ChordDegreeColors
   chord_book: chord_book
   chord_fingerings_page: chord_fingerings_page
   intervals_book: intervals_book

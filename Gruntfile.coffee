@@ -3,7 +3,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
     coffeelint:
-      app: ['**/*.coffee']
+      app: ['lib/*.coffee']
       options:
         max_line_length: { value: 120 }
     shell:

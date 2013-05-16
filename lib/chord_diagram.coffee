@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 {FretCount, FretNumbers, StringCount, StringNumbers} = require('./fretboard')
 
 #
@@ -12,15 +14,14 @@ ChordDiagramStyle =
   above_fretboard: 8
   note_radius: 1
   closed_string_fontsize: 4
+  chord_degree_colors: ['red', 'blue', 'green', 'orange']
+
 
 # padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + ChordDiagramStyle.fret_height * FretCount
 
-ChordDiagramStyle =
-  h_gutter: 5
-  v_gutter: 5
+_.extend ChordDiagramStyle,
   string_spacing: 12
   fret_height: 16
-  above_fretboard: 8
   note_radius: 3
   closed_string_fontsize: 8
 
@@ -85,7 +86,11 @@ draw_chord_diagram = (ctx, positions, options={}) ->
       ctx.fill()
 
   draw_finger_positions = ->
-    draw_finger_position position, position for position in positions
+    for position in positions
+      finger_options = position
+      finger_options.color = style.chord_degree_colors[position.degree_index] unless 'color' of finger_options
+      finger_options.is_root = (position.degree_index == 0) unless 'is_root' of finger_options
+      draw_finger_position position, finger_options
 
   draw_closed_strings = ->
     fretted_strings = []
