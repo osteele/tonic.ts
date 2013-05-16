@@ -1,7 +1,7 @@
 #!/bin/bash -ue
 
 BUILD_DIR=`dirname "${BASH_SOURCE[0]}"`/../build
-PDF_NAME='Chord Shape Animation.pdf'
+PDF_NAME='Chord Shape Animation Frames.pdf'
 MOVIE_FILE="$BUILD_DIR/Chord Shapes.mp4"
 
 BIN_DIR=`dirname "${BASH_SOURCE[0]}"`
@@ -12,7 +12,7 @@ trap "rm -rf $TMP_DIR" EXIT
 $BIN_DIR/make-chord-book animation $*
 cp "$BUILD_DIR/$PDF_NAME" $TMP_DIR
 
-echo "Creating PNG files..."
+echo "Extracting frames from PDF..."
 pdf2image -q "$TMP_DIR/$PDF_NAME"
 
 echo "Creating $MOVIE_FILE..."
