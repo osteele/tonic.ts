@@ -46,7 +46,7 @@ write_animation_frames = (options) ->
             {x, y} = sprite_position_at(sprite, t)
             with_graphics_context (ctx) ->
               ctx.translate x, y
-              sprite.draw s
+              sprite.draw ctx, s
       t += step_size
 
 with_animation_context = (options, cb) ->
@@ -55,7 +55,11 @@ with_animation_context = (options, cb) ->
   cb
     make_sprite: (options, cb=null) ->
       [options, cb] = [{}, options] if _.isFunction(options) and not cb
-      sprite = options
+      sprite =
+        at: (t, options) ->
+          @path ||= {}
+          @path[t] = options
+      sprite = _.extend sprite, options
       sprites.push sprite
       cb sprite if cb
       return sprite
@@ -83,22 +87,21 @@ chord_shape_flipbook = (options={}) ->
       t0: 0
       t1: 12
       z_index: 1
-      path:
-        0: {x: 0, y: 50}
-        1: {x: 400, y: 50}
-      draw: (s) ->
+      draw: (ctx, s) ->
         s *= 12
         pitch = Math.floor(s)
         bend = s - pitch
         positions = finger_positions_on_chord(chord, pitch)
-        with_graphics_context (ctx) ->
-          draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
+        draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
         pitch = (pitch + 1) % 12
         bend -= 1
         positions = finger_positions_on_chord(chord, pitch)
-        with_graphics_context (ctx) ->
-          draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
+        draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
+
+      , (sprite) ->
+        sprite.at 0, x: 0, y: 50
+        sprite.at 1, x: 400, y: 50
 
     animation.make_sprite
       draw: ->
@@ -113,20 +116,15 @@ chord_shape_flipbook = (options={}) ->
         fingering = best_fingering_for(chord, pitch)
         pos = sprite_position_at master_diagram, t0
         [col, row] = [i % 4 , Math.floor(i / 4)]
+
         animation.make_sprite
           t0: t0
-          path:
-            0: pos
-            1: {x: 50 + col * 130, y: pos.y + 100 + row * 115}
-          draw: (dt) ->
-            with_graphics_context (ctx) ->
-              draw_title "#{chord_name} Major", font: '12pt Times', fillStyle: 'black', y: -3
-              draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
+          draw: (ctx, dt) ->
+            draw_title "#{chord_name} Major", font: '12pt Times', fillStyle: 'black', y: -3
+            draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
-    # write_animation_frames
-    #   title: "Chord Shape Animation Frames"
-    #   sprites: sprites
-    #   step_size: speed / 20
-    #   end_padding: 1
+        , (sprite) ->
+          sprite.at 0, pos
+          sprite.at 1, x: 50 + col * 130, y: pos.y + 100 + row * 115
 
 module.exports = chord_shape_flipbook
