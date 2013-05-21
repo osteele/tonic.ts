@@ -13,7 +13,7 @@ Layout = FretboardLogic.utils.layout
   intervals_book
 } = require('../lib/books')
 
-chord_shape_flipbook = require('../lib/chord-shape-flipbook')
+chord_shape_flipbook = require('../lib/chord-shape-animation')
 
 program
   .version('0.0.1')
