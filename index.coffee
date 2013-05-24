@@ -1,8 +1,8 @@
 module.exports =
   theory: require('./lib/theory')
-  logic:
-    fingering: require('./lib/fingering')
-    fretboard: require('./lib/fretboard')
+  fretboard:
+    logic: require('./lib/fretboard_logic')
+    model: require('./lib/fretboard_model')
   utils:
     layout: require('./lib/layout')
   drawing:

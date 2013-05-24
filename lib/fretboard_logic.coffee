@@ -8,7 +8,7 @@ _ = require 'underscore'
   StringNumbers,
   fretboard_positions_each,
   pitch_number_for_position
-} = require('./fretboard')
+} = require('./fretboard_model')
 
 find_barres = (positions) ->
   fret_rows = for fn in FretNumbers

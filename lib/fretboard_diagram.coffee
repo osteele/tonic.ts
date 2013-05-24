@@ -1,4 +1,9 @@
-{FretCount, FretNumbers, StringCount, StringNumbers} = require('./fretboard')
+{
+  FretCount
+, FretNumbers
+, StringCount
+, StringNumbers
+} = require('./fretboard_model')
 
 #
 # Drawing Fretboard

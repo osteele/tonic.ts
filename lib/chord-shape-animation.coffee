@@ -4,7 +4,7 @@ easings = require 'ease-component'
 FretboardLogic = require '../index'
 
 {Chords, NoteNames, compute_chord_name} = FretboardLogic.theory
-{best_fingering_for, finger_positions_on_chord} = FretboardLogic.logic.fingering
+{best_fingering_for, finger_positions_on_chord} = FretboardLogic.fretboard.logic
 
 Layout = FretboardLogic.utils.layout
 {with_book, with_page, draw_title, with_graphics_context} = Layout

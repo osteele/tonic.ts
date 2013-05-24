@@ -14,13 +14,13 @@ _ = require 'underscore'
   fretboard_positions_each
   intervals_from
   pitch_number_for_position
-} = require('./fretboard')
+} = require('./fretboard_model')
 
 {
   best_fingering_for
   fingerings_for
   finger_positions_on_chord
-} = require('./fingering')
+} = require('./fretboard_logic')
 
 {
   defaultStyle: ChordDiagramStyle

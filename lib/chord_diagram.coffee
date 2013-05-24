@@ -1,6 +1,10 @@
 _ = require 'underscore'
 
-{FretCount, FretNumbers, StringCount, StringNumbers} = require('./fretboard')
+{FretCount
+, FretNumbers
+, StringCount
+, StringNumbers
+} = require('./fretboard_model')
 
 #
 # Draw Chord Diagrams
