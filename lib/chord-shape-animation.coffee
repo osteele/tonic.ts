@@ -1,6 +1,7 @@
-_ = require('underscore')
+_ = require 'underscore'
+easings = require 'ease-component'
 
-FretboardLogic = require('../index')
+FretboardLogic = require '../index'
 
 {Chords, NoteNames, compute_chord_name} = FretboardLogic.theory
 {best_fingering_for, finger_positions_on_chord} = FretboardLogic.logic.fingering
@@ -14,14 +15,17 @@ draw_pitch_diagram = require('./pitch_diagram').draw
   draw: draw_chord_diagram
 } = FretboardLogic.drawing.chord_diagram
 
-ease = (s, x0, x1) ->x0 + s * (x1 - x0)
+ease = (s, x0, x1, method=null) ->
+  s  = method.call easings, s if method
+  x0 + s * (x1 - x0)
 
 easeAttr = (path, aname, t, defaultValue) ->
   return defaultValue unless path
   parseKeyframeSelector = (k) ->
     return parseFloat(k) / 100 if k.match(/^(.+)%$/)
     {'from': 0, 'to': 1}[k] or parseFloat(k)
-  frames = ({s: parseKeyframeSelector(k), v: properties[aname]} for k, properties of path when aname of properties)
+  frames = ({s: parseKeyframeSelector(k), v: properties[aname], easing} \
+    for k, {properties, easing} of path when aname of properties)
   frames.sort ({s:a}, {s:b}) -> a - b
   f1 = _.find frames, ({s}) -> t <= s
   f0 = _.find frames.reverse(), ({s}) -> s <= t
@@ -29,7 +33,7 @@ easeAttr = (path, aname, t, defaultValue) ->
   return f0.v if t <= f0.s
   return f1.v if f1.s <= t
   s = (t - f0.s) / (f1.s - f0.s)
-  return ease(s, f0.v, f1.v)
+  ease s, f0.v, f1.v, f1.easing
 
 # t is a time value. Find the sprite.path keyframes that bracket it,
 # and interpolate between them.
@@ -71,9 +75,9 @@ with_animation_context = (options, cb) ->
     make_sprite: (options, cb=null) ->
       [options, cb] = [{}, options] if _.isFunction(options) and not cb
       sprite =
-        at: (t, options) ->
+        at: (t, properties, easing) ->
           @path ||= {}
-          @path[t] = options
+          @path[t] = {properties, easing}
       sprite = _.extend sprite, options
       sprites.push sprite
       cb sprite if cb
@@ -146,10 +150,10 @@ chord_shape_flipbook = (options={}) ->
           draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
       , (sprite) ->
-        # sprite.at t0, visible: true
         sprite.at 0, pos
         sprite.at 0.5, pos
-        # sprite.at 1, pos
-        sprite.at 1, x: 50 + col * 130, y: pos.y + 100 + row * 115
+        sprite.at 1
+        , {x: 50 + col * 130, y: pos.y + 100 + row * 115}
+        , easings.inCube
 
 module.exports = chord_shape_flipbook

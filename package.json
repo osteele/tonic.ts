@@ -21,7 +21,8 @@
     "canvas": "~1.0.2",
     "commander": "~1.1.1",
     "coffee-script": "*",
-    "underscore": "~1.4.4"
+    "underscore": "~1.4.4",
+    "ease-component": "~1.0.0"
   },
   "devDependencies": {
     "grunt": "*",
@@ -30,7 +31,9 @@
     "grunt-coffeelint": "*"
   },
   "main": "index.coffee",
-  "bin": {"make-chord-book": "./bin/make-chord-book"},
+  "bin": {
+    "make-chord-book": "./bin/make-chord-book"
+  },
   "scripts": {
     "test": "coffee bin/make-chord-book all"
   }
