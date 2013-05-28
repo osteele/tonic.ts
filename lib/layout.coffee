@@ -67,7 +67,7 @@ set_page_footer = (options) -> page_footer = options
 
 with_page = (options, cb) ->
   defaults = {width: 100, height: 100, page_margin: 10}
-  {width, height, page_margin} = _.extend(defaults, options)
+  {width, height, page_margin} = _.extend defaults, options
   canvas ||= new Canvas(width + 2 * page_margin, height + 2 * page_margin, pdf and 'pdf')
   ctx = canvas.getContext('2d')
   ctx.textDrawingMode = 'glyph' if pdf
@@ -80,8 +80,8 @@ with_page = (options, cb) ->
   ctx.restore()
 
   if page_footer
-    options = _.extend(page_footer, DefaultFooterTextOptions)
-    options = _.extend({x: page_margin, y: canvas.height}, options)
+    options = _.extend page_footer, DefaultFooterTextOptions
+    options = _.extend {x: page_margin, y: canvas.height}, options
     draw_title page_footer.text, options
 
   unless pdf
@@ -91,7 +91,7 @@ with_page = (options, cb) ->
 
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
-  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = _.extend(defaults, options)
+  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = _.extend defaults, options
   options.width ||= cols * cell_width + (cols - 1) * gutter_width
   options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
   with_page options, (page) ->

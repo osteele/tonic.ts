@@ -11,18 +11,26 @@ _ = require 'underscore'
   pitch_number_for_position
 } = require('./fretboard_model')
 
-Function::define ||= (prop, desc) ->
-    Object.defineProperty @prototype, prop, desc
+Function::define ||= (name, desc) ->
+    Object.defineProperty @prototype, name, desc
+
+Function::cached_getter ||= (name, fn) ->
+    Object.defineProperty @prototype, name, get: ->
+      cache = @_getter_cache ||= {}
+      return cache[name] if name of cache
+      cache[name] = fn.call(this)
 
 class Fingering
-  constructor: (@positions) ->
+  constructor: ({@positions, @chord}) ->
+    @positions.sort (a, b) -> a.string - b.string
 
-  @define 'fretstring',
-    get: ->
-      @_fretstring ||= do =>
-        frets = (-1 for s in StringNumbers)
-        frets[string] = fret for {string, fret} in @positions
-        ((if x >= 0 then x else 'x') for x in frets).join('')
+  @cached_getter 'fretstring', ->
+    fret_vector = (-1 for s in StringNumbers)
+    fret_vector[string] = fret for {string, fret} in @positions
+    ((if x >= 0 then x else 'x') for x in fret_vector).join('')
+
+  @cached_getter 'inversion', ->
+    @chord.pitch_classes.indexOf interval_class_between(@chord.root, pitch_number_for_position(@positions[0]))
 
 find_barres = (positions) ->
   fret_rows = for fn in FretNumbers
@@ -58,7 +66,8 @@ finger_positions_on_chord = (chord) ->
   positions
 
 # TODO add options for strumming vs. fingerstyle; muting; span
-fingerings_for = (chord) ->
+fingerings_for = (chord, options={}) ->
+  options = _.extend {filter: true}, options
   throw "No root for #{util.inspect chord}" unless 'root' of chord
 
   #
@@ -78,7 +87,7 @@ fingerings_for = (chord) ->
       for n in frets for right in following_finger_positions)...)
 
   generate_fingerings = ->
-    (new Fingering(positions) for positions in collect_fingering_positions(frets_per_string))
+    (new Fingering {positions, chord} for positions in collect_fingering_positions(frets_per_string))
 
   chord_note_count = chord.pitch_classes.length
 
@@ -117,6 +126,9 @@ fingerings_for = (chord) ->
     {name: 'no more than four fingers', filter: few_fingers}
   ]
 
+  unless options.filter
+    filters = [{name: 'has all chord notes', filter: has_all_notes}]
+
   filter_fingerings = (fingerings) ->
     for {name, filter} in filters
       filtered = (fingering for fingering in fingerings when filter(fingering))
@@ -143,8 +155,7 @@ fingerings_for = (chord) ->
   ]
 
   sort_fingerings = (fingerings) ->
-    for sort in sorts
-      fingerings = _(fingerings).sortBy(sort)
+    fingerings = _(fingerings).sortBy(sort) for sort in sorts
     return fingerings
 
 
@@ -154,8 +165,8 @@ fingerings_for = (chord) ->
 
   chord_name = chord.name
   fingerings = generate_fingerings()
-  fingerings = filter_fingerings(fingerings)
-  fingerings = sort_fingerings(fingerings)
+  fingerings = filter_fingerings fingerings
+  fingerings = sort_fingerings fingerings
 
   # for fingering in fingerings
   #   console.info finger_count(fingering)

@@ -138,23 +138,46 @@ intervals_book = ({by_root, pages}={}) ->
 # Chord Shape Fragments
 #
 
+collect_chord_shape_fragments = (chord) ->
+  # TODO collect all inversions
+  bass_to_fragment_index = ['bass', 'bass', 4, 3]
+  fragments = {bass: {}, 4: {}, 3: {}}
+  for root in 'CDEFGAB'
+    fingerings = fingerings_for(chord.at(root), filter: false)
+    for fingering in fingerings
+      s = fingering.fretstring
+      # continue unless fingering.inversion == 0
+      # console.info s, fingering.inversion
+      for i in [0..(s.length-3)]
+        slice = s[i...(i+3)]
+        continue unless slice.match(/^\d+$/)
+        # only show open positions if there's not an equivalent closed position
+        continue if slice.match(/0/) and not slice.match(/4/)
+        # console.info s, slice
+        # lower fingerings to first position
+        unless slice.match(/[01]/)
+          frets = (Number(c) for c in slice)
+          min = Math.min(frets...) - 1
+          slice = (fret - min for fret in frets).join('')
+        fragments[bass_to_fragment_index[i]][slice] = chord
+
+  return {
+    each_fragment: (fn) ->
+      for open_positions in [false, true]
+        for k, ki in ['bass', 4, 3]
+          slices = _.chain(fragments[k]).keys().sort().value()
+          slices = (slice for slice in slices when !!slice.match(/0/) == !!open_positions)
+          # console.info slices
+          for slice in slices
+            positions = ({fret: Number(c), string: i + ki + (ki > 0)} for c, i in slice)
+            position.degree_index = 0 for position in positions
+            fn positions
+    }
+
 chord_shape_fragments = (options={}) ->
   with_book "Chord Shape Fragments", pages: options.pages, (book) ->
     for chord in Chords
-      # TODO no barres
-      # TODO collect all inversions
-      # TODO shift towards nut
-      fingerings = fingerings_for(chord.at(0))
-      fragments = {bass: {}, 4: {}, 3: {}}
-      bass_to_fragment_index = ['bass', 'bass', 4, 3]
-      for fingering in fingerings
-        s = fingering.fretstring
-        for i in [0..(s.length-3)]
-          slice = s[i...(i+3)]
-          fragments[bass_to_fragment_index[i]][slice] = true if slice.match(/^\d+$/)
-      # console.info chord.name
-      # for k in ['bass', 4, 3]
-        # console.info k, _.chain(fragments[k]).keys().sort().value().join(' ')
+      fragments = collect_chord_shape_fragments chord
       book.with_page ->
         with_grid cols: 5, rows: 4
         , cell_width: padded_chord_diagram_width
@@ -171,12 +194,12 @@ chord_shape_fragments = (options={}) ->
             ctx.scale 0.85, 0.85
             draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
 
-          for k, ki in ['bass', 4, 3]
-            for slice in _.chain(fragments[k]).keys().sort().value()
-              positions = ({fret: Number(c), string: i + (ki + 1)} for c, i in slice)
-              grid.add_cell ->
-                # TODO add back colors
-                draw_chord_diagram grid.context, positions, draw_closed_strings: false
+          fragments.each_fragment (positions) ->
+            grid.add_cell ->
+              draw_chord_diagram grid.context, positions
+              , draw_closed_strings: false
+              , nut: (fret for {fret} in positions).indexOf(0) >= 0
+              , pitch_colors: ChordDiagramStyle.chord_degree_colors
 
 
 
