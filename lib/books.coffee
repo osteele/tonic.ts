@@ -142,14 +142,41 @@ chord_shape_fragments = (options={}) ->
   with_book "Chord Shape Fragments", pages: options.pages, (book) ->
     for chord in Chords
       # TODO no barres
+      # TODO collect all inversions
+      # TODO shift towards nut
       fingerings = fingerings_for(chord.at(0))
-      for {positions} in fingerings
-        console.info positions
+      fragments = {bass: {}, 4: {}, 3: {}}
+      bass_to_fragment_index = ['bass', 'bass', 4, 3]
+      for fingering in fingerings
+        s = fingering.fretstring
+        for i in [0..(s.length-3)]
+          slice = s[i...(i+3)]
+          fragments[bass_to_fragment_index[i]][slice] = true if slice.match(/^\d+$/)
+      # console.info chord.name
+      # for k in ['bass', 4, 3]
+        # console.info k, _.chain(fragments[k]).keys().sort().value().join(' ')
       book.with_page ->
-        with_page width: 200, height: 200, ->
-          draw_title "#{chord.name} Chords"
+        with_grid cols: 5, rows: 4
+        , cell_width: padded_chord_diagram_width
+        , cell_height: padded_chord_diagram_height
+        , header_height: 40
+        , (grid) ->
+
+          draw_title "#{chord.name} Chord Fragments"
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
+
+          with_graphics_context (ctx) ->
+            ctx.translate 285, 20
+            ctx.scale 0.85, 0.85
+            draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
+
+          for k, ki in ['bass', 4, 3]
+            for slice in _.chain(fragments[k]).keys().sort().value()
+              positions = ({fret: Number(c), string: i + (ki + 1)} for c, i in slice)
+              grid.add_cell ->
+                # TODO add back colors
+                draw_chord_diagram grid.context, positions, draw_closed_strings: false
 
 
 
@@ -184,11 +211,11 @@ chord_page = (chord, options={}) ->
 
     draw_title "#{chord.name} Chords"
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
-    , x: 0, y: 0, gravity: 'top'
+    , x: 0, y: 0, gravity: 'topLeft'
 
     with_graphics_context (ctx) ->
       ctx.translate 285, 20
-      ctx.scale 0.85,0.85
+      ctx.scale 0.85, 0.85
       draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])

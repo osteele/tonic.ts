@@ -130,7 +130,7 @@ chord_shape_flipbook = (options={}) ->
       draw: ->
         draw_title title
         , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
-        , gravity: 'top'
+        , gravity: 'topLeft'
 
     [0...12].forEach (i) ->
       return if i > 0 and just_one

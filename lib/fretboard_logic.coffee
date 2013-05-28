@@ -11,6 +11,19 @@ _ = require 'underscore'
   pitch_number_for_position
 } = require('./fretboard_model')
 
+Function::define ||= (prop, desc) ->
+    Object.defineProperty @prototype, prop, desc
+
+class Fingering
+  constructor: (@positions) ->
+
+  @define 'fretstring',
+    get: ->
+      @_fretstring ||= do =>
+        frets = (-1 for s in StringNumbers)
+        frets[string] = fret for {string, fret} in @positions
+        ((if x >= 0 then x else 'x') for x in frets).join('')
+
 find_barres = (positions) ->
   fret_rows = for fn in FretNumbers
     (for sn in StringNumbers
@@ -57,15 +70,15 @@ fingerings_for = (chord) ->
     strings[position.string].push position for position in positions
     strings
 
-  collect_fingerings = (string_frets) ->
+  collect_fingering_positions = (string_frets) ->
     return [[]] unless string_frets.length
     frets = string_frets[0]
-    following_finger_positions = collect_fingerings(string_frets[1..])
+    following_finger_positions = collect_fingering_positions(string_frets[1..])
     return following_finger_positions.concat(([n].concat(right) \
       for n in frets for right in following_finger_positions)...)
 
   generate_fingerings = ->
-    ({positions} for positions in collect_fingerings(frets_per_string))
+    (new Fingering(positions) for positions in collect_fingering_positions(frets_per_string))
 
   chord_note_count = chord.pitch_classes.length
 
@@ -81,16 +94,10 @@ fingerings_for = (chord) ->
     return count_distinct_notes(fingering) == chord_note_count
 
   muted_medial_strings = (fingering) ->
-    string_frets = (-1 for s in StringNumbers)
-    string_frets[pos.string] = pos.fret for pos in fingering.positions
-    p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
-    return p.match(/\dx+\d/)
+    return fingering.fretstring.match(/\dx+\d/)
 
   muted_treble_strings = (fingering) ->
-    string_frets = (-1 for s in StringNumbers)
-    string_frets[pos.string] = pos.fret for pos in fingering.positions
-    p = ((if x >= 0 then x else 'x') for x in string_frets).join('')
-    return p.match(/x$/)
+    return fingering.fretstring.match(/x$/)
 
   finger_count = (fingering) ->
     fingering.barres ||= find_barres(fingering.positions)

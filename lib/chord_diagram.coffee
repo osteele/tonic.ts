@@ -53,8 +53,7 @@ draw_chord_diagram_frets = (ctx) ->
     ctx.lineWidth = 1
 
 draw_chord_diagram = (ctx, positions, options={}) ->
-  {barres, dy} = options
-  dy ||= 0
+  {barres, dy, draw_closed_strings} = _.extend({draw_closed_strings: true, dy: 0}, options)
   style = ChordDiagramStyle
 
   finger_coordinates = ({string, fret}) ->
@@ -133,7 +132,7 @@ draw_chord_diagram = (ctx, positions, options={}) ->
   draw_chord_diagram_frets(ctx)
   draw_barres() if barres
   draw_finger_positions() if positions
-  draw_closed_strings() if positions
+  draw_closed_strings() if positions and options.draw_closed_strings
 
 module.exports =
   defaultStyle: ChordDiagramStyle
