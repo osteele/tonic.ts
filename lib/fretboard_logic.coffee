@@ -12,13 +12,13 @@ _ = require 'underscore'
 } = require('./fretboard_model')
 
 Function::define ||= (name, desc) ->
-    Object.defineProperty @prototype, name, desc
+  Object.defineProperty @prototype, name, desc
 
 Function::cached_getter ||= (name, fn) ->
-    Object.defineProperty @prototype, name, get: ->
-      cache = @_getter_cache ||= {}
-      return cache[name] if name of cache
-      cache[name] = fn.call(this)
+  Object.defineProperty @prototype, name, get: ->
+    cache = @_getter_cache ||= {}
+    return cache[name] if name of cache
+    cache[name] = fn.call(this)
 
 class Fingering
   constructor: ({@positions, @chord}) ->

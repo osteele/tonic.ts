@@ -66,7 +66,7 @@ draw_chord_diagram = (ctx, positions, options={}) ->
 
   draw_finger_position = (position, options={}) ->
     {is_root, color} = options
-    {x, y} = finger_coordinates(position)
+    {x, y} = finger_coordinates position
     ctx.fillStyle = color or (if is_root then 'red' else 'white')
     ctx.strokeStyle = color or (if is_root then 'red' else 'black')
     ctx.lineWidth = 1
@@ -89,15 +89,16 @@ draw_chord_diagram = (ctx, positions, options={}) ->
       ctx.save()
       ctx.translate (x1 + x2) / 2, y - style.fret_height * .25
       ctx.beginPath()
+      eccentricity = 10
       do ->
         ctx.save()
-        ctx.scale w, 10
-        ctx.arc 0, 0, style.string_spacing / 2 / 1/10, Math.PI, 0, false
+        ctx.scale w, eccentricity
+        ctx.arc 0, 0, style.string_spacing / 2 / eccentricity, Math.PI, 0, false
         ctx.restore()
       do ->
         ctx.save()
         ctx.scale w, 14
-        ctx.arc 0, 0, style.string_spacing / 2 / 1/10, 0, Math.PI, true
+        ctx.arc 0, 0, style.string_spacing / 2 / eccentricity, 0, Math.PI, true
         ctx.restore()
       ctx.fill()
       ctx.restore()

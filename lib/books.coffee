@@ -143,37 +143,37 @@ collect_chord_shape_fragments = (chord) ->
   # TODO collect all inversions
   fragments_by_bass = {}
   for root in 'CDEFGAB'  # this isn't all the pitches, but it's probably enough to generate all the shapes
+  # for root in NoteNames
     for fingering in fingerings_for(chord.at(root), filter: false)
       fretstring = fingering.fretstring
       for bass_string in [0..(fretstring.length - chord.pitch_classes.length)]
-        continue if bass_string == 1
+        # continue if bass_string == 1
         # continue if 1 <= bass_string + chord.pitch_classes.length - 1 <= 4
-        slice = fretstring[bass_string...(bass_string+3)]
+        slice = fretstring[bass_string...(bass_string + 3)]
         continue unless slice.match /^\d+$/
         # include open positions only if there's not an equivalent closed position
         continue if slice.match /0/ and not slice.match /4/
         continue if slice.match /0/
+        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + 3)
         # lower fingerings to first position:
-        unless slice.match(/[01]/)
+        unless slice.match /[01]/
           frets = (Number(c) for c in slice)
-          min = Math.min(frets...) - 1
-          slice = (fret - min for fret in frets).join('')
+          d_fret = Math.min(frets...) - 1
+          slice = (fret - d_fret for fret in frets).join('')
+          positions = ({fret: fret - d_fret, string, degree_index} for {fret, string, degree_index} in positions)
         fragment_index = bass_string
         fragment_index = 0 if bass_string + chord.pitch_classes.length - 1 <= 3
         fragments_by_bass[fragment_index] ||= {}
-        fragments_by_bass[fragment_index][slice] = fingering
-
+        record = fragments_by_bass[fragment_index][slice] ||= {positions, roots: []}
+        record.roots.push root unless root in record.roots
 
   return {
     each_fragment: (fn) ->
-    for bass_string, shape_map of fragments_by_bass
-      bass_string = Number(bass_string)
-      fragments = ({slice, fingering} for slice, fingering of shape_map)
-      for {slice, fingering} in fragments
-        # FIXME why is this necessary?:
-        continue if slice == 'slice' or slice == 'fingering'
-        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + 3)
-        fn positions
+      for bass_string, shape_map of fragments_by_bass
+        bass_string = Number(bass_string)
+        fragments = ({slice, positions, roots} for slice, {positions, roots} of shape_map)
+        for {slice, positions, roots} in fragments
+          fn positions, roots
     }
 
 chord_shape_fragments = (options={}) ->
@@ -197,8 +197,12 @@ chord_shape_fragments = (options={}) ->
             ctx.scale 0.85, 0.85
             draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
 
-          fragments.each_fragment (positions) ->
+          fragments.each_fragment (positions, roots) ->
             grid.add_cell ->
+              draw_title "#{roots.sort().join(', ')}:"
+              , font: '8pt Times', fillStyle: 'rgb(10,20,30)'
+              , x: 5, y: 7
+
               draw_chord_diagram grid.context, positions
               , draw_closed_strings: false
               , nut: (fret for {fret} in positions).indexOf(0) >= 0
