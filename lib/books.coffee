@@ -5,6 +5,7 @@ _ = require 'underscore'
   NoteNames
   Intervals
   LongIntervalNames
+  interval_class_between
 } = require('./theory')
 
 {
@@ -140,43 +141,45 @@ intervals_book = ({by_root, pages}={}) ->
 
 collect_chord_shape_fragments = (chord) ->
   # TODO collect all inversions
-  bass_to_fragment_index = ['bass', 'bass', 4, 3]
-  fragments = {bass: {}, 4: {}, 3: {}}
-  for root in 'CDEFGAB'
-    fingerings = fingerings_for(chord.at(root), filter: false)
-    for fingering in fingerings
-      s = fingering.fretstring
-      # continue unless fingering.inversion == 0
-      # console.info s, fingering.inversion
-      for i in [0..(s.length-3)]
-        slice = s[i...(i+3)]
-        continue unless slice.match(/^\d+$/)
-        # only show open positions if there's not an equivalent closed position
-        continue if slice.match(/0/) and not slice.match(/4/)
-        # console.info s, slice
-        # lower fingerings to first position
+  fragments_by_bass = {}
+  for root in 'CDEFGAB'  # this isn't all the pitches, but it's probably enough to generate all the shapes
+    for fingering in fingerings_for(chord.at(root), filter: false)
+      fretstring = fingering.fretstring
+      for bass_string in [0..(fretstring.length - chord.pitch_classes.length)]
+        continue if bass_string == 1
+        # continue if 1 <= bass_string + chord.pitch_classes.length - 1 <= 4
+        slice = fretstring[bass_string...(bass_string+3)]
+        continue unless slice.match /^\d+$/
+        # include open positions only if there's not an equivalent closed position
+        continue if slice.match /0/ and not slice.match /4/
+        continue if slice.match /0/
+        # lower fingerings to first position:
         unless slice.match(/[01]/)
           frets = (Number(c) for c in slice)
           min = Math.min(frets...) - 1
           slice = (fret - min for fret in frets).join('')
-        fragments[bass_to_fragment_index[i]][slice] = chord
+        fragment_index = bass_string
+        fragment_index = 0 if bass_string + chord.pitch_classes.length - 1 <= 3
+        fragments_by_bass[fragment_index] ||= {}
+        fragments_by_bass[fragment_index][slice] = fingering
+
 
   return {
     each_fragment: (fn) ->
-      for open_positions in [false, true]
-        for k, ki in ['bass', 4, 3]
-          slices = _.chain(fragments[k]).keys().sort().value()
-          slices = (slice for slice in slices when !!slice.match(/0/) == !!open_positions)
-          # console.info slices
-          for slice in slices
-            positions = ({fret: Number(c), string: i + ki + (ki > 0)} for c, i in slice)
-            position.degree_index = 0 for position in positions
-            fn positions
+    for bass_string, shape_map of fragments_by_bass
+      bass_string = Number(bass_string)
+      fragments = ({slice, fingering} for slice, fingering of shape_map)
+      for {slice, fingering} in fragments
+        # FIXME why is this necessary?:
+        continue if slice == 'slice' or slice == 'fingering'
+        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + 3)
+        fn positions
     }
 
 chord_shape_fragments = (options={}) ->
   with_book "Chord Shape Fragments", pages: options.pages, (book) ->
     for chord in Chords
+      break if book.done
       fragments = collect_chord_shape_fragments chord
       book.with_page ->
         with_grid cols: 5, rows: 4

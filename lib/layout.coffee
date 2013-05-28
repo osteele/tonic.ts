@@ -114,7 +114,7 @@ with_book = (filename, options, cb) ->
   page_count = 0
   cb
     with_page: (options, draw_page) ->
-      return if page_limit and page_limit <= page_count
+      return if @done
       page_count += 1
       if _.isFunction(draw_page)
         with_page options, draw_page
@@ -122,6 +122,7 @@ with_book = (filename, options, cb) ->
         draw_page = options
         draw_page()
       ctx.addPage()
+      @done = true if page_limit and page_limit <= page_count
   unless canvas
     console.warn "No pages"
     return
