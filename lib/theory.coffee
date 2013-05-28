@@ -59,9 +59,10 @@ interval_class_between = (pca, pcb) ->
   n += 12 while n < 0
   return n
 
-module.exports =
-  Chords: Chords
-  Intervals: Intervals
-  LongIntervalNames: LongIntervalNames
-  NoteNames: NoteNames
-  interval_class_between: interval_class_between
+module.exports = {
+  Chords
+  Intervals
+  LongIntervalNames
+  NoteNames
+  interval_class_between
+}

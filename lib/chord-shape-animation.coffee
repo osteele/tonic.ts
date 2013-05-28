@@ -55,17 +55,16 @@ write_animation_frames = (options) ->
   with_book options.title, (book) ->
     t = 0
     while t < t_end
-      book.add_page ->
-        with_page width: 640, height: 480, ->
-          current_sprites = _.filter sprites, (sprite) ->
-            (sprite.t0 or 0) <= t < (sprite.t1 or t_end) and sprite.visible != false
-          for sprite in _.sortBy(current_sprites, (s) -> (s.z_index or 0))
-            s = Math.min 1, (t - sprite.t0) / (sprite.t1 - sprite.t0)
-            s = t - sprite.t0 unless sprite.t1
-            {x, y} = sprite_position_at sprite, t
-            with_graphics_context (ctx) ->
-              ctx.translate x, y
-              sprite.draw ctx, s
+      book.with_page width: 640, height: 480, ->
+        current_sprites = _.filter sprites, (sprite) ->
+          (sprite.t0 or 0) <= t < (sprite.t1 or t_end) and sprite.visible != false
+        for sprite in _.sortBy(current_sprites, (s) -> (s.z_index or 0))
+          s = Math.min 1, (t - sprite.t0) / (sprite.t1 - sprite.t0)
+          s = t - sprite.t0 unless sprite.t1
+          {x, y} = sprite_position_at sprite, t
+          with_graphics_context (ctx) ->
+            ctx.translate x, y
+            sprite.draw ctx, s
       t += step_size
 
 with_animation_context = (options, cb) ->

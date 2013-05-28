@@ -1,15 +1,16 @@
 #!/usr/bin/env coffee
 
-fs = require('fs')
-program = require('commander')
+fs = require 'fs'
+program = require 'commander'
 
-FretboardLogic = require('../index')
+FretboardLogic = require '../index'
 {Chords} = FretboardLogic.theory
 Layout = FretboardLogic.utils.layout
 
 {
-  chord_book,
-  chord_fingerings_page,
+  chord_book
+  chord_fingerings_page
+  chord_shape_fragments
   intervals_book
 } = require('../lib/books')
 
@@ -45,6 +46,14 @@ program
       chord_fingerings_page Chords[6].at('F')
 
 program
+  .command('fragments')
+  .description('Chord shape fragments')
+  .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .action (options) ->
+    with_book_options (options), ->
+      chord_shape_fragments pages: options.pages
+
+program
   .command('intervals')
   .description('Intervals on the fretboard')
   .option('--pages <count>', 'Limit to this many pages', parseInt)
@@ -77,9 +86,10 @@ program
   .command('*')
   .action ->
     console.log 'Commands:'
+    console.log '  animation'
     console.log '  chordbook'
     console.log '  fingerings'
+    console.log '  fragments'
     console.log '  intervals'
-    console.log '  animation'
 
 program.parse(process.argv)

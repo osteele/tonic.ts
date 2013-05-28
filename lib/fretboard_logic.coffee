@@ -1,12 +1,13 @@
+util = require 'util'
 _ = require 'underscore'
 
 {interval_class_between} = require('./theory')
 
 {
-  FretNumbers,
-  OpenStringPitches,
-  StringNumbers,
-  fretboard_positions_each,
+  FretNumbers
+  OpenStringPitches
+  StringNumbers
+  fretboard_positions_each
   pitch_number_for_position
 } = require('./fretboard_model')
 
@@ -45,7 +46,6 @@ finger_positions_on_chord = (chord) ->
 
 # TODO add options for strumming vs. fingerstyle; muting; span
 fingerings_for = (chord) ->
-  util = require 'util'
   throw "No root for #{util.inspect chord}" unless 'root' of chord
 
   #
@@ -157,7 +157,8 @@ fingerings_for = (chord) ->
 best_fingering_for = (chord) ->
   return fingerings_for(chord)[0]
 
-module.exports =
-  best_fingering_for: best_fingering_for
-  fingerings_for: fingerings_for
-  finger_positions_on_chord: finger_positions_on_chord
+module.exports = {
+  best_fingering_for
+  fingerings_for
+  finger_positions_on_chord
+}

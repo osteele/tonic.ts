@@ -5,9 +5,10 @@ Canvas = require('canvas')
 DefaultFooterTextOptions =
   font: '4pt Times'
   fillStyle: 'black'
-  gravity: 'bottom'
+  gravity: 'botLeft'
 
 page_footer = null
+
 
 #
 # Drawing
@@ -25,10 +26,13 @@ draw_title = (text, {font, fillStyle, x, y, gravity}={}) ->
   ctx.font = font if font
   ctx.fillStyle = fillStyle if fillStyle
   m = ctx.measureText(text)
-  # x -= m.width / 2
-  y -= m.emHeightDescent if gravity.match(/^bottom$/)
-  y += m.emHeightAscent if gravity.match(/^top|topLeft|topRight$/)
-  ctx.fillText text, x or 0, y or 0
+  x ||= 0
+  y ||= 0
+  x -= m.width / 2 if gravity.match(/^(top|center|bottom)$/i)
+  x -= m.width if gravity.match(/^(right|topRight|botRight)$/i)
+  y -= m.emHeightDescent if gravity.match(/^(bottom|botLeft|botRight)$/i)
+  y += m.emHeightAscent if gravity.match(/^(top|topLeft|topRight)$/i)
+  ctx.fillText text, x, y
 
 with_graphics_context = (fn) ->
   ctx.save()
@@ -57,7 +61,6 @@ save_canvas_to_png = (canvas, fname) ->
 # Layout
 #
 
-mode = null
 pdf = false
 
 set_page_footer = (options) -> page_footer = options
@@ -87,11 +90,8 @@ with_page = (options, cb) ->
     console.info "Saved #{filename}"
 
 with_grid = (options, cb) ->
-  {cols, rows, cell_width, cell_height, header_height} = options
-  {gutter_width, gutter_height} = options
-  header_height ||= 0
-  gutter_width ||= 10
-  gutter_height ||= 10
+  defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
+  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = _.extend(defaults, options)
   options.width ||= cols * cell_width + (cols - 1) * gutter_width
   options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
   with_page options, (page) ->
@@ -110,16 +110,21 @@ with_grid = (options, cb) ->
 with_book = (filename, options, cb) ->
   [options, cb] = [{}, options] if _.isFunction(options)
   pdf = true
-  mode = 'draw'
   page_limit = options.pages
   page_count = 0
   cb
-    context: ctx
-    add_page: (draw_page) ->
+    with_page: (options, draw_page) ->
       return if page_limit and page_limit <= page_count
       page_count += 1
-      draw_page()
+      if _.isFunction(draw_page)
+        with_page options, draw_page
+      else
+        draw_page = options
+        draw_page()
       ctx.addPage()
+  unless canvas
+    console.warn "No pages"
+    return
   pathname = BuildDirectory + filename + ".pdf"
   fs.writeFile pathname, canvas.toBuffer(), (err) ->
     if err
@@ -129,12 +134,13 @@ with_book = (filename, options, cb) ->
   canvas = null
   ctx = null
 
-module.exports =
-  with_book: with_book
-  with_grid: with_grid
-  with_page: with_page
-  draw_title: draw_title
-  directory: directory
-  filename: filename
-  set_page_footer: set_page_footer
-  with_graphics_context: with_graphics_context
+module.exports = {
+  with_book
+  with_grid
+  with_page
+  draw_title
+  directory
+  filename
+  set_page_footer
+  with_graphics_context
+}

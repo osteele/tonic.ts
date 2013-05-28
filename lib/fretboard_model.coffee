@@ -34,12 +34,13 @@ intervals_from = (root_position, semitones) ->
     positions.push finger_position
   return positions
 
-module.exports =
-  StringNumbers: StringNumbers
-  StringCount: StringCount
-  FretNumbers: FretNumbers
-  FretCount: FretCount
-  OpenStringPitches: OpenStringPitches
-  fretboard_positions_each: fretboard_positions_each
-  pitch_number_for_position: pitch_number_for_position
-  intervals_from: intervals_from
+module.exports = {
+  StringNumbers
+  StringCount
+  FretNumbers
+  FretCount
+  OpenStringPitches
+  fretboard_positions_each
+  pitch_number_for_position
+  intervals_from
+}

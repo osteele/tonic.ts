@@ -52,7 +52,7 @@ Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
 
 
 #
-# Specific Cards and Pages
+# Interval Cards and Pages
 #
 
 interval_cards = ->
@@ -127,11 +127,35 @@ intervals_book = ({by_root, pages}={}) ->
   if by_root
     with_book "Fretboard Intervals by Root", pages: pages, (book) ->
       fretboard_positions_each (finger_position) ->
-        book.add_page -> intervals_from_position_page finger_position
+        book.with_page -> intervals_from_position_page finger_position
   else
     with_book "Fretboard Intervals", pages: pages, (book) ->
       for __, semitones in Intervals
-        book.add_page -> intervals_page semitones
+        book.with_page -> intervals_page semitones
+
+
+#
+# Chord Shape Fragments
+#
+
+chord_shape_fragments = (options={}) ->
+  with_book "Chord Shape Fragments", pages: options.pages, (book) ->
+    for chord in Chords
+      # TODO no barres
+      fingerings = fingerings_for(chord.at(0))
+      for {positions} in fingerings
+        console.info positions
+      book.with_page ->
+        with_page width: 200, height: 200, ->
+          draw_title "#{chord.name} Chords"
+          , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
+          , x: 0, y: 0, gravity: 'topLeft'
+
+
+
+#
+# Chord Fingerings
+#
 
 chord_fingerings_page = (chord) ->
   fingerings = fingerings_for(chord)
@@ -182,13 +206,20 @@ chord_page = (chord, options={}) ->
 
         draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 
-chord_book = (options) ->
+chord_book = (options={}) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
   with_book title, pages: options.pages, (book) ->
     for chord in Chords
-      book.add_page -> chord_page chord, options
+      book.with_page -> chord_page chord, options
 
-module.exports =
-  chord_book: chord_book
-  chord_fingerings_page: chord_fingerings_page
-  intervals_book: intervals_book
+
+#
+# Exports
+#
+
+module.exports = {
+  chord_book
+  chord_fingerings_page
+  chord_shape_fragments
+  intervals_book
+}
