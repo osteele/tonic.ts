@@ -42,7 +42,7 @@ program
   .description('Fingerings for a specific chord')
   .action (options) ->
     with_book_options (options), ->
-      chord_fingerings_page Chords[6], 'F'
+      chord_fingerings_page Chords[6].at('F')
 
 program
   .command('intervals')
@@ -71,7 +71,7 @@ program
       chord_book best_fingering: false
       chord_shape_flipbook quick: true
       # FIXME this doesn't actually render in this context
-      chord_fingerings_page Chords[6], 'F'
+      # chord_fingerings_page Chords[6], 'F'
 
 program
   .command('*')

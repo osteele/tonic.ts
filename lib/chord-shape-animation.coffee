@@ -3,7 +3,7 @@ easings = require 'ease-component'
 
 FretboardLogic = require '../index'
 
-{Chords, NoteNames, compute_chord_name} = FretboardLogic.theory
+{Chords, NoteNames} = FretboardLogic.theory
 {best_fingering_for, finger_positions_on_chord} = FretboardLogic.fretboard.logic
 
 Layout = FretboardLogic.utils.layout
@@ -112,14 +112,14 @@ chord_shape_flipbook = (options={}) ->
       draw: (ctx, s) ->
         s *= 12
         pitch = Math.floor s
-        pitch = Math.min 11, pitch
-        bend = s - pitch
-        positions = finger_positions_on_chord chord, pitch
+        root = Math.min 11, pitch
+        bend = s - root
+        positions = finger_positions_on_chord chord.at(root)
         draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
-        pitch = (pitch + 1) % 12
+        root = (root + 1) % 12
         bend -= 1
-        positions = finger_positions_on_chord chord, pitch
+        positions = finger_positions_on_chord chord.at(root)
         draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
       , (sprite) ->
@@ -135,10 +135,10 @@ chord_shape_flipbook = (options={}) ->
 
     [0...12].forEach (i) ->
       return if i > 0 and just_one
-      t0 = pitch = i
-      chord_name = compute_chord_name pitch, chord
-      name = "#{chord_name} Major"
-      fingering = best_fingering_for chord, pitch
+      t0 = root = i
+      rooted_chord = chord.at root
+      name = "#{rooted_chord.name} Major"
+      fingering = best_fingering_for rooted_chord
       pos = sprite_position_at master_diagram, t0
       [col, row] = [i % 4 , Math.floor(i / 4)]
 

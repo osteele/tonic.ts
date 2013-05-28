@@ -1,6 +1,4 @@
-#
-# Music Theory
-#
+_ = require 'underscore'
 
 Intervals = ['P8', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7']
 
@@ -10,7 +8,30 @@ LongIntervalNames = [
 
 NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
 
-Chords = [
+class Chord
+  constructor: (options) ->
+    @name = options.name
+    @abbrs = options.abbrs or [options.abbr]
+    @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
+    @abbr = options.abbr or @abbrs[0]
+    parse_pitch_class = (pc) ->
+      pitch_class_codes = {'t': 10, 'e': 11}
+      pitch_class_codes[pc] or parseInt(pc, 10)
+    @pitch_classes = _.map(options.pitch_classes, parse_pitch_class)
+    @root = options.root
+    @root = NoteNames.indexOf(@root) if typeof @root == 'string'
+    if @root
+      Object.defineProperty this, 'name', get: ->
+        "#{NoteNames[@root]}#{@abbr}"
+
+  at: (root) ->
+    new Chord
+      name: @name
+      abbrs: @abbrs
+      pitch_classes: @pitch_classes
+      root: root
+
+ChordDefinitions = [
   {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
   {name: 'Minor', abbr: 'm', pitch_classes: '037'},
   {name: 'Augmented', abbrs: ['+', 'aug'], pitch_classes: '048'},
@@ -31,15 +52,7 @@ Chords = [
   {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitch_classes: '0379'},
 ]
 
-do ->
-  keys = {'t': 10, 'e': 11}
-  for chord in Chords
-    chord.abbrs = chord.abbrs.split(/s/) if typeof chord.abbrs == 'string'
-    chord.abbr ||= chord.abbrs[0]
-    chord.pitch_classes = (keys[c] or parseInt(c, 10) for c in chord.pitch_classes)
-
-compute_chord_name = (root_pitch, chord) ->
-  "#{NoteNames[root_pitch]}#{chord.abbr}"
+Chords = (new Chord(chord) for chord in ChordDefinitions)
 
 interval_class_between = (pca, pcb) ->
   n = (pcb - pca) % 12
@@ -51,5 +64,4 @@ module.exports =
   Intervals: Intervals
   LongIntervalNames: LongIntervalNames
   NoteNames: NoteNames
-  compute_chord_name: compute_chord_name
   interval_class_between: interval_class_between

@@ -5,7 +5,6 @@ _ = require 'underscore'
   NoteNames
   Intervals
   LongIntervalNames
-  compute_chord_name
 } = require('./theory')
 
 {
@@ -134,16 +133,16 @@ intervals_book = ({by_root, pages}={}) ->
       for __, semitones in Intervals
         book.add_page -> intervals_page semitones
 
-chord_fingerings_page = (chord, chord_root) ->
-  chord_root = NoteNames.indexOf(chord_root) if typeof chord_root == 'string'
-  fingerings = fingerings_for(chord, chord_root)
-  Layout.filename "#{compute_chord_name chord_root, chord} Fingerings"
+chord_fingerings_page = (chord) ->
+  fingerings = fingerings_for(chord)
+  Layout.filename "#{chord.name} Fingerings"
+
   with_grid cols: 10, rows: 10
   , cell_width: padded_chord_diagram_width + 10
   , cell_height: padded_chord_diagram_height + 5
   , header_height: 40
   , (grid) ->
-    draw_title "#{compute_chord_name chord_root, chord} Fingerings"
+    draw_title "#{chord.name} Fingerings"
     , x: 0, y: 20
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
@@ -151,8 +150,6 @@ chord_fingerings_page = (chord, chord_root) ->
 
 chord_page = (chord, options={}) ->
   {best_fingering} = options
-
-  other_colors = ['rgba(255,0,0 ,.1)', 'rgba(0,0,255, 0.1)', 'rgba(0,255,0, 0.1)', 'rgba(255,0,255, 0.1)']
 
   with_grid cols: 4, rows: 3
   , cell_width: padded_chord_diagram_width
@@ -173,15 +170,15 @@ chord_page = (chord, options={}) ->
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     pitches = [8...12].concat([0...8]) unless best_fingering
     for pitch in pitches
-      chord_name = compute_chord_name pitch, chord
-      continue if options.only unless chord_name == options.only
+      rooted_chord = chord.at pitch
+      continue if options.only unless rooted_chord.name == options.only
       grid.add_cell ->
-        draw_title chord_name
+        draw_title rooted_chord.name
         , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
 
-        fingering = {positions: finger_positions_on_chord(chord, pitch)}
-        fingering = best_fingering_for(chord, pitch) if best_fingering
+        fingering = {positions: finger_positions_on_chord(rooted_chord)}
+        fingering = best_fingering_for(rooted_chord) if best_fingering
 
         draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 

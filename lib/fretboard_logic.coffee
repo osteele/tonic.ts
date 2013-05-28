@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-{compute_chord_name, interval_class_between} = require('./theory')
+{interval_class_between} = require('./theory')
 
 {
   FretNumbers,
@@ -35,19 +35,23 @@ find_barres = (positions) ->
   # console.info barres
   barres
 
-finger_positions_on_chord = (chord, root) ->
+finger_positions_on_chord = (chord) ->
   positions = []
   fretboard_positions_each (pos) ->
-    interval_class = interval_class_between(root, pitch_number_for_position(pos))
+    interval_class = interval_class_between(chord.root, pitch_number_for_position(pos))
     degree_index = chord.pitch_classes.indexOf(interval_class)
     positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
   positions
 
-fingerings_for = (chord, root) ->
+# TODO add options for strumming vs. fingerstyle; muting; span
+fingerings_for = (chord) ->
+  util = require 'util'
+  throw "No root for #{util.inspect chord}" unless 'root' of chord
+
   #
   # Generate
   #
-  positions = finger_positions_on_chord(chord, root)
+  positions = finger_positions_on_chord(chord)
 
   frets_per_string = do (strings=([] for __ in OpenStringPitches)) ->
     strings[position.string].push position for position in positions
@@ -115,6 +119,7 @@ fingerings_for = (chord, root) ->
       fingerings = filtered
     return fingerings
 
+
   #
   # Sort
   #
@@ -135,11 +140,12 @@ fingerings_for = (chord, root) ->
       fingerings = _(fingerings).sortBy(sort)
     return fingerings
 
+
   #
   # Generate, filter, and sort
   #
 
-  chord_name = compute_chord_name root, chord
+  chord_name = chord.name
   fingerings = generate_fingerings()
   fingerings = filter_fingerings(fingerings)
   fingerings = sort_fingerings(fingerings)
@@ -148,8 +154,8 @@ fingerings_for = (chord, root) ->
   #   console.info finger_count(fingering)
   return fingerings
 
-best_fingering_for = (chord, root) ->
-  return fingerings_for(chord, root)[0]
+best_fingering_for = (chord) ->
+  return fingerings_for(chord)[0]
 
 module.exports =
   best_fingering_for: best_fingering_for
