@@ -20,7 +20,19 @@ class Chord
     @pitch_classes = _.map(options.pitch_classes, parse_pitch_class)
     @root = options.root
     @root = NoteNames.indexOf(@root) if typeof @root == 'string'
-    if @root
+    degrees = (1 + 2 * i for i in [0..@pitch_classes.length])
+    degrees[1] = {'Sus2': 2, 'Sus4': 4}[@name] || degrees[1]
+    degrees[3] = 6 if @name.match /6/
+    @components = for pc, pci in @pitch_classes
+      name = Intervals[pc]
+      degree = degrees[pci]
+      if pc == 0
+        name = 'R'
+      else unless Number(name.match(/\d+/)?[0]) == degree
+        name = "A#{degree}" if Number(Intervals[pc - 1].match(/\d+/)?[0]) == degree
+        name = "d#{degree}" if Number(Intervals[pc + 1].match(/\d+/)?[0]) == degree
+      name
+    if typeof @root == 'number'
       Object.defineProperty this, 'name', get: ->
         "#{NoteNames[@root]}#{@abbr}"
 
@@ -30,6 +42,9 @@ class Chord
       abbrs: @abbrs
       pitch_classes: @pitch_classes
       root: root
+
+  degree_name: (degree_index) ->
+    @components[degree_index]
 
 ChordDefinitions = [
   {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},

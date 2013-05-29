@@ -110,6 +110,8 @@ with_grid = (options, cb) ->
         draw_fn()
         ctx.restore()
         i += 1
+      start_row: ->
+        i = Math.ceil(i / cols) * cols
 
 with_book = (filename, options, cb) ->
   [options, cb] = [{}, options] if _.isFunction(options)

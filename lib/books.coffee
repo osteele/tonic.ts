@@ -141,12 +141,10 @@ intervals_book = ({by_root, pages}={}) ->
 #
 
 collect_chord_shape_fragments = (chord) ->
-  # TODO collect all inversions
   best_fingerings = {}
   for root in NoteNames
     fretstring = best_fingering_for(chord.at(root)).fretstring
     best_fingerings[fretstring] = root
-  # console.info best_fingerings
 
   fragments_by_bass = {}
   for root in 'CDEFGAB'  # this isn't all the pitches, but it's probably enough to generate all the shapes
@@ -189,6 +187,7 @@ chord_shape_fragments = (options={}) ->
     for chord in Chords
       break if book.done
       fragments = collect_chord_shape_fragments chord
+
       book.with_page ->
         with_grid cols: 5, rows: 5
         , cell_width: padded_chord_diagram_width
@@ -221,6 +220,59 @@ chord_shape_fragments = (options={}) ->
               , draw_closed_strings: false
               , nut: (fret for {fret} in positions).indexOf(0) >= 0
               , pitch_colors: ChordDiagramStyle.chord_degree_colors
+
+      book.with_page ->
+        with_grid cols: 5, rows: 12
+        , cell_width: padded_chord_diagram_width
+        , cell_height: padded_chord_diagram_height + 10
+        , header_height: 10
+        , (grid) ->
+          for root in NoteNames
+            rc = chord.at(root)
+            fingering = best_fingering_for(rc)
+            continue if fingering.barres?.length
+            continue if fingering.positions.length <= rc.pitch_classes.length
+            fretstring = fingering.fretstring
+            continue if fretstring.match /0/ and fretstring.match /4/
+
+            grid.start_row()
+            grid.add_cell ->
+              draw_text rc.name
+              , font: '12pt Times', fillStyle: 'rgb(10,20,30)'
+              , x: 5, y: -3
+
+              draw_chord_diagram grid.context, fingering.positions
+              , pitch_colors: ChordDiagramStyle.chord_degree_colors
+
+              draw_text '=', font: '18pt Times', fillStyle: 'black'
+              , x: padded_chord_diagram_width, y: padded_chord_diagram_height / 2 + 10, gravity: 'left'
+
+            draw_plus = false
+            for i in [0..(fretstring.length - rc.pitch_classes.length)]
+              positions = (position for position in fingering.positions when i <= position.string < i + rc.pitch_classes.length)
+              continue if positions.length < rc.pitch_classes.length
+              d_fret = 1 - Math.min((fret for {fret} in positions)...)
+              d_string = (if i == 0 then 1 else 0)
+              positions = ({fret: fret + d_fret, string: string + d_string, degree_index} for {fret, string, degree_index} in positions)
+              title = (rc.degree_name degree_index for {degree_index} in positions).join('-')
+              grid.add_cell ->
+                with_graphics_context (ctx) ->
+                  ctx.scale 0.8, 0.8
+                  ctx.translate 10, 10
+
+                  draw_text title
+                  , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
+                  , x: 5, y: 7
+
+                  draw_chord_diagram grid.context, positions
+                  , draw_closed_strings: false
+                  , nut: false
+                  , pitch_colors: ChordDiagramStyle.chord_degree_colors
+
+                if draw_plus
+                  draw_text '+', font: '18pt Times', fillStyle: 'black'
+                  , x: 2, y: padded_chord_diagram_height / 2 + 10, gravity: 'right'
+                draw_plus = true
 
 
 
