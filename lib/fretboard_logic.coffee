@@ -68,7 +68,7 @@ finger_positions_on_chord = (chord) ->
 # TODO add options for strumming vs. fingerstyle; muting; span
 fingerings_for = (chord, options={}) ->
   options = _.extend {filter: true}, options
-  throw "No root for #{util.inspect chord}" unless 'root' of chord
+  throw new Error("No root for #{util.inspect chord}") unless 'root' of chord
 
   #
   # Generate

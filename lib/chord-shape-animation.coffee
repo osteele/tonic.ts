@@ -7,7 +7,7 @@ FretboardLogic = require '../index'
 {best_fingering_for, finger_positions_on_chord} = FretboardLogic.fretboard.logic
 
 Layout = FretboardLogic.utils.layout
-{with_book, with_page, draw_title, with_graphics_context} = Layout
+{with_book, with_page, draw_text, with_graphics_context} = Layout
 
 draw_pitch_diagram = require('./pitch_diagram').draw
 {
@@ -128,7 +128,7 @@ chord_shape_flipbook = (options={}) ->
     animation.make_sprite
       visible: not just_one
       draw: ->
-        draw_title title
+        draw_text title
         , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
         , gravity: 'topLeft'
 
@@ -145,7 +145,7 @@ chord_shape_flipbook = (options={}) ->
         name: name
         t0: t0
         draw: (ctx, dt) ->
-          draw_title name, font: '12pt Times', fillStyle: 'black', y: -3
+          draw_text name, font: '12pt Times', fillStyle: 'black', y: -3
           draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
 
       , (sprite) ->

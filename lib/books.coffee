@@ -38,7 +38,8 @@ _ = require 'underscore'
 Layout = require('./layout')
 {
   erase_background
-  draw_title
+  draw_text
+  measure_text
   with_graphics_context
   save_canvas_to_pn
   with_page
@@ -86,7 +87,7 @@ intervals_from_position_page = (root_position) ->
   , (grid) ->
     for interval_name, semitones in Intervals
       grid.add_cell ->
-        draw_title interval_name
+        draw_text interval_name
         , font: '10px Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
         positions = (pos for pos in intervals_from(root_position, semitones) \
@@ -116,7 +117,7 @@ intervals_page = (semitones) ->
   , cell_height: padded_fretboard_height + canvas_gutter
   , header_height: header_height
   , (grid) ->
-    draw_title "#{LongIntervalNames[semitones]} Intervals"
+    draw_text "#{LongIntervalNames[semitones]} Intervals"
     , font: '25px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: canvas_gutter / 2, y: 30
 
@@ -141,31 +142,38 @@ intervals_book = ({by_root, pages}={}) ->
 
 collect_chord_shape_fragments = (chord) ->
   # TODO collect all inversions
+  best_fingerings = {}
+  for root in NoteNames
+    fretstring = best_fingering_for(chord.at(root)).fretstring
+    best_fingerings[fretstring] = root
+  # console.info best_fingerings
+
   fragments_by_bass = {}
   for root in 'CDEFGAB'  # this isn't all the pitches, but it's probably enough to generate all the shapes
-  # for root in NoteNames
     for fingering in fingerings_for(chord.at(root), filter: false)
       fretstring = fingering.fretstring
       for bass_string in [0..(fretstring.length - chord.pitch_classes.length)]
-        # continue if bass_string == 1
-        # continue if 1 <= bass_string + chord.pitch_classes.length - 1 <= 4
-        slice = fretstring[bass_string...(bass_string + 3)]
+        slice = fretstring[bass_string...(bass_string + chord.pitch_classes.length)]
         continue unless slice.match /^\d+$/
         # include open positions only if there's not an equivalent closed position
-        continue if slice.match /0/ and not slice.match /4/
-        continue if slice.match /0/
-        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + 3)
+        # continue if slice.match /0/ and not slice.match /4/
+        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + chord.pitch_classes.length)
+        # shift bass fingerings
+        if bass_string == 1
+          positions = ({fret, string: string - bass_string, degree_index} for {fret, string, degree_index} in positions)
         # lower fingerings to first position:
-        unless slice.match /[01]/
+        unless false #slice.match /[01]/
           frets = (Number(c) for c in slice)
           d_fret = Math.min(frets...) - 1
           slice = (fret - d_fret for fret in frets).join('')
           positions = ({fret: fret - d_fret, string, degree_index} for {fret, string, degree_index} in positions)
+        continue if slice.match /5/
         fragment_index = bass_string
         fragment_index = 0 if bass_string + chord.pitch_classes.length - 1 <= 3
         fragments_by_bass[fragment_index] ||= {}
         record = fragments_by_bass[fragment_index][slice] ||= {positions, roots: []}
-        record.roots.push root unless root in record.roots
+        used_in = best_fingerings[fretstring]
+        record.roots.push used_in if used_in and used_in not in record.roots
 
   return {
     each_fragment: (fn) ->
@@ -182,13 +190,13 @@ chord_shape_fragments = (options={}) ->
       break if book.done
       fragments = collect_chord_shape_fragments chord
       book.with_page ->
-        with_grid cols: 5, rows: 4
+        with_grid cols: 5, rows: 5
         , cell_width: padded_chord_diagram_width
         , cell_height: padded_chord_diagram_height
         , header_height: 40
         , (grid) ->
 
-          draw_title "#{chord.name} Chord Fragments"
+          draw_text "#{chord.name} Chord Fragments"
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
 
@@ -199,9 +207,15 @@ chord_shape_fragments = (options={}) ->
 
           fragments.each_fragment (positions, roots) ->
             grid.add_cell ->
-              draw_title "#{roots.sort().join(', ')}:"
-              , font: '8pt Times', fillStyle: 'rgb(10,20,30)'
-              , x: 5, y: 7
+              if roots.length
+                font = '7pt Times'
+                title = "Used in #{roots.sort().join(', ')}:"
+                title = "In #{roots.sort().join(', ')}:" if measure_text(title, font: font).width > padded_chord_diagram_width
+                font = '8pt Times' if measure_text(title, font: font).width > padded_chord_diagram_width
+                title = "In many chords:" if measure_text(title, font: font).width > padded_chord_diagram_width
+                draw_text title
+                , font: font, fillStyle: 'rgb(10,20,30)'
+                , x: 5, y: 7
 
               draw_chord_diagram grid.context, positions
               , draw_closed_strings: false
@@ -223,7 +237,7 @@ chord_fingerings_page = (chord) ->
   , cell_height: padded_chord_diagram_height + 5
   , header_height: 40
   , (grid) ->
-    draw_title "#{chord.name} Fingerings"
+    draw_text "#{chord.name} Fingerings"
     , x: 0, y: 20
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
@@ -239,7 +253,7 @@ chord_page = (chord, options={}) ->
   , header_height: 40
   , (grid) ->
 
-    draw_title "#{chord.name} Chords"
+    draw_text "#{chord.name} Chords"
     , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: 0, y: 0, gravity: 'topLeft'
 
@@ -254,7 +268,7 @@ chord_page = (chord, options={}) ->
       rooted_chord = chord.at pitch
       continue if options.only unless rooted_chord.name == options.only
       grid.add_cell ->
-        draw_title rooted_chord.name
+        draw_text rooted_chord.name
         , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
 

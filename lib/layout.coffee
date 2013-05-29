@@ -21,7 +21,11 @@ erase_background = ->
   ctx.fillStyle = 'white'
   ctx.fillRect 0, 0, canvas.width, canvas.height
 
-draw_title = (text, {font, fillStyle, x, y, gravity}={}) ->
+measure_text = (text, {font}={}) ->
+  ctx.font = font if font
+  ctx.measureText(text)
+
+draw_text = (text, {font, fillStyle, x, y, gravity}={}) ->
   gravity ||= ''
   ctx.font = font if font
   ctx.fillStyle = fillStyle if fillStyle
@@ -82,7 +86,7 @@ with_page = (options, cb) ->
   if page_footer
     options = _.extend page_footer, DefaultFooterTextOptions
     options = _.extend {x: page_margin, y: canvas.height}, options
-    draw_title page_footer.text, options
+    draw_text page_footer.text, options
 
   unless pdf
     filename = "#{DefaultFilename or 'test'}.png"
@@ -139,7 +143,8 @@ module.exports = {
   with_book
   with_grid
   with_page
-  draw_title
+  draw_text
+  measure_text
   directory
   filename
   set_page_footer
