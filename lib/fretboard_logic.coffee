@@ -53,8 +53,6 @@ find_barres = (positions) ->
       string: m[0].length - m[1].length
       string_count: m[1].length
       subsumption_count: m[1].match(/x/g).length
-  # console.info fret_rows.join("\n")
-  # console.info barres
   barres
 
 finger_positions_on_chord = (chord) ->
@@ -68,7 +66,9 @@ finger_positions_on_chord = (chord) ->
 # TODO add options for strumming vs. fingerstyle; muting; span
 fingerings_for = (chord, options={}) ->
   options = _.extend {filter: true}, options
+  warn = false
   throw new Error("No root for #{util.inspect chord}") unless 'root' of chord
+
 
   #
   # Generate
@@ -133,7 +133,7 @@ fingerings_for = (chord, options={}) ->
     for {name, filter} in filters
       filtered = (fingering for fingering in fingerings when filter(fingering))
       unless filtered.length
-        console.error "#{chord_name}: no fingerings pass filter \"#{name}\""
+        console.error "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
         filtered = fingerings
       fingerings = filtered
     return fingerings

@@ -1,10 +1,10 @@
 draw_pitch_diagram = (ctx, pitch_classes, options={}) ->
   {pitch_colors, pitch_names} = options
   pitch_colors ||= 'black'
-  r = 10
-  r_label = r + 7
   pitch_names ||= 'R m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7'.split(/\s/)
   # pitch_names = '1 2b 2 3b 3 4 T 5 6b 6 7b 7'.split(/\s/)
+  r = 10
+  r_label = r + 7
 
   pitch_class_angle = (pitch_class) ->
     (-3 + pitch_class) * 2 * Math.PI / 12

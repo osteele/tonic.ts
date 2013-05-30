@@ -188,19 +188,19 @@ chord_shape_fragments = (options={}) ->
       break if book.done
       fragments = collect_chord_shape_fragments chord
 
-      book.with_page ->
+      book.with_page (page) ->
         with_grid cols: 5, rows: 5
         , cell_width: padded_chord_diagram_width
         , cell_height: padded_chord_diagram_height
         , header_height: 40
         , (grid) ->
 
-          draw_text "#{chord.name} Chord Fragments"
+          draw_text "#{chord.name} Chord Shape Fragments"
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
 
           with_graphics_context (ctx) ->
-            ctx.translate 285, 20
+            ctx.translate 295 + padded_chord_diagram_width, 15
             ctx.scale 0.85, 0.85
             draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
 
@@ -222,18 +222,23 @@ chord_shape_fragments = (options={}) ->
               , pitch_colors: ChordDiagramStyle.chord_degree_colors
 
       book.with_page ->
-        with_grid cols: 5, rows: 12
+        with_grid cols: 5, rows: 4
         , cell_width: padded_chord_diagram_width
-        , cell_height: padded_chord_diagram_height + 10
-        , header_height: 10
+        , cell_height: padded_chord_diagram_height + 15
+        , header_height: 50
         , (grid) ->
-          for root in NoteNames
+          draw_text "#{chord.name} Chord Shape Fragment Usage"
+          , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
+          , x: 0, y: 0, gravity: 'topLeft'
+
+          notes = (NoteNames[(i * 7 + 9) % 12] for i in [0...12])
+          notes.map (root) ->
             rc = chord.at(root)
             fingering = best_fingering_for(rc)
-            continue if fingering.barres?.length
-            continue if fingering.positions.length <= rc.pitch_classes.length
+            # return if fingering.barres?.length
+            return if fingering.positions.length <= rc.pitch_classes.length
             fretstring = fingering.fretstring
-            continue if fretstring.match /0/ and fretstring.match /4/
+            # return if fretstring.match /0/ and fretstring.match /4/
 
             grid.start_row()
             grid.add_cell ->
@@ -242,15 +247,16 @@ chord_shape_fragments = (options={}) ->
               , x: 5, y: -3
 
               draw_chord_diagram grid.context, fingering.positions
+              , barres: fingering.barres
               , pitch_colors: ChordDiagramStyle.chord_degree_colors
 
               draw_text '=', font: '18pt Times', fillStyle: 'black'
-              , x: padded_chord_diagram_width, y: padded_chord_diagram_height / 2 + 10, gravity: 'left'
+              , x: padded_chord_diagram_width + 2, y: padded_chord_diagram_height / 2 + 10, gravity: 'left'
 
             draw_plus = false
-            for i in [0..(fretstring.length - rc.pitch_classes.length)]
+            [0..(fretstring.length - rc.pitch_classes.length)].map (i) ->
               positions = (position for position in fingering.positions when i <= position.string < i + rc.pitch_classes.length)
-              continue if positions.length < rc.pitch_classes.length
+              return if positions.length < rc.pitch_classes.length
               d_fret = 1 - Math.min((fret for {fret} in positions)...)
               d_string = (if i == 0 then 1 else 0)
               positions = ({fret: fret + d_fret, string: string + d_string, degree_index} for {fret, string, degree_index} in positions)
