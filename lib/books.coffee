@@ -23,7 +23,7 @@ _ = require 'underscore'
 } = require('./fretboard_logic')
 
 {
-  defaultStyle: ChordDiagramStyle
+
   draw: draw_chord_diagram
   width: padded_chord_diagram_width
   height: padded_chord_diagram_height
@@ -39,10 +39,8 @@ Layout = require('./layout')
 {
   erase_background
   draw_text
-  measure_text
   with_graphics_context
   save_canvas_to_png
-  with_page
   with_grid
   with_book
 } = Layout
@@ -174,7 +172,7 @@ chord_page = (chord, options={}) ->
     with_graphics_context (ctx) ->
       ctx.translate 285, 20
       ctx.scale 0.85, 0.85
-      draw_pitch_diagram ctx, chord.pitch_classes, pitch_colors: ChordDiagramStyle.chord_degree_colors
+      draw_pitch_diagram ctx, chord.pitch_classes
 
     pitches = ((i * 5 + 3) % 12 for i in [0...12])
     pitches = [8...12].concat([0...8]) unless best_fingering

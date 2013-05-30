@@ -7,6 +7,7 @@ _ = require 'underscore'
   StringNumbers
 } = require('./fretboard_model')
 
+
 #
 # Draw Chord Diagrams
 #
@@ -33,17 +34,19 @@ _.extend ChordDiagramStyle,
 padded_chord_diagram_width = 2 * ChordDiagramStyle.h_gutter + (StringCount - 1) * ChordDiagramStyle.string_spacing
 padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + (ChordDiagramStyle.fret_height + 2) * FretCount
 
-draw_chord_diagram_strings = (ctx) ->
+draw_chord_diagram_strings = (ctx, options={}) ->
   style = ChordDiagramStyle
-  for i in StringNumbers
-    x = i * style.string_spacing + style.h_gutter
+  for string in StringNumbers
+    x = string * style.string_spacing + style.h_gutter
     ctx.beginPath()
     ctx.moveTo x, style.v_gutter + style.above_fretboard
     ctx.lineTo x, style.v_gutter + style.above_fretboard + FretCount * style.fret_height
+    ctx.strokeStyle = (if options.dim_strings and string in options.dim_strings then 'rgba(0,0,0,0.2)' else 'black')
     ctx.stroke()
 
 draw_chord_diagram_frets = (ctx, {nut}={nut: true}) ->
   style = ChordDiagramStyle
+  ctx.strokeStyle = 'black'
   for fret in FretNumbers
     y = style.v_gutter + style.above_fretboard + fret * style.fret_height
     ctx.beginPath()
@@ -54,9 +57,12 @@ draw_chord_diagram_frets = (ctx, {nut}={nut: true}) ->
     ctx.lineWidth = 1
 
 draw_chord_diagram = (ctx, positions, options={}) ->
-  options = _.extend {draw_closed_strings: true, nut: true, dy: 0}, options
-  {barres, dy, draw_closed_strings} = options
-  style = ChordDiagramStyle
+  defaults = {draw_closed_strings: true, nut: true, dy: 0, style: ChordDiagramStyle}
+  options = _.extend defaults, options
+  {barres, dy, draw_closed_strings, style} = options
+  if options.dim_unused_strings
+    used_strings = (string for {string} in positions)
+    options.dim_strings = (string for string in StringNumbers when string not in used_strings)
 
   finger_coordinates = ({string, fret}) ->
     return {
@@ -78,14 +84,13 @@ draw_chord_diagram = (ctx, positions, options={}) ->
       ctx.arc x, y, style.note_radius, 0, Math.PI * 2, false
     ctx.fill() if position.fret > 0 or is_root
     ctx.stroke()
-    ctx.strokeStyle = 'black'
 
   draw_barres = ->
     ctx.fillStyle = 'black'
     for {fret, string, fret, string_count} in barres
       {x: x1, y} = finger_coordinates {string, fret}
       {x: x2} = finger_coordinates {string: string + string_count - 1, fret}
-      w = (x2 - x1)
+      w = x2 - x1
       ctx.save()
       ctx.translate (x1 + x2) / 2, y - style.fret_height * .25
       ctx.beginPath()
@@ -110,10 +115,10 @@ draw_chord_diagram = (ctx, positions, options={}) ->
 
   draw_finger_positions = ->
     for position in positions
-      finger_options = position
-      finger_options.color = style.chord_degree_colors[position.degree_index] unless 'color' of finger_options
-      finger_options.is_root = (position.degree_index == 0) unless 'is_root' of finger_options
-      draw_finger_position position, finger_options
+      defaults =
+        color: style.chord_degree_colors[position.degree_index]
+        is_root: (position.degree_index == 0)
+      draw_finger_position position, _.extend(defaults, position)
 
   draw_closed_strings = ->
     fretted_strings = []
@@ -131,7 +136,7 @@ draw_chord_diagram = (ctx, positions, options={}) ->
       ctx.lineTo x + r, y - r
       ctx.stroke()
 
-  draw_chord_diagram_strings ctx
+  draw_chord_diagram_strings ctx, options
   draw_chord_diagram_frets ctx, nut: options.nut
   draw_barres() if barres
   draw_finger_positions() if positions
