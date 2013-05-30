@@ -25,8 +25,15 @@ measure_text = (text, {font}={}) ->
   ctx.font = font if font
   ctx.measureText(text)
 
-draw_text = (text, {font, fillStyle, x, y, gravity}={}) ->
+draw_text = (text, options={}) ->
+  options = text if _.isObject(text)
+  {font, fillStyle, x, y, gravity, width} = options
   gravity ||= ''
+  if options.choices
+    for choice in options.choices
+      text = choice if _.isString(choice)
+      {font} = choice if _.isObject(choice)
+      break if measure_text(text, font: font).width <= options.width
   ctx.font = font if font
   ctx.fillStyle = fillStyle if fillStyle
   m = ctx.measureText(text)
@@ -77,11 +84,11 @@ with_page = (options, cb) ->
   ctx.textDrawingMode = 'glyph' if pdf
   erase_background()
 
-  ctx.save()
-  ctx.translate page_margin, page_margin
-  cb
-    context: ctx
-  ctx.restore()
+  with_graphics_context (ctx) ->
+    ctx.translate page_margin, page_margin
+    options.header?()
+    cb
+      context: ctx
 
   if page_footer
     options = _.extend page_footer, DefaultFooterTextOptions
