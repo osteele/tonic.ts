@@ -73,6 +73,8 @@ collect_chord_shape_fragments = (chord) ->
     }
 
 chord_shape_fragments = (options={}) ->
+  options.draw_chords = false
+
   label_interval_names = (intervals) ->
     draw_text intervals.join('-')
     , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
@@ -102,27 +104,46 @@ chord_shape_fragments = (options={}) ->
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
 
+          fragments_by_inversion = {}
           fragments.each_fragment (positions, intervals, roots) ->
-            grid.add_cell ->
-              if roots.length
-                choices = [
-                  "(Used in #{roots.sort().join(', ')})"
-                  "(In #{roots.sort().join(', ')})"
-                  font: '5pt Times'
-                  "(In many chords)"
-                ]
-                draw_text choices: choices
-                , width: padded_chord_diagram_width
-                , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
-                , x: 5, y: padded_chord_diagram_height + 6
+            key = intervals.join('-')
+            fragments_by_inversion[key] ||= []
+            fragments_by_inversion[key].push {positions, intervals, roots}
 
-              label_interval_names intervals
+          keys = _.keys(fragments_by_inversion).sort (a, b) ->
+            index = (s) ->
+              if s.match(/R/) and s.match(/[234]/) and s.match(/5/)
+                return 1 if s.match /^R\D+[234]\D+5/
+                return 2 if s.match /^[234]/
+                return 3
+              return 5
+            return index(a) - index(b)
+          for key in keys
+            fragment_list = fragments_by_inversion[key]
+            grid.add_cell(->) unless grid.col == 0
+            grid.start_row() unless grid.col + fragment_list.length <= grid.cols
+            fragment_list.forEach ({positions, intervals, roots}, i) ->
+              grid.add_cell ->
+                if roots.length
+                  choices = [
+                    "(Used in #{roots.sort().join(', ')})"
+                    "(In #{roots.sort().join(', ')})"
+                    font: '5pt Times'
+                    "(In many chords)"
+                  ]
+                  draw_text choices: choices
+                  , width: padded_chord_diagram_width
+                  , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
+                  , x: 5, y: padded_chord_diagram_height + 6
 
-              draw_chord_diagram grid.context, positions
-              , draw_closed_strings: false
-              , dim_unused_strings: true
-              , nut: false
+                label_interval_names intervals if i == 0
 
+                draw_chord_diagram grid.context, positions
+                , draw_closed_strings: false
+                , dim_unused_strings: true
+                , nut: false
+
+      continue unless options.draw_chords
       book.with_page ->
         with_grid cols: 5, rows: 4
         , cell_width: padded_chord_diagram_width

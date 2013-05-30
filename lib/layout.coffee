@@ -110,6 +110,10 @@ with_grid = (options, cb) ->
     i = 0
     cb
       context: page.context
+      rows: rows
+      cols: cols
+      row: 0
+      col: 0
       add_cell: (draw_fn) ->
         [col, row] = [i % cols, Math.floor(i / cols)]
         if row >= rows
@@ -119,8 +123,10 @@ with_grid = (options, cb) ->
             ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
             draw_fn()
         i += 1
+        [@col, @row] = [i % cols, Math.floor(i / cols)]
       start_row: ->
         i = Math.ceil(i / cols) * cols
+        [@col, @row] = [i % cols, Math.floor(i / cols)]
   while overflow.length
     cell.row -= rows for cell in overflow
     ctx.addPage()
