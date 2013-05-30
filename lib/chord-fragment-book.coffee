@@ -73,7 +73,7 @@ collect_chord_shape_fragments = (chord) ->
     }
 
 chord_shape_fragments = (options={}) ->
-  options.draw_chords = false
+  options = _.extend {draw_chords: true}, options
 
   label_interval_names = (intervals) ->
     draw_text intervals.join('-')
@@ -104,23 +104,23 @@ chord_shape_fragments = (options={}) ->
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
 
-          fragments_by_inversion = {}
+          fragments_by_interval_string = {}
           fragments.each_fragment (positions, intervals, roots) ->
-            key = intervals.join('-')
-            fragments_by_inversion[key] ||= []
-            fragments_by_inversion[key].push {positions, intervals, roots}
+            interval_string = intervals.join('-')
+            (fragments_by_interval_string[interval_string] ||= []).push {positions, intervals, roots}
 
-          keys = _.keys(fragments_by_inversion).sort (a, b) ->
-            index = (s) ->
+          inversion_keys = _.keys(fragments_by_interval_string).sort (a, b) ->
+            inversion_index = (s) ->
               if s.match(/R/) and s.match(/[234]/) and s.match(/5/)
                 return 1 if s.match /^R\D+[234]\D+5/
                 return 2 if s.match /^[234]/
                 return 3
               return 5
-            return index(a) - index(b)
-          for key in keys
-            fragment_list = fragments_by_inversion[key]
-            grid.add_cell(->) unless grid.col == 0
+            return inversion_index(a) - inversion_index(b)
+
+          for interval_string in inversion_keys
+            fragment_list = fragments_by_interval_string[interval_string]
+            grid.col += 0.5 unless grid.col == 0
             grid.start_row() unless grid.col + fragment_list.length <= grid.cols
             fragment_list.forEach ({positions, intervals, roots}, i) ->
               grid.add_cell ->

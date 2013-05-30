@@ -102,12 +102,11 @@ with_page = (options, cb) ->
 
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
-  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = _.extend defaults, options
+  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = options = _.extend defaults, options
   options.width ||= cols * cell_width + (cols - 1) * gutter_width
   options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
   overflow = []
   with_page options, (page) ->
-    i = 0
     cb
       context: page.context
       rows: rows
@@ -115,18 +114,18 @@ with_grid = (options, cb) ->
       row: 0
       col: 0
       add_cell: (draw_fn) ->
-        [col, row] = [i % cols, Math.floor(i / cols)]
+        [col, row] = [@col, @row]
         if row >= rows
           overflow.push {col, row, draw_fn}
         else
           with_graphics_context (ctx) ->
             ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
             draw_fn()
-        i += 1
-        [@col, @row] = [i % cols, Math.floor(i / cols)]
+        [col, row] = [col + 1, row]
+        [col, row] = [0, row + 1] if col >= @cols
+        [@col, @row] = [col, row]
       start_row: ->
-        i = Math.ceil(i / cols) * cols
-        [@col, @row] = [i % cols, Math.floor(i / cols)]
+        [@col, @row] = [0, @row + 1] if @col > 0
   while overflow.length
     cell.row -= rows for cell in overflow
     ctx.addPage()
