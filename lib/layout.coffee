@@ -72,33 +72,43 @@ save_canvas_to_png = (canvas, fname) ->
 # Layout
 #
 
-pdf = false
+CurrentPage = null
+CurrentBook = null
+Mode = null
 
 set_page_footer = (options) -> page_footer = options
 
-with_page = (options, cb) ->
+with_page = (options, draw_page) ->
+  throw "Already inside a page" if CurrentPage
+
   defaults = {width: 100, height: 100, page_margin: 10}
   {width, height, page_margin} = _.extend defaults, options
-  canvas ||= new Canvas(width + 2 * page_margin, height + 2 * page_margin, pdf and 'pdf')
+  canvas ||= new Canvas width + 2 * page_margin, height + 2 * page_margin, Mode
   ctx = canvas.getContext('2d')
-  ctx.textDrawingMode = 'glyph' if pdf
-  erase_background()
+  ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
 
-  with_graphics_context (ctx) ->
-    ctx.translate page_margin, page_margin
-    options.header?()
-    cb
-      context: ctx
+  try
+    CurrentPage = page =
+        context: ctx
 
-  if page_footer
-    options = _.extend page_footer, DefaultFooterTextOptions
-    options = _.extend {x: page_margin, y: canvas.height}, options
-    draw_text page_footer.text, options
+    erase_background()
 
-  unless pdf
-    filename = "#{DefaultFilename or 'test'}.png"
-    fs.writeFile BuildDirectory + filename, canvas.toBuffer()
-    console.info "Saved #{filename}"
+    with_graphics_context (ctx) ->
+      ctx.translate page_margin, page_margin
+      CurrentBook?.header?()
+      draw_page page
+
+    if page_footer
+      options = _.extend page_footer, DefaultFooterTextOptions
+      options = _.extend {x: page_margin, y: canvas.height}, options
+      draw_text page_footer.text, options
+
+    unless Mode == 'pdf'
+      filename = "#{DefaultFilename or 'test'}.png"
+      fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+      console.info "Saved #{filename}"
+  finally
+    CurrentPage = null
 
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
@@ -137,32 +147,41 @@ with_grid = (options, cb) ->
     overflow = (cell for cell in overflow when cell.row >= rows)
 
 with_book = (filename, options, cb) ->
+  throw "Already inside book" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
-  pdf = true
   page_limit = options.pages
   page_count = 0
-  cb
-    with_page: (options, draw_page) ->
-      return if @done
-      page_count += 1
-      if _.isFunction(draw_page)
-        with_page options, draw_page
-      else
-        draw_page = options
+  page_header = null
+  try
+    Mode = 'pdf'
+    CurrentBook = book = {}
+    cb
+      page_header: (header) ->
+        book.header = header
+      with_page: (options, draw_page) ->
+        [options, draw_page] = [{}, options] if _.isFunction(options)
+        return if @done
+        page_count += 1
         draw_page()
-      ctx.addPage()
-      @done = true if page_limit and page_limit <= page_count
-  unless canvas
-    console.warn "No pages"
-    return
-  pathname = BuildDirectory + filename + ".pdf"
-  fs.writeFile pathname, canvas.toBuffer(), (err) ->
-    if err
-      console.error "Error #{err.code} writing to #{err.path}"
-    else
-      console.info "Saved #{pathname}"
-  canvas = null
-  ctx = null
+        # with_page options, draw_page #(page) ->
+          # page_header?()
+          # draw_page page
+        ctx.addPage()
+        @done = true if page_limit and page_limit <= page_count
+    unless canvas
+      console.warn "No pages"
+      return
+    pathname = BuildDirectory + filename + ".pdf"
+    fs.writeFile pathname, canvas.toBuffer(), (err) ->
+      if err
+        console.error "Error #{err.code} writing to #{err.path}"
+      else
+        console.info "Saved #{pathname}"
+  finally
+    canvas = null
+    ctx = null
+    CurrentBook = null
+    Mode = null
 
 module.exports = {
   with_book

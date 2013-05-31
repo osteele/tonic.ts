@@ -87,9 +87,11 @@ intervals_from_position_page = (root_position) ->
   , (grid) ->
     for interval_name, semitones in Intervals
       grid.add_cell ->
+
         draw_text interval_name
         , font: '10px Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
+
         positions = (pos for pos in intervals_from(root_position, semitones) \
           when not (pos.string == root_position.string and pos.fret == root_position.fret))
         positions.push string: root_position.string, fret: root_position.fret, is_root: true

@@ -85,7 +85,8 @@ chord_shape_fragments = (options={}) ->
       break if book.done
 
       fragments = collect_chord_shape_fragments chord
-      pitch_diagram = ->
+
+      book.page_header ->
         with_graphics_context (ctx) ->
           ctx.translate 295 + padded_chord_diagram_width, 15
           ctx.scale 0.85, 0.85
@@ -97,8 +98,6 @@ chord_shape_fragments = (options={}) ->
         , cell_height: padded_chord_diagram_height + 10
         , header_height: 40
         , (grid) ->
-
-          pitch_diagram()
 
           draw_text "#{chord.name} Chord Fragments"
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
@@ -154,8 +153,6 @@ chord_shape_fragments = (options={}) ->
           draw_text "#{chord.name} Chord Shapes"
           , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
           , x: 0, y: 0, gravity: 'topLeft'
-
-          pitch_diagram()
 
           notes = (NoteNames[(i * 7 + 9) % 12] for i in [0...12])
           notes.map (root) ->
