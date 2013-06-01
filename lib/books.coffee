@@ -167,6 +167,8 @@ interval_class_vectors = (interval_class) ->
   intervals
 
 draw_interval_classes_on_harmonic_table = (r, interval_classes) ->
+  interval_classes = [0].concat interval_classes unless 0 in interval_classes
+  hex_radius = r / 2
   colors =
     1: 'gray'
     2: 'yellow'
@@ -176,22 +178,46 @@ draw_interval_classes_on_harmonic_table = (r, interval_classes) ->
     6: 'purple'
 
   with_graphics_context (ctx) ->
-    ctx.translate r * 2, r * 2
+    cell_center = (interval_klass) ->
+        vectors = interval_class_vectors interval_klass
+        dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
+        dx = vectors.M3 - vectors.m3
+        x = dx * r
+        y = -dy * r
+        {x, y}
+    bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
     for interval_klass in interval_classes
-      continue if interval_klass == 0
+      {x, y} = cell_center interval_klass
+      bounds.left = Math.min bounds.left, x
+      bounds.top = Math.min bounds.top, y
+      bounds.right = Math.max bounds.right, x
+      bounds.bottom = Math.max bounds.bottom, y
+    ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2
+    for interval_klass in interval_classes
       color = colors[interval_klass]
       color ||= colors[12 - interval_klass]
-      vectors = interval_class_vectors interval_klass
-      dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
-      dx = vectors.M3 - vectors.m3
-      x = dx * r
-      y = -dy * r
       ctx.beginPath()
-      ctx.moveTo 0, 0
-      ctx.lineTo x, y
-      ctx.lineWidth = (if vectors.sign == 1 then 3 else 1)
-      ctx.strokeStyle = color
+      {x, y} = cell_center interval_klass
+      for i in [0..6]
+        a = i * Math.PI / 3
+        pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
+        ctx.moveTo pos... if i == 0
+        ctx.lineTo pos...
+      ctx.strokeStyle = 'gray'
       ctx.stroke()
+      if interval_klass == 0
+        ctx.fillStyle = 'rgba(255,0,0,0.1)'
+        ctx.fill()
+      continue if interval_klass == 0
+      ctx.beginPath()
+      do ->
+        [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
+        [dx, dy] = [dx * dn, dy * dn]
+        ctx.moveTo 0, 0
+        ctx.lineTo x + dx, y + dy
+        ctx.lineTo x - dx, y - dy
+        ctx.fillStyle = color
+        ctx.fill()
       ctx.beginPath()
       ctx.arc x, y, 2, 0, 2 * Math.PI, false
       ctx.fillStyle = color
@@ -207,18 +233,22 @@ chord_lattice = () ->
     with_grid cols: 6, rows: 5
     , cell_width: 80
     , cell_height: 80 + 40
+    , header_height: 40
     , (grid) ->
-      intervals = [3, 4, 7]
-      intervals = intervals.concat (12 - interval for interval in intervals)
-      intervals = intervals.concat _.chain(Intervals).keys().map(Number).without(intervals...).value()
-      for semitones in intervals
-        continue if semitones == 0
-        interval_name = Intervals[semitones]
-        grid.add_cell ->
-          draw_text interval_name
-          , font: '12px Times', fillStyle: 'black'
-          , x: 80 / 2, gravity: 'center'
-          draw_interval_classes_on_harmonic_table r, [semitones]
+      intervals = [7, 4, 3, 2, 1]
+      interval_sets = [intervals]
+      interval_sets.push (12 - interval for interval in intervals)
+      interval_sets[1].push 6
+      for intervals in interval_sets
+        grid.start_row()
+        for semitones in intervals
+          continue if semitones == 0
+          interval_name = Intervals[semitones]
+          grid.add_cell ->
+            draw_text interval_name
+            , font: '12px Times', fillStyle: 'black'
+            , x: 80 / 2, gravity: 'center'
+            draw_interval_classes_on_harmonic_table r, [semitones]
 
       grid.start_row()
       for chord in Chords
