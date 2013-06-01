@@ -150,33 +150,51 @@ intervals_book = ({by_root, pages}={}) ->
 # Chord Lattice Diagrams
 #
 
-draw_pitch_classes_on_harmonic_table = (r, pitch_classes) ->
+interval_class_vectors = (interval_class) ->
+  records =
+    1: {P5: -1, M3: 2, color: 'gray'}
+    2: {P5: -1, m3: -1, color: 'yellow'}
+    3: {m3: 1, color: 'blue'}
+    4: {M3: 1, color: 'green'}
+    5: {P5: -1, color: 'red', sign: -1}
+    6: {m3: 2, color: 'purple'}
+  [record, sign] = [records[interval_class], 1]
+  [record, sign] = [records[12 - interval_class], -1] unless record
+  intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
+  intervals[k] *= sign for k of intervals
+  computed_semitones = (12 + 7 * intervals.P5 + intervals.M3 * 4 + intervals.m3 * 3) % 12
+  console.error "#{computed_semitones} != #{interval_class}" unless computed_semitones == interval_class
+  intervals
+
+draw_interval_classes_on_harmonic_table = (r, interval_classes) ->
+  colors =
+    1: 'gray'
+    2: 'yellow'
+    3: 'blue'
+    4: 'green'
+    5: 'red'
+    6: 'purple'
+
   with_graphics_context (ctx) ->
     ctx.translate r * 2, r * 2
-    for pc in pitch_classes
-      continue if pc == 0
-      records =
-        1: {P5: 1, M3: -1, color: 'gray'}
-        2: {P5: 1, m3: -1, color: 'yellow'}
-        3: {m3: 1, color: 'blue'}
-        4: {M3: 1, color: 'green'}
-        5: {P5: -1, color: 'red'}
-        6: {m3: 2, color: 'purple'}
-      [record, sign] = [records[pc], 1]
-      [record, sign] = [records[12 - pc], -1] unless record
-      intervals = _.extend {m3: 0, M3: 0, P5: 0}, record
-      intervals[k] *= sign for k of intervals
-      dy = intervals.P5 + (intervals.M3 - intervals.m3) / 2
-      dx = (intervals.m3 + intervals.M3)
+    for interval_klass in interval_classes
+      continue if interval_klass == 0
+      color = colors[interval_klass]
+      color ||= colors[12 - interval_klass]
+      vectors = interval_class_vectors interval_klass
+      dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
+      dx = vectors.M3 - vectors.m3
+      x = dx * r
+      y = -dy * r
       ctx.beginPath()
       ctx.moveTo 0, 0
-      ctx.lineTo dx * r, dy * r
-      ctx.strokeWidth = 3
-      ctx.strokeStyle = record.color
+      ctx.lineTo x, y
+      ctx.lineWidth = (if vectors.sign == 1 then 3 else 1)
+      ctx.strokeStyle = color
       ctx.stroke()
       ctx.beginPath()
-      ctx.arc dx * r, dy * r, 2, 0, 2 * Math.PI, false
-      ctx.fillStyle = record.color
+      ctx.arc x, y, 2, 0, 2 * Math.PI, false
+      ctx.fillStyle = color
       ctx.fill()
     ctx.beginPath()
     ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
@@ -190,13 +208,17 @@ chord_lattice = () ->
     , cell_width: 80
     , cell_height: 80 + 40
     , (grid) ->
-      for interval_name, semitones in Intervals
+      intervals = [3, 4, 7]
+      intervals = intervals.concat (12 - interval for interval in intervals)
+      intervals = intervals.concat _.chain(Intervals).keys().map(Number).without(intervals...).value()
+      for semitones in intervals
         continue if semitones == 0
+        interval_name = Intervals[semitones]
         grid.add_cell ->
           draw_text interval_name
           , font: '12px Times', fillStyle: 'black'
           , x: 80 / 2, gravity: 'center'
-          draw_pitch_classes_on_harmonic_table r, [semitones]
+          draw_interval_classes_on_harmonic_table r, [semitones]
 
       grid.start_row()
       for chord in Chords
@@ -204,7 +226,7 @@ chord_lattice = () ->
           draw_text chord.name
           , font: '12px Times', fillStyle: 'black'
           , x: 80 / 2, gravity: 'center'
-          draw_pitch_classes_on_harmonic_table r, chord.pitch_classes
+          draw_interval_classes_on_harmonic_table r, chord.pitch_classes
 
 
 #
