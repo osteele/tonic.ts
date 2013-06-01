@@ -12,8 +12,8 @@ _ = require 'underscore'
 
 {
   draw: draw_chord_diagram
-  width: padded_chord_diagram_width
-  height: padded_chord_diagram_height
+  width: chord_diagram_width
+  height: chord_diagram_height
 } = require('./chord_diagram')
 
 Layout = require('./layout')
@@ -24,6 +24,7 @@ Layout = require('./layout')
   with_book
 } = Layout
 
+draw_harmonic_table = require('./harmonic_table').draw
 draw_pitch_diagram = require('./pitch_diagram').draw
 
 collect_chord_shape_fragments = (chord) ->
@@ -78,10 +79,13 @@ collect_chord_shape_fragments = (chord) ->
 chord_shape_fragments = (options={}) ->
   options = _.extend {draw_chords: true}, options
 
-  label_interval_names = (intervals) ->
+  label_interval_names = (intervals, chord, positions) ->
     draw_text intervals.join('-')
     , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
-    , x: 5, y: 7
+    , x: 15, y: 7
+    with_graphics_context (ctx) ->
+      ctx.translate -5, -10
+      draw_harmonic_table (chord.pitch_classes[degree_index] for {degree_index} in positions), radius: 5
 
   with_book "Chord Shape Fragments", pages: options.pages, (book) ->
     for chord in Chords
@@ -91,19 +95,21 @@ chord_shape_fragments = (options={}) ->
 
       book.page_header ->
         with_graphics_context (ctx) ->
-          ctx.translate 295 + padded_chord_diagram_width, 15
+          ctx.translate 295 + chord_diagram_width, 15
           ctx.scale 0.85, 0.85
           draw_pitch_diagram ctx, chord.pitch_classes
+        with_graphics_context (ctx) ->
+          ctx.translate 295 + chord_diagram_width - 70, -15
+          draw_harmonic_table chord.pitch_classes, radius: 12
 
       # FIXME required here to break cyclic reference, which should be removed instead
       book_utils = require('./books')
       book.page_footer book_utils.draw_license_footer
 
-      # book.with_page (page) ->
       do ->
         with_grid cols: 5, rows: 5
-        , cell_width: padded_chord_diagram_width
-        , cell_height: padded_chord_diagram_height + 10
+        , cell_width: chord_diagram_width
+        , cell_height: chord_diagram_height + 10
         , header_height: 40
         , (grid) ->
 
@@ -139,11 +145,11 @@ chord_shape_fragments = (options={}) ->
                     "(In many chords)"
                   ]
                   draw_text choices: choices
-                  , width: padded_chord_diagram_width
+                  , width: chord_diagram_width
                   , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
-                  , x: 5, y: padded_chord_diagram_height + 6
+                  , x: 5, y: chord_diagram_height + 6
 
-                label_interval_names intervals if i == 0
+                label_interval_names intervals, chord, positions if i == 0
 
                 draw_chord_diagram grid.context, positions
                 , draw_closed_strings: false
@@ -151,11 +157,10 @@ chord_shape_fragments = (options={}) ->
                 , nut: false
 
       continue unless options.draw_chords
-      # book.with_page ->
       do ->
         with_grid cols: 5, rows: 4
-        , cell_width: padded_chord_diagram_width
-        , cell_height: padded_chord_diagram_height + 15
+        , cell_width: chord_diagram_width
+        , cell_height: chord_diagram_height + 15
         , header_height: 50
         , (grid) ->
 
@@ -182,7 +187,7 @@ chord_shape_fragments = (options={}) ->
               , barres: fingering.barres
 
               draw_text '=', font: '18pt Times', fillStyle: 'black'
-              , x: padded_chord_diagram_width + 2, y: padded_chord_diagram_height / 2 + 10, gravity: 'left'
+              , x: chord_diagram_width + 2, y: chord_diagram_height / 2 + 10, gravity: 'left'
 
             draw_plus = false
             [0...fretstring.length].map (bass_string) ->
@@ -199,7 +204,7 @@ chord_shape_fragments = (options={}) ->
                   ctx.scale 0.8, 0.8
                   ctx.translate 10, 10
 
-                  label_interval_names (rc.degree_name degree_index for {degree_index} in positions)
+                  label_interval_names (rc.degree_name degree_index for {degree_index} in positions), chord, positions
                   draw_chord_diagram grid.context, positions
                   , draw_closed_strings: false
                   , nut: false
@@ -207,7 +212,7 @@ chord_shape_fragments = (options={}) ->
 
                 if draw_plus
                   draw_text '+', font: '18pt Times', fillStyle: 'black'
-                  , x: 2, y: padded_chord_diagram_height / 2 + 10, gravity: 'right'
+                  , x: 2, y: chord_diagram_height / 2 + 10, gravity: 'right'
                 draw_plus = true
 
 module.exports = {

@@ -19,7 +19,7 @@ interval_class_vectors = (interval_class) ->
   console.error "#{computed_semitones} != #{interval_class}" unless computed_semitones == interval_class
   intervals
 
-draw_interval_classes_on_harmonic_table = (interval_classes, options={}) ->
+draw_harmonic_table = (interval_classes, options={}) ->
   options = _.extend {center: true, radius: 50}, options
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   r = options.radius
@@ -97,5 +97,5 @@ draw_interval_classes_on_harmonic_table = (interval_classes, options={}) ->
         draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
 module.exports = {
-  draw: draw_interval_classes_on_harmonic_table
+  draw: draw_harmonic_table
 }

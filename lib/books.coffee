@@ -25,8 +25,8 @@ _ = require 'underscore'
 {
 
   draw: draw_chord_diagram
-  width: padded_chord_diagram_width
-  height: padded_chord_diagram_height
+  width: chord_diagram_width
+  height: chord_diagram_height
 } = require('./chord_diagram')
 
 {
@@ -199,8 +199,8 @@ chord_fingerings_page = (chord) ->
   Layout.filename "#{chord.name} Fingerings"
 
   with_grid cols: 10, rows: 10
-  , cell_width: padded_chord_diagram_width + 10
-  , cell_height: padded_chord_diagram_height + 5
+  , cell_width: chord_diagram_width + 10
+  , cell_height: chord_diagram_height + 5
   , header_height: 40
   , (grid) ->
     draw_text "#{chord.name} Fingerings"
@@ -214,8 +214,8 @@ chord_page = (chord, options={}) ->
   {best_fingering} = options
 
   with_grid cols: 4, rows: 3
-  , cell_width: padded_chord_diagram_width
-  , cell_height: padded_chord_diagram_height
+  , cell_width: chord_diagram_width
+  , cell_height: chord_diagram_height
   , gutter_height: 20
   , header_height: 40
   , (grid) ->
