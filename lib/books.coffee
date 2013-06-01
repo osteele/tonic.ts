@@ -46,6 +46,7 @@ Layout = require('./layout')
 } = Layout
 
 draw_pitch_diagram = require('./pitch_diagram').draw
+draw_harmonic_table = require('./harmonic_table').draw
 
 {chord_shape_fragments} = require './chord-fragment-book'
 
@@ -150,99 +151,6 @@ intervals_book = ({by_root, pages}={}) ->
 # Chord Lattice Diagrams
 #
 
-interval_class_vectors = (interval_class) ->
-  records =
-    # 1: {P5: -1, M3: 2, color: 'gray'}
-    2: {P5: -1, m3: -1}
-    3: {m3: 1}
-    4: {M3: 1}
-    5: {P5: -1}
-    6: {m3: 2}
-    11: {P5: 1, M3: 1}
-  [record, sign] = [records[interval_class], 1]
-  [record, sign] = [records[12 - interval_class], -1] unless record
-  intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
-  intervals[k] *= sign for k of intervals
-  computed_semitones = (12 + 7 * intervals.P5 + intervals.M3 * 4 + intervals.m3 * 3) % 12
-  console.error "#{computed_semitones} != #{interval_class}" unless computed_semitones == interval_class
-  intervals
-
-draw_interval_classes_on_harmonic_table = (r, interval_classes, options={}) ->
-  options = _.extend {center: true}, options
-  interval_classes = [0].concat interval_classes unless 0 in interval_classes
-  hex_radius = r / 2
-  colors =
-    1: 'orange'
-    2: 'yellow'
-    3: 'purple'
-    4: 'blue'
-    5: 'green'
-    6: 'gray'
-
-  with_graphics_context (ctx) ->
-    cell_center = (interval_klass) ->
-      vectors = interval_class_vectors interval_klass
-      dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
-      dx = vectors.M3 - vectors.m3
-      x = dx * r
-      y = -dy * r
-      {x, y}
-
-    bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
-    for interval_klass in interval_classes
-      {x, y} = cell_center interval_klass
-      bounds.left = Math.min bounds.left, x
-      bounds.top = Math.min bounds.top, y
-      bounds.right = Math.max bounds.right, x
-      bounds.bottom = Math.max bounds.bottom, y
-    ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
-
-    for interval_klass in interval_classes
-      color = colors[interval_klass]
-      color ||= colors[12 - interval_klass]
-      ctx.beginPath()
-      {x, y} = cell_center interval_klass
-
-      for i in [0..6]
-        a = i * Math.PI / 3
-        pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
-        ctx.moveTo pos... if i == 0
-        ctx.lineTo pos...
-      ctx.strokeStyle = 'gray'
-      ctx.stroke()
-      if interval_klass == 0
-        ctx.fillStyle = 'rgba(255,0,0,0.15)'
-        ctx.fill()
-
-      continue if interval_klass == 0
-      ctx.globalAlpha = 0.3 if options.label_cells
-      ctx.beginPath()
-      do ->
-        [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
-        [dx, dy] = [dx * dn, dy * dn]
-        ctx.moveTo 0, 0
-        ctx.lineTo x + dx, y + dy
-        ctx.lineTo x - dx, y - dy
-        ctx.fillStyle = color
-        ctx.fill()
-      ctx.beginPath()
-      ctx.arc x, y, 2, 0, 2 * Math.PI, false
-      ctx.fillStyle = color
-      ctx.fill()
-      ctx.globalAlpha = 1
-
-    ctx.beginPath()
-    ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
-    ctx.fillStyle = 'red'
-    ctx.fill()
-
-    if options.label_cells
-      for interval_klass in interval_classes
-        label = Intervals[interval_klass]
-        label = 'R' if interval_klass == 0
-        {x, y} = cell_center interval_klass
-        draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
-
 chord_lattice = () ->
   r = 20
   with_book "Chord Lattices", (book) ->
@@ -255,7 +163,7 @@ chord_lattice = () ->
       with_graphics_context (ctx) ->
         ctx.translate 100, -130
         grid.add_cell ->
-          draw_interval_classes_on_harmonic_table 50, [0...12], label_cells: true, center: true
+          draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true
 
       if false
         intervals = [7, 4, 3, 2, 1]
@@ -271,16 +179,15 @@ chord_lattice = () ->
               draw_text interval_name
               , font: '12px Times', fillStyle: 'black'
               , x: 80 / 2, gravity: 'center'
-              draw_interval_classes_on_harmonic_table r, [semitones], label_cells: true
+              draw_harmonic_table [semitones], radius: r, label_cells: true
 
-      # return
       grid.start_row()
       for chord in Chords
         grid.add_cell ->
           draw_text chord.name
           , font: '12px Times', fillStyle: 'black'
           , x: 80 / 2, gravity: 'center'
-          draw_interval_classes_on_harmonic_table r, chord.pitch_classes
+          draw_harmonic_table chord.pitch_classes, radius: r
 
 
 #
