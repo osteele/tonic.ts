@@ -56,7 +56,8 @@ collect_chord_shape_fragments = (chord) ->
         frets = (Number(c) for c in slice)
         d_fret = 1 - Math.min(frets...)
         slice = (fret + d_fret for fret in frets).join('') if d_fret
-        positions = ({fret: fret + d_fret, string: string + d_string, degree_index} for {fret, string, degree_index} in positions)
+        positions = ({fret: fret + d_fret, string: string + d_string, degree_index} \
+          for {fret, string, degree_index} in positions)
         continue if slice.match /5/
         fragment_index = bass_string
         fragment_index = 0 if bass_string + chord.pitch_classes.length - 1 <= 3
@@ -190,7 +191,8 @@ chord_shape_fragments = (options={}) ->
               return if positions.length < rc.pitch_classes.length
               d_fret = 1 - Math.min((fret for {fret} in positions)...)
               d_string = (if bass_string == 0 then 1 else 0)
-              positions = ({fret: fret + d_fret, string: string + d_string, degree_index} for {fret, string, degree_index} in positions)
+              positions = ({fret: fret + d_fret, string: string + d_string, degree_index} \
+                for {fret, string, degree_index} in positions)
 
               grid.add_cell ->
                 with_graphics_context (ctx) ->

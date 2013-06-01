@@ -7,14 +7,8 @@ FretboardLogic = require '../index'
 {Chords} = FretboardLogic.theory
 Layout = FretboardLogic.utils.layout
 
-{
-  chord_book
-  chord_fingerings_page
-  chord_shape_fragments
-  intervals_book
-} = require('../lib/books')
-
-chord_shape_flipbook = require('../lib/chord-shape-animation')
+books = require '../lib/books'
+books.chord_shape_flipbook = require '../lib/chord-shape-animation'
 
 program
   .version('0.0.1')
@@ -36,14 +30,21 @@ program
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->
     with_book_options (options), ->
-      chord_book best_fingering: not options.combined, pages: options.pages
+      books.chord_book best_fingering: not options.combined, pages: options.pages
+
+program
+  .command('chord-lattice')
+  .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .action (options) ->
+    with_book_options (options), ->
+      books.chord_lattice pages: options.pages
 
 program
   .command('fingerings')
   .description('Fingerings for a specific chord')
   .action (options) ->
     with_book_options (options), ->
-      chord_fingerings_page Chords[6].at('F')
+      books.chord_fingerings_page Chords[6].at('F')
 
 program
   .command('fragments')
@@ -51,7 +52,7 @@ program
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->
     with_book_options (options), ->
-      chord_shape_fragments pages: options.pages
+      books.chord_shape_fragments pages: options.pages
 
 program
   .command('intervals')
@@ -59,7 +60,7 @@ program
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->
     with_book_options (options), ->
-      intervals_book by_root: true, pages: options.pages
+      books.intervals_book by_root: true, pages: options.pages
 
 program
   .command('animation')
@@ -68,17 +69,18 @@ program
   .option('--speed <f>', 'Slower by a factor of <f>', parseFloat)
   .action (options) ->
     with_book_options (options), ->
-      chord_shape_flipbook pages: 0, quick: options.quick, speed: options.speed
+      books.chord_shape_flipbook pages: 0, quick: options.quick, speed: options.speed
 
 program
   .command('all')
   .action (options) ->
     with_book_options (options), ->
-      intervals_book by_root: true
-      intervals_book by_root: false
-      chord_book best_fingering: true
-      chord_book best_fingering: false
-      chord_shape_flipbook quick: true
+      books.intervals_book by_root: true
+      books.intervals_book by_root: false
+      books.chord_book best_fingering: true
+      books.chord_book best_fingering: false
+      books.chord_lattice()
+      books.chord_shape_flipbook quick: true
       # FIXME this doesn't actually render in this context
       # chord_fingerings_page Chords[6], 'F'
 

@@ -106,7 +106,8 @@ with_page = (options, draw_page) ->
 
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
-  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = options = _.extend defaults, options
+  options = _.extend defaults, options
+  {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = options
   options.width ||= cols * cell_width + (cols - 1) * gutter_width
   options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
   overflow = []

@@ -147,6 +147,67 @@ intervals_book = ({by_root, pages}={}) ->
 
 
 #
+# Chord Lattice Diagrams
+#
+
+draw_pitch_classes_on_harmonic_table = (r, pitch_classes) ->
+  with_graphics_context (ctx) ->
+    ctx.translate r * 2, r * 2
+    for pc in pitch_classes
+      continue if pc == 0
+      records =
+        1: {P5: 1, M3: -1, color: 'gray'}
+        2: {P5: 1, m3: -1, color: 'yellow'}
+        3: {m3: 1, color: 'blue'}
+        4: {M3: 1, color: 'green'}
+        5: {P5: -1, color: 'red'}
+        6: {m3: 2, color: 'purple'}
+      [record, sign] = [records[pc], 1]
+      [record, sign] = [records[12 - pc], -1] unless record
+      intervals = _.extend {m3: 0, M3: 0, P5: 0}, record
+      intervals[k] *= sign for k of intervals
+      dy = intervals.P5 + (intervals.M3 - intervals.m3) / 2
+      dx = (intervals.m3 + intervals.M3)
+      ctx.beginPath()
+      ctx.moveTo 0, 0
+      ctx.lineTo dx * r, dy * r
+      ctx.strokeWidth = 3
+      ctx.strokeStyle = record.color
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc dx * r, dy * r, 2, 0, 2 * Math.PI, false
+      ctx.fillStyle = record.color
+      ctx.fill()
+    ctx.beginPath()
+    ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
+    ctx.fillStyle = 'red'
+    ctx.fill()
+
+chord_lattice = () ->
+  r = 20
+  with_book "Chord Lattices", (book) ->
+    with_grid cols: 6, rows: 5
+    , cell_width: 80
+    , cell_height: 80 + 40
+    , (grid) ->
+      for interval_name, semitones in Intervals
+        continue if semitones == 0
+        grid.add_cell ->
+          draw_text interval_name
+          , font: '12px Times', fillStyle: 'black'
+          , x: 80 / 2, gravity: 'center'
+          draw_pitch_classes_on_harmonic_table r, [semitones]
+
+      grid.start_row()
+      for chord in Chords
+        grid.add_cell ->
+          draw_text chord.name
+          , font: '12px Times', fillStyle: 'black'
+          , x: 80 / 2, gravity: 'center'
+          draw_pitch_classes_on_harmonic_table r, chord.pitch_classes
+
+
+#
 # Chord Fingerings
 #
 
@@ -163,7 +224,8 @@ chord_fingerings_page = (chord) ->
     , x: 0, y: 20
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
-      grid.add_cell -> draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
+      grid.add_cell ->
+        draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
 
 chord_page = (chord, options={}) ->
   {best_fingering} = options
@@ -213,6 +275,7 @@ chord_book = (options={}) ->
 module.exports = {
   chord_book
   chord_fingerings_page
+  chord_lattice
   chord_shape_fragments
   draw_license_footer
   intervals_book
