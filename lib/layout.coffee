@@ -32,7 +32,7 @@ draw_text = (text, options={}) ->
   m = ctx.measureText(text)
   x ||= 0
   y ||= 0
-  x -= m.width / 2 if gravity.match(/^(top|center|bottom)$/i)
+  x -= m.width / 2 if gravity.match(/^(top|center|middle|centerbottom)$/i)
   x -= m.width if gravity.match(/^(right|topRight|botRight)$/i)
   y -= m.emHeightDescent if gravity.match(/^(bottom|botLeft|botRight)$/i)
   y += m.emHeightAscent if gravity.match(/^(top|topLeft|topRight)$/i)
