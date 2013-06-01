@@ -152,12 +152,13 @@ intervals_book = ({by_root, pages}={}) ->
 
 interval_class_vectors = (interval_class) ->
   records =
-    1: {P5: -1, M3: 2, color: 'gray'}
-    2: {P5: -1, m3: -1, color: 'yellow'}
-    3: {m3: 1, color: 'blue'}
-    4: {M3: 1, color: 'green'}
-    5: {P5: -1, color: 'red', sign: -1}
-    6: {m3: 2, color: 'purple'}
+    # 1: {P5: -1, M3: 2, color: 'gray'}
+    2: {P5: -1, m3: -1}
+    3: {m3: 1}
+    4: {M3: 1}
+    5: {P5: -1}
+    6: {m3: 2}
+    11: {P5: 1, M3: 1}
   [record, sign] = [records[interval_class], 1]
   [record, sign] = [records[12 - interval_class], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
@@ -171,12 +172,12 @@ draw_interval_classes_on_harmonic_table = (r, interval_classes, options={}) ->
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   hex_radius = r / 2
   colors =
-    1: 'gray'
+    1: 'orange'
     2: 'yellow'
-    3: 'blue'
-    4: 'green'
-    5: 'red'
-    6: 'purple'
+    3: 'purple'
+    4: 'blue'
+    5: 'green'
+    6: 'gray'
 
   with_graphics_context (ctx) ->
     cell_center = (interval_klass) ->
@@ -248,11 +249,11 @@ chord_lattice = () ->
     with_grid cols: 6, rows: 4
     , cell_width: 80
     , cell_height: 80 + 40
-    , header_height: 180
+    , header_height: 140
     , (grid) ->
 
       with_graphics_context (ctx) ->
-        ctx.translate 100, -150
+        ctx.translate 100, -130
         grid.add_cell ->
           draw_interval_classes_on_harmonic_table 50, [0...12], label_cells: true, center: true
 
