@@ -2,13 +2,6 @@ fs = require('fs')
 _ = require 'underscore'
 Canvas = require('canvas')
 
-DefaultFooterTextOptions =
-  font: '4pt Times'
-  fillStyle: 'black'
-  gravity: 'botLeft'
-
-page_footer = null
-
 
 #
 # Drawing
@@ -76,10 +69,8 @@ CurrentPage = null
 CurrentBook = null
 Mode = null
 
-set_page_footer = (options) -> page_footer = options
-
 with_page = (options, draw_page) ->
-  throw "Already inside a page" if CurrentPage
+  throw new Error "Already inside a page" if CurrentPage
 
   defaults = {width: 100, height: 100, page_margin: 10}
   {width, height, page_margin} = _.extend defaults, options
@@ -89,26 +80,29 @@ with_page = (options, draw_page) ->
 
   try
     CurrentPage = page =
-        context: ctx
+      left_margin: page_margin
+      top_margin: page_margin
+      width: canvas.width
+      height: canvas.height
+      context: ctx
 
     erase_background()
 
     with_graphics_context (ctx) ->
       ctx.translate page_margin, page_margin
-      CurrentBook?.header?()
+      CurrentBook?.header? page
+      CurrentBook?.footer? page
       draw_page page
 
-    if page_footer
-      options = _.extend page_footer, DefaultFooterTextOptions
-      options = _.extend {x: page_margin, y: canvas.height}, options
-      draw_text page_footer.text, options
-
-    unless Mode == 'pdf'
-      filename = "#{DefaultFilename or 'test'}.png"
-      fs.writeFile BuildDirectory + filename, canvas.toBuffer()
-      console.info "Saved #{filename}"
+    switch Mode
+      when 'pdf' then ctx.addPage()
+      else
+        filename = "#{DefaultFilename or 'test'}.png"
+        fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+        console.info "Saved #{filename}"
   finally
     CurrentPage = null
+
 
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
@@ -138,7 +132,6 @@ with_grid = (options, cb) ->
         [@col, @row] = [0, @row + 1] if @col > 0
   while overflow.length
     cell.row -= rows for cell in overflow
-    ctx.addPage()
     with_page options, (page) ->
       for {col, row, draw_fn} in _.select(overflow, (cell) -> cell.row < rows)
         with_graphics_context (ctx) ->
@@ -147,7 +140,7 @@ with_grid = (options, cb) ->
     overflow = (cell for cell in overflow when cell.row >= rows)
 
 with_book = (filename, options, cb) ->
-  throw "Already inside book" if CurrentBook
+  throw new Error "Already inside book" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
   page_limit = options.pages
   page_count = 0
@@ -156,17 +149,16 @@ with_book = (filename, options, cb) ->
     Mode = 'pdf'
     CurrentBook = book = {}
     cb
-      page_header: (header) ->
-        book.header = header
+      page_header: (header) -> book.header = header
+      page_footer: (footer) -> book.footer = footer
       with_page: (options, draw_page) ->
         [options, draw_page] = [{}, options] if _.isFunction(options)
         return if @done
         page_count += 1
-        draw_page()
-        # with_page options, draw_page #(page) ->
-          # page_header?()
-          # draw_page page
-        ctx.addPage()
+        if CurrentPage
+          draw_page()
+        else
+          with_page options, draw_page
         @done = true if page_limit and page_limit <= page_count
     unless canvas
       console.warn "No pages"
@@ -191,6 +183,5 @@ module.exports = {
   measure_text
   directory
   filename
-  set_page_footer
   with_graphics_context
 }

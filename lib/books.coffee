@@ -50,7 +50,15 @@ draw_pitch_diagram = require('./pitch_diagram').draw
 {chord_shape_fragments} = require './chord-fragment-book'
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
-Layout.set_page_footer text: "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
+
+draw_license_footer = (page) ->
+  text = "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
+  draw_text text
+  , font: '4pt Times'
+  , fillStyle: 'black'
+  , y: page.height - page.top_margin
+  , gravity: 'botLeft'
+
 
 
 #
@@ -131,11 +139,11 @@ intervals_book = ({by_root, pages}={}) ->
   if by_root
     with_book "Fretboard Intervals by Root", pages: pages, (book) ->
       fretboard_positions_each (finger_position) ->
-        book.with_page -> intervals_from_position_page finger_position
+        intervals_from_position_page finger_position
   else
     with_book "Fretboard Intervals", pages: pages, (book) ->
       for __, semitones in Intervals
-        book.with_page -> intervals_page semitones
+        intervals_page semitones
 
 
 #
@@ -195,7 +203,7 @@ chord_book = (options={}) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
   with_book title, pages: options.pages, (book) ->
     for chord in Chords
-      book.with_page -> chord_page chord, options
+      chord_page chord, options
 
 
 #
@@ -206,5 +214,6 @@ module.exports = {
   chord_book
   chord_fingerings_page
   chord_shape_fragments
+  draw_license_footer
   intervals_book
 }

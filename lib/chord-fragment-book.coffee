@@ -47,7 +47,9 @@ collect_chord_shape_fragments = (chord) ->
         continue unless slice.match /^\d+$/
         # include open positions only if there's not an equivalent closed position
         # continue if slice.match /0/ and not slice.match /4/
-        positions = (pos for pos in fingering.positions when bass_string <= pos.string < bass_string + chord.pitch_classes.length)
+        positions = (pos \
+          for pos in fingering.positions \
+            when bass_string <= pos.string < bass_string + chord.pitch_classes.length)
         # shift bass fingerings
         d_string = (if bass_string == 0 then 1 else 0)
         # lower fingerings to first position:
@@ -92,7 +94,12 @@ chord_shape_fragments = (options={}) ->
           ctx.scale 0.85, 0.85
           draw_pitch_diagram ctx, chord.pitch_classes
 
-      book.with_page (page) ->
+      # FIXME required here to break cyclic reference, which should be removed instead
+      book_utils = require('./books')
+      book.page_footer book_utils.draw_license_footer
+
+      # book.with_page (page) ->
+      do ->
         with_grid cols: 5, rows: 5
         , cell_width: padded_chord_diagram_width
         , cell_height: padded_chord_diagram_height + 10
@@ -143,7 +150,8 @@ chord_shape_fragments = (options={}) ->
                 , nut: false
 
       continue unless options.draw_chords
-      book.with_page ->
+      # book.with_page ->
+      do ->
         with_grid cols: 5, rows: 4
         , cell_width: padded_chord_diagram_width
         , cell_height: padded_chord_diagram_height + 15
