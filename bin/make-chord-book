@@ -26,7 +26,6 @@ program
   .command('chordbook')
   .description('Create a chord bible')
   .option('-a, --combined', 'Combine all fingerings onto each chord chart')
-  .option("-e, --exec_mode <mode>", "Which exec mode to use")
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->
     with_book_options (options), ->
@@ -50,9 +49,11 @@ program
   .command('fragments')
   .description('Chord shape fragments')
   .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .option('--no-chord-pages', 'Skip the chord pages')
   .action (options) ->
     with_book_options (options), ->
-      books.chord_shape_fragments pages: options.pages
+      _ = require 'underscore'
+      books.chord_shape_fragments pages: options.pages, chord_pages: options.chord_pages
 
 program
   .command('intervals')

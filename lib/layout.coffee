@@ -40,8 +40,10 @@ draw_text = (text, options={}) ->
 
 with_graphics_context = (fn) ->
   ctx.save()
-  fn ctx
-  ctx.restore()
+  try
+    fn ctx
+  finally
+    ctx.restore()
 
 
 #

@@ -77,15 +77,16 @@ collect_chord_shape_fragments = (chord) ->
     }
 
 chord_shape_fragments = (options={}) ->
-  options = _.extend {draw_chords: true}, options
+  options = _.extend {chord_pages: true}, options
 
   label_interval_names = (intervals, chord, positions) ->
+    bounds = draw_harmonic_table (chord.pitch_classes[degree_index] for {degree_index} in positions)
+    , fill_cells: true
+    , radius: 5
+    , align: {x: -2, y: 10}
     draw_text intervals.join('-')
     , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
-    , x: 15, y: 7
-    with_graphics_context (ctx) ->
-      ctx.translate -5, -10
-      draw_harmonic_table (chord.pitch_classes[degree_index] for {degree_index} in positions), radius: 5
+    , x: bounds.right + 2, y: 7
 
   with_book "Chord Shape Fragments", pages: options.pages, (book) ->
     for chord in Chords
@@ -98,6 +99,7 @@ chord_shape_fragments = (options={}) ->
           ctx.translate 295 + chord_diagram_width, 15
           ctx.scale 0.85, 0.85
           draw_pitch_diagram ctx, chord.pitch_classes
+
         with_graphics_context (ctx) ->
           ctx.translate 295 + chord_diagram_width - 70, -15
           draw_harmonic_table chord.pitch_classes, radius: 12
@@ -125,8 +127,9 @@ chord_shape_fragments = (options={}) ->
           inversion_keys = _.keys(fragments_by_interval_string).sort (a, b) ->
             inversion_index = (s) ->
               if s.match(/R/) and s.match(/[234]/) and s.match(/5/)
-                return 1 if s.match /^R\D+[234]\D+5/
-                return 2 if s.match /^[234]/
+                return 0 if s.match /^R/
+                return 1 if s.match /^\D[234]/
+                return 2 if s.match /^\D[56]/
                 return 3
               return 5
             return inversion_index(a) - inversion_index(b)
@@ -136,6 +139,7 @@ chord_shape_fragments = (options={}) ->
             grid.col += 0.5 unless grid.col == 0
             grid.start_row() unless grid.col + fragment_list.length <= grid.cols
             fragment_list.forEach ({positions, intervals, roots}, i) ->
+              draw_label = i == 0
               grid.add_cell ->
                 if roots.length
                   choices = [
@@ -149,14 +153,14 @@ chord_shape_fragments = (options={}) ->
                   , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
                   , x: 5, y: chord_diagram_height + 6
 
-                label_interval_names intervals, chord, positions if i == 0
+                label_interval_names intervals, chord, positions if draw_label
 
                 draw_chord_diagram grid.context, positions
                 , draw_closed_strings: false
                 , dim_unused_strings: true
                 , nut: false
 
-      continue unless options.draw_chords
+      continue unless options.chord_pages
       do ->
         with_grid cols: 5, rows: 4
         , cell_width: chord_diagram_width

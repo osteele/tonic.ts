@@ -2,6 +2,25 @@ _ = require 'underscore'
 {Intervals} = require './theory'
 {draw_text, with_graphics_context} = require('./layout')
 
+with_alignment = (options, cb) ->
+  align = options.align
+  bounds = options.measured
+  return cb() unless align
+  with_graphics_context (ctx) ->
+    dx = dy = 0
+    measured_height = bounds.bottom - bounds.top
+    dx = align.x - bounds.left if 'x' of align
+    dy = align.y - bounds.bottom if 'y' of align
+    ctx.translate dx, dy
+    cb()
+    if bounds
+      bounds = _.extend {}, bounds
+      bounds.left += dx
+      bounds.right += dx
+      bounds.top += dy
+      bounds.bottom += dy
+  return bounds
+
 interval_class_vectors = (interval_class) ->
   records =
     # 1: {P5: -1, M3: 2, color: 'gray'}
@@ -21,6 +40,7 @@ interval_class_vectors = (interval_class) ->
 
 draw_harmonic_table = (interval_classes, options={}) ->
   options = _.extend {center: true, radius: 50}, options
+  options.center = false if options.align
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   r = options.radius
   hex_radius = r / 2
@@ -32,69 +52,71 @@ draw_harmonic_table = (interval_classes, options={}) ->
     5: 'green'
     6: 'gray'
 
+  cell_center = (interval_klass) ->
+    vectors = interval_class_vectors interval_klass
+    dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
+    dx = vectors.M3 - vectors.m3
+    x = dx * r
+    y = -dy * r
+    {x, y}
+
+  bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
+  for interval_klass in interval_classes
+    {x, y} = cell_center interval_klass
+    bounds.left = Math.min bounds.left, x - hex_radius
+    bounds.top = Math.min bounds.top, y - hex_radius
+    bounds.right = Math.max bounds.right, x + hex_radius
+    bounds.bottom = Math.max bounds.bottom, y + hex_radius
+
   with_graphics_context (ctx) ->
-    cell_center = (interval_klass) ->
-      vectors = interval_class_vectors interval_klass
-      dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
-      dx = vectors.M3 - vectors.m3
-      x = dx * r
-      y = -dy * r
-      {x, y}
+    with_alignment align: options.align, measured: bounds, ->
+      ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
 
-    bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
-    for interval_klass in interval_classes
-      {x, y} = cell_center interval_klass
-      bounds.left = Math.min bounds.left, x
-      bounds.top = Math.min bounds.top, y
-      bounds.right = Math.max bounds.right, x
-      bounds.bottom = Math.max bounds.bottom, y
-    ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
+      for interval_klass in interval_classes
+        color = colors[interval_klass]
+        color ||= colors[12 - interval_klass]
+        ctx.beginPath()
+        {x, y} = cell_center interval_klass
 
-    for interval_klass in interval_classes
-      color = colors[interval_klass]
-      color ||= colors[12 - interval_klass]
-      ctx.beginPath()
-      {x, y} = cell_center interval_klass
+        for i in [0..6]
+          a = i * Math.PI / 3
+          pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
+          ctx.moveTo pos... if i == 0
+          ctx.lineTo pos...
+        ctx.strokeStyle = 'gray'
+        ctx.stroke()
+        if interval_klass == 0 or options.fill_cells
+          ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
+          ctx.fill()
 
-      for i in [0..6]
-        a = i * Math.PI / 3
-        pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
-        ctx.moveTo pos... if i == 0
-        ctx.lineTo pos...
-      ctx.strokeStyle = 'gray'
-      ctx.stroke()
-      if interval_klass == 0
-        ctx.fillStyle = 'rgba(255,0,0,0.15)'
-        ctx.fill()
-
-      continue if interval_klass == 0
-      ctx.globalAlpha = 0.3 if options.label_cells
-      ctx.beginPath()
-      do ->
-        [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
-        [dx, dy] = [dx * dn, dy * dn]
-        ctx.moveTo 0, 0
-        ctx.lineTo x + dx, y + dy
-        ctx.lineTo x - dx, y - dy
+        continue if interval_klass == 0 or options.fill_cells
+        ctx.globalAlpha = 0.3 if options.label_cells
+        ctx.beginPath()
+        do ->
+          [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
+          [dx, dy] = [dx * dn, dy * dn]
+          ctx.moveTo 0, 0
+          ctx.lineTo x + dx, y + dy
+          ctx.lineTo x - dx, y - dy
+          ctx.fillStyle = color
+          ctx.fill()
+        ctx.beginPath()
+        ctx.arc x, y, 2, 0, 2 * Math.PI, false
         ctx.fillStyle = color
         ctx.fill()
+        ctx.globalAlpha = 1
+
       ctx.beginPath()
-      ctx.arc x, y, 2, 0, 2 * Math.PI, false
-      ctx.fillStyle = color
+      ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
+      ctx.fillStyle = 'red'
       ctx.fill()
-      ctx.globalAlpha = 1
 
-    ctx.beginPath()
-    ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
-    ctx.fillStyle = 'red'
-    ctx.fill()
-
-    if options.label_cells
-      for interval_klass in interval_classes
-        label = Intervals[interval_klass]
-        label = 'R' if interval_klass == 0
-        {x, y} = cell_center interval_klass
-        draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
+      if options.label_cells
+        for interval_klass in interval_classes
+          label = Intervals[interval_klass]
+          label = 'R' if interval_klass == 0
+          {x, y} = cell_center interval_klass
+          draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
 module.exports = {
   draw: draw_harmonic_table
