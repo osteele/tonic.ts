@@ -109,7 +109,7 @@ chord_shape_fragments = (options={}) ->
       book.page_footer book_utils.draw_license_footer
 
       do ->
-        with_grid cols: 5, rows: 5
+        with_grid cols: 6, rows: 5
         , cell_width: chord_diagram_width
         , cell_height: chord_diagram_height + 10
         , header_height: 40
@@ -125,18 +125,21 @@ chord_shape_fragments = (options={}) ->
             (fragments_by_interval_string[interval_string] ||= []).push {positions, intervals, roots}
 
           inversion_keys = _.keys(fragments_by_interval_string).sort (a, b) ->
+            pitch_class_count = (s) ->
+              _.uniq(s.split(/-/)).length
             inversion_index = (s) ->
-              if s.match(/R/) and s.match(/[234]/) and s.match(/5/)
-                return 0 if s.match /^R/
-                return 1 if s.match /^\D[234]/
-                return 2 if s.match /^\D[56]/
-                return 3
-              return 5
+              return 0 if s.match /^R/
+              return 1 if s.match /^\D[234]/
+              return 2 if s.match /^\D[56]/
+              return 3
+            a_count = pitch_class_count a
+            b_count = pitch_class_count b
+            return b_count - a_count unless a_count == b_count
             return inversion_index(a) - inversion_index(b)
 
           for interval_string in inversion_keys
             fragment_list = fragments_by_interval_string[interval_string]
-            grid.col += 0.5 unless grid.col == 0
+            grid.col += 0.6 unless grid.col == 0
             grid.start_row() unless grid.col + fragment_list.length <= grid.cols
             fragment_list.forEach ({positions, intervals, roots}, i) ->
               draw_label = i == 0
