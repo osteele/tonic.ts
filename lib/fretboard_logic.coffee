@@ -21,7 +21,7 @@ Function::cached_getter ||= (name, fn) ->
     cache[name] = fn.call(this)
 
 class Fingering
-  constructor: ({@positions, @chord}) ->
+  constructor: ({@positions, @chord, @barres}) ->
     @positions.sort (a, b) -> a.string - b.string
 
   @cached_getter 'fretstring', ->
@@ -55,6 +55,15 @@ find_barres = (positions) ->
       subsumption_count: m[1].match(/x/g).length
   barres
 
+find_barre_sets = (positions) ->
+  powerset = (xs) ->
+    return [[]] unless xs.length
+    [x, xs...] = xs
+    tail = powerset xs
+    tail.concat([x].concat(ys) for ys in tail)
+  barres = find_barres positions
+  return powerset barres
+
 finger_positions_on_chord = (chord) ->
   positions = []
   fretboard_positions_each (pos) ->
@@ -87,7 +96,9 @@ fingerings_for = (chord, options={}) ->
       for n in frets for right in following_finger_positions)...)
 
   generate_fingerings = ->
-    (new Fingering {positions, chord} for positions in collect_fingering_positions(frets_per_string))
+    _.flatten(new Fingering {positions, chord, barres} \
+      for barres in find_barre_sets(positions) \
+      for positions in collect_fingering_positions(frets_per_string))
 
   chord_note_count = chord.pitch_classes.length
 
@@ -109,31 +120,34 @@ fingerings_for = (chord, options={}) ->
     return fingering.fretstring.match(/x$/)
 
   finger_count = (fingering) ->
-    fingering.barres ||= find_barres(fingering.positions)
-    n = (pos for pos in fingering.positions when pos.fret).length
+    n = (pos for pos in fingering.positions when pos.fret > 0).length
     n -= barre.subsumption_count for barre in fingering.barres
     n
 
-  few_fingers = (fingering) ->
+  four_fingers_or_fewer = (fingering) ->
     return finger_count(fingering) <= 4
 
   cmp = (fn) -> (x...) -> !fn(x...)
 
+  # Construct the filter set
+
   filters = [
-    {name: 'has all chord notes', filter: has_all_notes},
-    {name: 'no muted medial strings', filter: cmp(muted_medial_strings)},
-    {name: 'no muted treble strings', filter: cmp(muted_treble_strings)},
-    {name: 'no more than four fingers', filter: few_fingers}
+    {name: 'four fingers or fewer', filter: four_fingers_or_fewer}
   ]
 
-  unless options.filter
-    filters = [{name: 'has all chord notes', filter: has_all_notes}]
+  if options.filter
+    filters.push name: 'has all chord notes', filter: has_all_notes
 
+  unless options.fingerpicking
+    filters.push name: 'no muted medial strings', filter: cmp(muted_medial_strings)
+    filters.push name: 'no muted treble strings', filter: cmp(muted_treble_strings)
+
+  # filter by all the filters in the list, except ignore those that wouldn't pass anything
   filter_fingerings = (fingerings) ->
     for {name, filter} in filters
       filtered = (fingering for fingering in fingerings when filter(fingering))
       unless filtered.length
-        console.error "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
+        console.warn "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
         filtered = fingerings
       fingerings = filtered
     return fingerings
@@ -145,17 +159,17 @@ fingerings_for = (chord, options={}) ->
 
   high_note_count = (fingering) -> -fingering.positions.length
 
-  is_first_position = (fingering) ->
+  is_root_position = (fingering) ->
     _(fingering.positions).sortBy((pos) -> pos.string)[0].degree_index == 0
 
   sorts = [
-    finger_count,
-    high_note_count,
-    cmp(is_first_position)
+    {name: 'low finger count', key: (fingering) -> -fingering.positions.length}
+    {name: 'high note count', key: high_note_count}
+    {name: 'root position', key: cmp(is_root_position)}
   ]
 
   sort_fingerings = (fingerings) ->
-    fingerings = _(fingerings).sortBy(sort) for sort in sorts
+    fingerings = _(fingerings).sortBy(key) for {key} in sorts
     return fingerings
 
 
@@ -168,8 +182,6 @@ fingerings_for = (chord, options={}) ->
   fingerings = filter_fingerings fingerings
   fingerings = sort_fingerings fingerings
 
-  # for fingering in fingerings
-  #   console.info finger_count(fingering)
   return fingerings
 
 best_fingering_for = (chord) ->
