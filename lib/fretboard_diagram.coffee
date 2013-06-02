@@ -1,28 +1,35 @@
 {
   FretCount
-, FretNumbers
-, StringCount
-, StringNumbers
-} = require('./fretboard_model')
+  FretNumbers
+  StringCount
+  StringNumbers
+} = require './fretboard_model'
+
 
 #
-# Drawing Fretboard
+# Style
 #
 
-FretboardStyle =
+DefaultStyle =
   h_gutter: 10
   v_gutter: 10
   string_spacing: 20
   fret_width: 45
   fret_overhang: .3 * 45
 
-padded_fretboard_width = do (style=FretboardStyle) ->
+padded_fretboard_width = do (style=DefaultStyle) ->
   2 * style.v_gutter + style.fret_width * FretCount + style.fret_overhang
-padded_fretboard_height = do (style=FretboardStyle) ->
+
+padded_fretboard_height = do (style=DefaultStyle) ->
   2 * style.h_gutter + (StringCount - 1) * style.string_spacing
 
+
+#
+# Drawing Methods
+#
+
 draw_fretboard_strings = (ctx) ->
-  style = FretboardStyle
+  style = DefaultStyle
   for string in StringNumbers
     y = string * style.string_spacing + style.h_gutter
     ctx.beginPath()
@@ -32,7 +39,7 @@ draw_fretboard_strings = (ctx) ->
     ctx.stroke()
 
 draw_fretboard_frets = (ctx) ->
-  style = FretboardStyle
+  style = DefaultStyle
   for fret in FretNumbers
     x = style.h_gutter + fret * style.fret_width
     ctx.beginPath()
@@ -45,7 +52,7 @@ draw_fretboard_frets = (ctx) ->
 draw_fretboard_finger_position = (ctx, position, options={}) ->
   {string, fret} = position
   {is_root, color} = options
-  style = FretboardStyle
+  style = DefaultStyle
   color ||= if is_root then 'red' else 'white'
   x = style.h_gutter + (fret - 0.5) * style.fret_width
   x = style.h_gutter if fret == 0

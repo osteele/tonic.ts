@@ -5,14 +5,14 @@ _ = require 'underscore'
   FretNumbers
   StringCount
   StringNumbers
-} = require('./fretboard_model')
+} = require './fretboard_model'
 
 
 #
-# Draw Chord Diagrams
+# Style
 #
 
-ChordDiagramStyle =
+DefaultStyle =
   h_gutter: 5
   v_gutter: 5
   string_spacing: 6
@@ -23,19 +23,27 @@ ChordDiagramStyle =
   chord_degree_colors: ['red', 'blue', 'green', 'orange']
 
 
-# padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + ChordDiagramStyle.fret_height * FretCount
+# padded_chord_diagram_height = 2 * DefaultStyle.v_gutter + DefaultStyle.fret_height * FretCount
 
-_.extend ChordDiagramStyle,
+_.extend DefaultStyle,
   string_spacing: 12
   fret_height: 16
   note_radius: 3
   closed_string_fontsize: 8
 
-padded_chord_diagram_width = 2 * ChordDiagramStyle.h_gutter + (StringCount - 1) * ChordDiagramStyle.string_spacing
-padded_chord_diagram_height = 2 * ChordDiagramStyle.v_gutter + (ChordDiagramStyle.fret_height + 2) * FretCount
+compute_dimensions = (style=DefaultStyle) ->
+  {
+    width: 2 * style.h_gutter + (StringCount - 1) * style.string_spacing
+    height: 2 * style.v_gutter + (style.fret_height + 2) * FretCount
+  }
+
+
+#
+# Drawing Methods
+#
 
 draw_chord_diagram_strings = (ctx, options={}) ->
-  style = ChordDiagramStyle
+  style = DefaultStyle
   for string in StringNumbers
     x = string * style.string_spacing + style.h_gutter
     ctx.beginPath()
@@ -45,7 +53,7 @@ draw_chord_diagram_strings = (ctx, options={}) ->
     ctx.stroke()
 
 draw_chord_diagram_frets = (ctx, {nut}={nut: true}) ->
-  style = ChordDiagramStyle
+  style = DefaultStyle
   ctx.strokeStyle = 'black'
   for fret in FretNumbers
     y = style.v_gutter + style.above_fretboard + fret * style.fret_height
@@ -57,7 +65,7 @@ draw_chord_diagram_frets = (ctx, {nut}={nut: true}) ->
     ctx.lineWidth = 1
 
 draw_chord_diagram = (ctx, positions, options={}) ->
-  defaults = {draw_closed_strings: true, nut: true, dy: 0, style: ChordDiagramStyle}
+  defaults = {draw_closed_strings: true, nut: true, dy: 0, style: DefaultStyle}
   options = _.extend defaults, options
   {barres, dy, draw_closed_strings, style} = options
   if options.dim_unused_strings
@@ -143,7 +151,7 @@ draw_chord_diagram = (ctx, positions, options={}) ->
   draw_closed_strings() if positions and options.draw_closed_strings
 
 module.exports =
-  defaultStyle: ChordDiagramStyle
-  width: padded_chord_diagram_width
-  height: padded_chord_diagram_height
+  defaultStyle: DefaultStyle
+  width: compute_dimensions().width
+  height: compute_dimensions().height
   draw: draw_chord_diagram
