@@ -131,21 +131,21 @@ fingerings_for = (chord, options={}) ->
 
   # Construct the filter set
 
-  filters = [
-    {name: 'four fingers or fewer', filter: four_fingers_or_fewer}
-  ]
+  filters = []
+  filters.push name: 'has all chord notes', select: has_all_notes
 
   if options.filter
-    filters.push name: 'has all chord notes', filter: has_all_notes
+    filters.push name: 'four fingers or fewer', select: four_fingers_or_fewer
 
   unless options.fingerpicking
-    filters.push name: 'no muted medial strings', filter: cmp(muted_medial_strings)
-    filters.push name: 'no muted treble strings', filter: cmp(muted_treble_strings)
+    filters.push name: 'no muted medial strings', reject: muted_medial_strings
+    filters.push name: 'no muted treble strings', reject: muted_treble_strings
 
   # filter by all the filters in the list, except ignore those that wouldn't pass anything
   filter_fingerings = (fingerings) ->
-    for {name, filter} in filters
-      filtered = (fingering for fingering in fingerings when filter(fingering))
+    for {name, select, reject} in filters
+      select ||= cmp(reject)
+      filtered = (fingering for fingering in fingerings when select fingering)
       unless filtered.length
         console.warn "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
         filtered = fingerings
@@ -157,19 +157,26 @@ fingerings_for = (chord, options={}) ->
   # Sort
   #
 
-  high_note_count = (fingering) -> -fingering.positions.length
+  # FIXME count pitch classes, not sounded strings
+  high_note_count = (fingering) ->
+   fingering.positions.length
 
   is_root_position = (fingering) ->
     _(fingering.positions).sortBy((pos) -> pos.string)[0].degree_index == 0
 
-  sorts = [
-    {name: 'low finger count', key: (fingering) -> -fingering.positions.length}
+  reverse_sort_key = (fn) -> (a) -> -fn(a)
+
+  # ordered list of preferences, from most to least important
+  preferences = [
+    {name: 'root position', key: is_root_position}
     {name: 'high note count', key: high_note_count}
-    {name: 'root position', key: cmp(is_root_position)}
+    {name: 'avoid barres', key: reverse_sort_key((fingering) -> fingering.barres.length)}
+    {name: 'low finger count', key: reverse_sort_key(finger_count)}
   ]
 
   sort_fingerings = (fingerings) ->
-    fingerings = _(fingerings).sortBy(key) for {key} in sorts
+    fingerings = _(fingerings).sortBy(key) for {key} in preferences.slice(0).reverse()
+    fingerings.reverse()
     return fingerings
 
 
