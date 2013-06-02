@@ -21,9 +21,23 @@ DefaultStyle =
   note_radius: 1
   closed_string_fontsize: 4
   chord_degree_colors: ['red', 'blue', 'green', 'orange']
-
-
-# padded_chord_diagram_height = 2 * DefaultStyle.v_gutter + DefaultStyle.fret_height * FretCount
+  interval_class_colors: [0...12].map (n) ->
+    hsv_to_rgb = ([h, s, v]) ->
+      h /= 360
+      c = v * s
+      x = c * (1 - Math.abs((h * 6) % 2 - 1))
+      components = switch Math.floor(h * 6) % 6
+        when 0 then [c, x, 0]
+        when 1 then [x, c, 0]
+        when 2 then [0, c, x]
+        when 3 then [0, x, c]
+        when 4 then [x, 0, c]
+        when 5 then [c, 0, x]
+      (component + v - c for component in components)
+    # x = (7 * n) % 12  # color by circle of fifths
+    [r, g, b] = hsv_to_rgb [n * 360 / 12, 1, 1]
+    [r, g, b] = (Math.floor(255 * c) for c in [r, g, b])
+    "rgb(#{r}, #{g}, #{b})"
 
 _.extend DefaultStyle,
   string_spacing: 12
@@ -123,10 +137,10 @@ draw_chord_diagram = (ctx, positions, options={}) ->
 
   draw_finger_positions = ->
     for position in positions
-      defaults =
-        color: style.chord_degree_colors[position.degree_index]
-        is_root: (position.degree_index == 0)
-      draw_finger_position position, _.extend(defaults, position)
+      default_options =
+        color: style.interval_class_colors[position.interval_class]
+        is_root: (position.interval_class == 0)
+      draw_finger_position position, _.extend(default_options, position)
 
   draw_closed_strings = ->
     fretted_strings = []

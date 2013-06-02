@@ -44,13 +44,8 @@ draw_harmonic_table = (interval_classes, options={}) ->
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   r = options.radius
   hex_radius = r / 2
-  colors =
-    1: 'orange'
-    2: 'yellow'
-    3: 'purple'
-    4: 'blue'
-    5: 'green'
-    6: 'gray'
+  colors = require('./chord_diagram').defaultStyle.interval_class_colors[0..12]
+  delete colors[0]
 
   cell_center = (interval_klass) ->
     vectors = interval_class_vectors interval_klass

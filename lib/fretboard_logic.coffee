@@ -67,9 +67,9 @@ find_barre_sets = (positions) ->
 finger_positions_on_chord = (chord) ->
   positions = []
   fretboard_positions_each (pos) ->
-    interval_class = interval_class_between(chord.root, pitch_number_for_position(pos))
-    degree_index = chord.pitch_classes.indexOf(interval_class)
-    positions.push {string: pos.string, fret: pos.fret, degree_index} if degree_index >= 0
+    interval_class = interval_class_between chord.root, pitch_number_for_position(pos)
+    degree_index = chord.pitch_classes.indexOf interval_class
+    positions.push {string: pos.string, fret: pos.fret, interval_class, degree_index} if degree_index >= 0
   positions
 
 # TODO add options for strumming vs. fingerstyle; muting; span
@@ -108,7 +108,7 @@ fingerings_for = (chord, options={}) ->
   #
 
   count_distinct_notes = (fingering) ->
-    _.chain(fingering.positions).pluck('degree_index').uniq().value().length
+    _.chain(fingering.positions).pluck('interval_class').uniq().value().length
 
   has_all_notes = (fingering) ->
     return count_distinct_notes(fingering) == chord_note_count
