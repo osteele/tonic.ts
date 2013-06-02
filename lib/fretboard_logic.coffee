@@ -159,7 +159,7 @@ fingerings_for = (chord, options={}) ->
 
   # FIXME count pitch classes, not sounded strings
   high_note_count = (fingering) ->
-   fingering.positions.length
+    fingering.positions.length
 
   is_root_position = (fingering) ->
     _(fingering.positions).sortBy((pos) -> pos.string)[0].degree_index == 0

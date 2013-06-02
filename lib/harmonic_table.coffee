@@ -2,6 +2,10 @@ _ = require 'underscore'
 {Intervals} = require './theory'
 {draw_text, with_graphics_context} = require('./layout')
 
+DefaultStyle =
+  interval_class_colors: require('./chord_diagram').defaultStyle.interval_class_colors
+  radius: 50
+
 with_alignment = (options, cb) ->
   align = options.align
   bounds = options.measured
@@ -23,7 +27,6 @@ with_alignment = (options, cb) ->
 
 interval_class_vectors = (interval_class) ->
   records =
-    # 1: {P5: -1, M3: 2, color: 'gray'}
     2: {P5: -1, m3: -1}
     3: {m3: 1}
     4: {M3: 1}
@@ -39,13 +42,12 @@ interval_class_vectors = (interval_class) ->
   intervals
 
 draw_harmonic_table = (interval_classes, options={}) ->
-  options = _.extend {center: true, radius: 50}, options
+  options = _.extend {center: true}, DefaultStyle, options
   options.center = false if options.align
+  colors = options.interval_class_colors
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   r = options.radius
   hex_radius = r / 2
-  colors = require('./chord_diagram').defaultStyle.interval_class_colors[0..12]
-  delete colors[0]
 
   cell_center = (interval_klass) ->
     vectors = interval_class_vectors interval_klass

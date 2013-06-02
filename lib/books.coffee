@@ -37,6 +37,7 @@ _ = require 'underscore'
 
 Layout = require('./layout')
 {
+  PaperSizes
   erase_background
   draw_text
   with_graphics_context
@@ -151,9 +152,9 @@ intervals_book = ({by_root, pages}={}) ->
 # Chord Lattice Diagrams
 #
 
-chord_lattice = () ->
+harmonic_table_chords = () ->
   r = 20
-  with_book "Chord Lattices", (book) ->
+  with_book "Harmonic Table", size: PaperSizes.letter, (book) ->
     with_grid cols: 6, rows: 4
     , cell_width: 80
     , cell_height: 80 + 40
@@ -258,7 +259,7 @@ chord_book = (options={}) ->
 module.exports = {
   chord_book
   chord_fingerings_page
-  chord_lattice
+  harmonic_table_chords
   chord_shape_fragments
   draw_license_footer
   intervals_book

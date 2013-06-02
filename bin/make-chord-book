@@ -32,11 +32,11 @@ program
       books.chord_book best_fingering: not options.combined, pages: options.pages
 
 program
-  .command('chord-lattice')
+  .command('harmonic-table')
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->
     with_book_options (options), ->
-      books.chord_lattice pages: options.pages
+      books.harmonic_table_chords pages: options.pages
 
 program
   .command('fingerings')
@@ -79,7 +79,7 @@ program
       books.intervals_book by_root: false
       books.chord_book best_fingering: true
       books.chord_book best_fingering: false
-      books.chord_lattice()
+      books.harmonic_table_chords()
       books.chord_shape_flipbook quick: true
       # FIXME this doesn't actually render in this context
       # chord_fingerings_page Chords[6], 'F'

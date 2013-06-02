@@ -68,6 +68,21 @@ save_canvas_to_png = (canvas, fname) ->
 # Layout
 #
 
+PaperSizes =
+  folio: '12in x 15in'
+  quarto: '9.5in x 12in'
+  octavo: '6in x 9in'
+  duodecimo: '5in x 7.375in'
+  # ANSI sizes
+  'ANSI A': '8.5in × 11in'
+  'ANSI B': '11in x 17in'
+  letter: 'ANSI A'
+  ledger: 'ANSI B landscape'
+  tabloid: 'ANSI B portrait'
+  'ANSI C': '17in × 22in'
+  'ANSI D': '22in × 34in'
+  'ANSI E': '34in × 44in'
+
 CurrentPage = null
 CurrentBook = null
 Mode = null
@@ -143,11 +158,32 @@ with_grid = (options, cb) ->
           draw_fn()
     overflow = (cell for cell in overflow when cell.row >= rows)
 
-BookSizes =
-  folio: '12in x 15in'
-  quarto: '9.5in x 12in'
-  octavo: '6in x 9in'
-  duodecimo: '5in x 7.375in'
+get_page_size_dimensions = (size, orientation=null) ->
+  parseMeasure = (measure) ->
+    unless measure.match /^(\d+(?:\.\d*)?)\s*(.+)$/
+      throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}"
+    [n, units] = [Number(RegExp.$1), RegExp.$2]
+    switch units
+      when "" then n
+      when "in" then n * 72
+      else throw new Error "Unrecognized units #{util.inspect units} in #{util.inspect size}"
+
+  {width, height} = size
+  while _.isString(size)
+    [size, orientation] = [RegExp.$1, RegExp.R2] if size.match /^(.+)\s+(landscape|portrait)$/
+    break unless size of PaperSizes
+    size = PaperSizes[size]
+  if _.isString(size)
+    throw new Error "Unrecognized book size format #{util.inspect size}" unless size.match /^(.+?)\s*[x×]\s*(.+)$/
+    [width, height] = [RegExp.$1, RegExp.$2]
+  [width, height] = [parseMeasure(width), parseMeasure(height)]
+  switch orientation
+    when 'landscape' then [width, height] = [height, width] unless width > height
+    when 'portrait' then [width, height] = [height, width] if width > height
+    when '' then null
+    when null then null
+    else throw new Error "Unknown oreientation #{util.inspect orientation}"
+  {width, height}
 
 with_book = (filename, options, cb) ->
   throw new Error "Already inside book" if CurrentBook
@@ -161,19 +197,7 @@ with_book = (filename, options, cb) ->
       page_options: {}
     size = options.size
     if size
-      size = BookSizes[size] if size of BookSizes
-      {width, height} = size
-      if _.isString(size)
-        throw new Error "Unrecognized book size format #{util.inspect size}" unless size.match /^(.+?)\s*x\s*(.+)$/
-        [width, height] = [RegExp.$1, RegExp.$2]
-      parseMeasure = (measure) ->
-        throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}" unless measure.match /^(\d+(?:\.\d*)?)(.+)$/
-        [n, units] = [Number(RegExp.$1), RegExp.$2]
-        switch units
-          when "" then n
-          when "in" then n * 72
-          else throw new Error "Unrecognized units #{util.inspect units} in #{util.inspect size}"
-      [width, height] = [parseMeasure(width), parseMeasure(height)]
+      {width, height} = get_page_size_dimensions size
       _.extend book.page_options, {width, height}
       canvas ||= new Canvas width, height, Mode
       ctx = canvas.getContext '2d'
@@ -207,6 +231,7 @@ with_book = (filename, options, cb) ->
     Mode = null
 
 module.exports = {
+  PaperSizes
   with_book
   with_grid
   with_page
