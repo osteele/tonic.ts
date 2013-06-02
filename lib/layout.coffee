@@ -1,6 +1,7 @@
-fs = require('fs')
+util = require 'util'
+fs = require 'fs'
 _ = require 'underscore'
-Canvas = require('canvas')
+Canvas = require 'canvas'
 
 
 #
@@ -77,7 +78,7 @@ with_page = (options, draw_page) ->
   defaults = {width: 100, height: 100, page_margin: 10}
   {width, height, page_margin} = _.extend defaults, options
   canvas ||= new Canvas width + 2 * page_margin, height + 2 * page_margin, Mode
-  ctx = canvas.getContext('2d')
+  ctx = canvas.getContext '2d'
   ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
 
   try
@@ -142,6 +143,12 @@ with_grid = (options, cb) ->
           draw_fn()
     overflow = (cell for cell in overflow when cell.row >= rows)
 
+BookSizes =
+  folio: '12in x 15in'
+  quarto: '9.5in x 12in'
+  octavo: '6in x 9in'
+  duodecimo: '5in x 7.375in'
+
 with_book = (filename, options, cb) ->
   throw new Error "Already inside book" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
@@ -150,16 +157,37 @@ with_book = (filename, options, cb) ->
   page_header = null
   try
     Mode = 'pdf'
-    CurrentBook = book = {}
+    CurrentBook = book =
+      page_options: {}
+    size = options.size
+    if size
+      size = BookSizes[size] if size of BookSizes
+      {width, height} = size
+      if _.isString(size)
+        throw new Error "Unrecognized book size format #{util.inspect size}" unless size.match /^(.+?)\s*x\s*(.+)$/
+        [width, height] = [RegExp.$1, RegExp.$2]
+      parseMeasure = (measure) ->
+        throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}" unless measure.match /^(\d+(?:\.\d*)?)(.+)$/
+        [n, units] = [Number(RegExp.$1), RegExp.$2]
+        switch units
+          when "" then n
+          when "in" then n * 72
+          else throw new Error "Unrecognized units #{util.inspect units} in #{util.inspect size}"
+      [width, height] = [parseMeasure(width), parseMeasure(height)]
+      _.extend book.page_options, {width, height}
+      canvas ||= new Canvas width, height, Mode
+      ctx = canvas.getContext '2d'
+      ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
     cb
       page_header: (header) -> book.header = header
       page_footer: (footer) -> book.footer = footer
       with_page: (options, draw_page) ->
         [options, draw_page] = [{}, options] if _.isFunction(options)
         return if @done
+        options = _.extend {}, book.page_options, options
         page_count += 1
         if CurrentPage
-          draw_page()
+          draw_page CurrentPage
         else
           with_page options, draw_page
         @done = true if page_limit and page_limit <= page_count

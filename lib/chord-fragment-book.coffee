@@ -88,30 +88,31 @@ chord_shape_fragments = (options={}) ->
     , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
     , x: bounds.right + 2, y: 7
 
-  with_book "Chord Shape Fragments", pages: options.pages, (book) ->
+  with_book "Chord Shape Fragments", pages: options.pages, size: 'quarto', (book) ->
     for chord in Chords
       break if book.done
 
       fragments = collect_chord_shape_fragments chord
 
-      book.page_header ->
+      book.page_header (page) ->
+        # console.info page.width
         with_graphics_context (ctx) ->
-          ctx.translate 295 + chord_diagram_width, 15
+          ctx.translate page.width - 50, 15
           ctx.scale 0.85, 0.85
           draw_pitch_diagram ctx, chord.pitch_classes
 
         with_graphics_context (ctx) ->
-          ctx.translate 295 + chord_diagram_width - 70, -15
+          ctx.translate page.width - 120, -15
           draw_harmonic_table chord.pitch_classes, radius: 12
 
       # FIXME required here to break cyclic reference, which should be removed instead
-      book_utils = require('./books')
+      book_utils = require './books'
       book.page_footer book_utils.draw_license_footer
 
       do ->
-        with_grid cols: 6, rows: 5
-        , cell_width: chord_diagram_width
-        , cell_height: chord_diagram_height + 10
+        with_grid cols: 7, rows: 7
+        , cell_width: chord_diagram_width + 10
+        , cell_height: chord_diagram_height + 15
         , header_height: 40
         , (grid) ->
 
@@ -165,7 +166,7 @@ chord_shape_fragments = (options={}) ->
 
       continue unless options.chord_pages
       do ->
-        with_grid cols: 5, rows: 4
+        with_grid cols: 7, rows: 7
         , cell_width: chord_diagram_width
         , cell_height: chord_diagram_height + 15
         , header_height: 50

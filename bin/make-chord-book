@@ -52,8 +52,7 @@ program
   .option('--no-chord-pages', 'Skip the chord pages')
   .action (options) ->
     with_book_options (options), ->
-      _ = require 'underscore'
-      books.chord_shape_fragments pages: options.pages, chord_pages: options.chord_pages
+      books.chord_shape_fragments pages: options.pages, chord_pages: options.chordPages
 
 program
   .command('intervals')
