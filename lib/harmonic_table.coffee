@@ -13,8 +13,8 @@ with_alignment = (options, cb) ->
   with_graphics_context (ctx) ->
     dx = dy = 0
     measured_height = bounds.bottom - bounds.top
-    dx = align.x - bounds.left if 'x' of align
-    dy = align.y - bounds.bottom if 'y' of align
+    dx = align.x - bounds.left if align.x?
+    dy = align.y - bounds.bottom if align.y?
     ctx.translate dx, dy
     cb()
     if bounds

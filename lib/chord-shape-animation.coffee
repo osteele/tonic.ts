@@ -38,7 +38,7 @@ easeAttr = (path, aname, t, defaultValue) ->
 # t is a time value. Find the sprite.path keyframes that bracket it,
 # and interpolate between them.
 sprite_position_at = (sprite, t) ->
-  if 't1' of sprite
+  if sprite.t1?
     s = Math.min(1, (t - sprite.t0) / (sprite.t1 - sprite.t0))
   else
     s = Math.min(1, t - sprite.t0)
