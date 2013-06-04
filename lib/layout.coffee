@@ -46,6 +46,25 @@ with_graphics_context = (fn) ->
   finally
     ctx.restore()
 
+with_alignment = (options, cb) ->
+  align = options.align
+  bounds = options.measured
+  return cb() unless align
+  with_graphics_context (ctx) ->
+    dx = dy = 0
+    measured_height = bounds.bottom - bounds.top
+    dx = align.x - bounds.left if align.x?
+    dy = align.y - bounds.bottom if align.y?
+    ctx.translate dx, dy
+    cb()
+    if bounds
+      bounds = _.extend {}, bounds
+      bounds.left += dx
+      bounds.right += dx
+      bounds.top += dy
+      bounds.bottom += dy
+  return bounds
+
 
 #
 # File Saving
@@ -160,6 +179,7 @@ with_grid = (options, cb) ->
 
 get_page_size_dimensions = (size, orientation=null) ->
   parseMeasure = (measure) ->
+    return measure if typeof measure == 'number'
     unless measure.match /^(\d+(?:\.\d*)?)\s*(.+)$/
       throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}"
     [n, units] = [Number(RegExp.$1), RegExp.$2]
@@ -239,5 +259,6 @@ module.exports = {
   measure_text
   directory
   filename
+  with_alignment
   with_graphics_context
 }

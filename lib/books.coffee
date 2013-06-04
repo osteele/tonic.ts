@@ -186,8 +186,8 @@ harmonic_table_chords = () ->
 # Chord Fingerings
 #
 
-chord_fingerings_page = (chord) ->
-  fingerings = fingerings_for(chord)
+chord_fingerings_page = ({chord}) ->
+  fingerings = fingerings_for chord
   Layout.filename "#{chord.name} Fingerings"
 
   with_grid cols: 10, rows: 10

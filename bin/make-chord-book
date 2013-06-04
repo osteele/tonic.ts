@@ -22,54 +22,47 @@ with_book_options = (options, fn) ->
   Layout.directory dir
   fn()
 
-program
-  .command('chordbook')
+subcommands = []
+
+subcommand = (name) ->
+  subcommands.push name
+  program.command(name)
+
+book_command = (action, name) ->
+  action_options = null
+  command = subcommand(name)
+  command.option('--pages <count>', 'Limit to this many pages', parseInt)
+  command.action_options = (filter) -> action_options = filter
+  command.action (options) ->
+    options = action_options options if action_options
+    with_book_options (options), ->
+      action options
+  command
+
+book_command(books.chord_book, 'chordbook')
   .description('Create a chord bible')
   .option('-a, --combined', 'Combine all fingerings onto each chord chart')
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
-  .action (options) ->
-    with_book_options (options), ->
-      books.chord_book best_fingering: not options.combined, pages: options.pages
+  .action_options (options) -> {best_fingering: not options.combined}
 
-program
-  .command('harmonic-table')
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
-  .action (options) ->
-    with_book_options (options), ->
-      books.harmonic_table_chords pages: options.pages
+book_command(books.harmonic_table_chords, 'harmonic-table')
 
-program
-  .command('fingerings')
+book_command(books.chord_fingerings_page, 'fingerings')
   .description('Fingerings for a specific chord')
-  .action (options) ->
-    with_book_options (options), ->
-      books.chord_fingerings_page Chords[6].at('F')
+  .action_options (options) -> {chord: Chords[6].at('F')}
 
-program
-  .command('fragments')
+book_command(books.chord_shape_fragments, 'fragments')
   .description('Chord shape fragments')
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
   .option('--no-chord-pages', 'Skip the chord pages')
-  .action (options) ->
-    with_book_options (options), ->
-      books.chord_shape_fragments pages: options.pages, chord_pages: options.chordPages
+  .action_options (options) -> {chord_pages: options.chordPages}
 
-program
-  .command('intervals')
+book_command(books.intervals_book, 'intervals')
   .description('Intervals on the fretboard')
-  .option('--pages <count>', 'Limit to this many pages', parseInt)
-  .action (options) ->
-    with_book_options (options), ->
-      books.intervals_book by_root: true, pages: options.pages
+  .action_options -> {by_root: true}
 
-program
-  .command('animation')
+book_command(books.chord_shape_flipbook, 'animation')
   .description('Flipbook showing the animations of a chord')
   .option('--quick', 'Quick test -- bigger animation skips; fewer pages')
   .option('--speed <f>', 'Slower by a factor of <f>', parseFloat)
-  .action (options) ->
-    with_book_options (options), ->
-      books.chord_shape_flipbook pages: 0, quick: options.quick, speed: options.speed
 
 program
   .command('all')
@@ -81,18 +74,12 @@ program
       books.chord_book best_fingering: false
       books.harmonic_table_chords()
       books.chord_shape_flipbook quick: true
-      # FIXME this doesn't actually render in this context
-      # chord_fingerings_page Chords[6], 'F'
+      books.chord_fingerings_page chord: Chords[6].at('F')
 
 program
   .command('*')
   .action ->
     console.log 'Commands:'
-    console.log '  animation'
-    console.log '  chordbook'
-    console.log '  fingerings'
-    console.log '  fragments'
-    console.log '  harmonic-table'
-    console.log '  intervals'
+    console.log "  #{name}" for name in subcommands
 
 program.parse(process.argv)
