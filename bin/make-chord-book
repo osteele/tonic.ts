@@ -32,6 +32,13 @@ program
       books.chord_book best_fingering: not options.combined, pages: options.pages
 
 program
+  .command('color-sampler')
+  .option('--pages <count>', 'Limit to this many pages', parseInt)
+  .action (options) ->
+    with_book_options (options), ->
+      books.pitch_color_sampler pages: options.pages
+
+program
   .command('harmonic-table')
   .option('--pages <count>', 'Limit to this many pages', parseInt)
   .action (options) ->

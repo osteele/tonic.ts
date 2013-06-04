@@ -164,7 +164,7 @@ harmonic_table_chords = () ->
       with_graphics_context (ctx) ->
         ctx.translate 100, -130
         grid.add_cell ->
-          draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true
+          draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true, fill_cells: true
 
       if false
         intervals = [7, 4, 3, 2, 1]
@@ -189,6 +189,135 @@ harmonic_table_chords = () ->
           , font: '12px Times', fillStyle: 'black'
           , x: 80 / 2, gravity: 'center'
           draw_harmonic_table chord.pitch_classes, radius: r
+
+mul_mat_col = (m, col) ->
+  for row in m
+    (x * col[j] for x, j in row).reduce (a, b) -> a + b
+
+xyz2rgb = do ->
+  m = [
+    [3.2406, -1.5372, -0.4986]
+    [-0.9689, 1.8758, 0.0415]
+    [0.0557, -0.2040, 1.0570]
+  ]
+  f = (c) ->
+    if c < 0.0031308 then 12.92 * c else 1.055 * Math.pow(c, 1/2.4) - 0.055
+  ({x, y, z}) ->
+    [r, g, b] = mul_mat_col(m, [x, y, z]).map f
+    {r, g, b}
+
+lab2rgb = do ->
+  k1 = 6/29
+  k2 = 4/29
+  k3 = 3 * Math.pow(k1, 2)
+  s = [0.95047, 1.00000, 1.08883]
+  f = (t) ->
+    if t < k1 then k3 * (t - k2) else Math.pow(t, 3)
+  ({l, a, b}) ->
+    y = (l + 16) / 116
+    x = y + a / 500
+    z = y - b / 200
+    [x, y, z] = (s[i] * f(t) for t, i in [x, y, z])
+    xyz2rgb {x, y, z}
+
+pitch_color_sampler = () ->
+  Color = require("color")
+  with_book "Pitch Color Sampler", size: PaperSizes.letter, (book) ->
+    cmap = {}
+    for i in [0...10]
+      for j in [0...10]
+        cmap["#{i},#{j}"] = xyz2rgb y: 1, x: i / 9, z: j / 9
+    rgbs = _.values(cmap)
+    for field in ['r', 'g', 'b']
+      cs = _.pluck(rgbs, field)
+      min = Math.min cs...
+      max = Math.max cs...
+      rgb[field] = Math.floor 255 * (rgb[field] - min) / (max - min) for rgb in rgbs
+
+    book.with_page (page) ->
+      ctx = page.context
+      for k, color of cmap
+        [i, j] = k.split(',').map (s) -> Number s
+        # console.info i, j, Color(color).rgbString()
+        ctx.fillStyle = Color(color).rgbString()
+        x = i * 80
+        y = j * 80
+        ctx.fillRect x, y, 100, 100
+
+  return
+
+  with_book "Pitch Color Sampler", size: PaperSizes.letter, (book) ->
+    with_grid cols: 3, rows: 4
+    , cell_width: 160
+    , cell_height: 250
+    , header_height: 10
+    , (grid) ->
+
+      intervals = [0...12]
+      colorize = (fn) ->
+        colors = (fn[i] or 'white' for i in intervals) unless _.isFunction(fn)
+        colors ||=
+          for n in intervals
+            m5 = Math.floor(((5 * n + 10) % 12) / 3) / 3
+            m4 = Math.floor(((3 * n) % 12) / 3) / 3
+            m3 = Math.floor(((4 * n) % 12) / 3) / 2
+            fn({n, m3, m4, m5}).rgbString()
+        grid.add_cell ->
+          with_graphics_context (ctx) ->
+            ctx.translate 60, 50
+            ctx.scale 3, 3
+            draw_pitch_diagram ctx, intervals, pitch_colors: colors
+          with_graphics_context (ctx) ->
+            ctx.translate 0, 120
+            ctx.scale 1/2, 1/2
+            draw_harmonic_table intervals, label_cells: true, fill_cells: true, interval_class_colors: colors
+
+      # colorize ({n}) -> Color {h: 360 * n / 12, s: 100, v: 100}
+      # colorize
+      #    0: 'red'
+      #    5: 'red'
+      #    9: 'red'
+      #    # 11: 'blue'
+      #    # 5: 'purple'
+      #    # 9: 'purple'
+      #    10: 'purple'
+      #    7: 'orange'
+      #    2: 'orange'
+
+      rgbs = [0...12].map (n) ->
+        m3 = (3 * n % 12) / 9
+        m4 = (4 * n % 12) / 8
+        # console.info Intervals[n], m3, m4
+        xyz2rgb y: 1, z: m3, x: m4
+        # xyz2rgb l: 1, a: m3, b: 0
+      console.info rgbs
+      for field in ['r', 'g', 'b']
+        cs = _.pluck(rgbs, field)
+        min = Math.min cs...
+        max = Math.max cs...
+        rgb[field] = Math.floor 255 * (rgb[field] - min) / (max - min) for rgb in rgbs
+      # console.info rgbs
+
+      rgbs = [0...12].map (n) ->
+        m3 = (3 * n % 12) / 9
+        m4 = (4 * n % 12) / 8
+        {r: 255 * m3, g: 255 * m4, b: 255 * (1 - m4)}
+
+      colorize ({n}) -> Color rgbs[n]
+      colorize ({n}) -> Color {h: 360 * ((5 * n + 1) % 12) / 12, s: 100, v: 100}
+      colorize ({n}) -> Color {h: 360 * ((7 * n + 1) % 12) / 12, s: 100, v: 100}
+      colorize ({m3, m4, m5}) -> Color {h: 360 * 3 / 4 * m5, s: 100, v: 100}
+      colorize ({m3, m4, m5}) -> Color {h: 360 * 3 / 4 * m4, s: 100, v: 100}
+      colorize ({m3, m4, m5}) -> Color {h: 360 * 2 / 3 * m3, s: 100, v: 100}
+      colorize ({m3, m4, m5}) -> Color {h: 360 * 3 / 4 * m5, s: 50 + 50 * m3, v: 100}
+      colorize ({m3, m4, m5}) -> Color {h: 360 * 3 / 4 * m5, s: 50 + 50 * m4, v: 100}
+      colorize ({m3, m4, m5}) -> Color {r: 255 * m5, g: 255 * m3, b: 255 * m4}
+      colorize ({m3, m4, m5}) ->
+        Color
+          r: 255 * (1 + Math.cos(2 * Math.PI * m5)) / 2
+          g: 255 * (1 + Math.cos(2 * Math.PI * m3)) / 3
+          b: 255 * (1 + Math.cos(2 * Math.PI * m4)) / 3
+
 
 
 #
@@ -263,4 +392,5 @@ module.exports = {
   chord_shape_fragments
   draw_license_footer
   intervals_book
+  pitch_color_sampler
 }
