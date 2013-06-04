@@ -222,29 +222,38 @@ lab2rgb = do ->
 
 pitch_color_sampler = () ->
   Color = require("color")
-  with_book "Pitch Color Sampler", size: PaperSizes.letter, (book) ->
-    cmap = {}
-    for i in [0...10]
-      for j in [0...10]
-        cmap["#{i},#{j}"] = xyz2rgb y: 1, x: i / 9, z: j / 9
-    rgbs = _.values(cmap)
+
+  labcolor = (x, y) ->
+    x = 1 + Math.sin(2 * Math.PI * x) / 2
+    y = 1 + Math.sin(2 * Math.PI * y) / 2
+    lab2rgb {l: 1, a: .2 + .2 * x, b: .3 + .4 * y}
+
+  rescale_rgb = (rgbs) ->
     for field in ['r', 'g', 'b']
       cs = _.pluck(rgbs, field)
       min = Math.min cs...
       max = Math.max cs...
       rgb[field] = Math.floor 255 * (rgb[field] - min) / (max - min) for rgb in rgbs
 
-    book.with_page (page) ->
-      ctx = page.context
-      for k, color of cmap
-        [i, j] = k.split(',').map (s) -> Number s
-        # console.info i, j, Color(color).rgbString()
-        ctx.fillStyle = Color(color).rgbString()
-        x = i * 80
-        y = j * 80
-        ctx.fillRect x, y, 100, 100
+  do ->
+    rows = 150
+    cell_width = 800 / rows
+    with_book "Color Sampler", size: {width: cell_width * rows + 20, height: cell_width * rows + 20}, (book) ->
+      cmap = {}
+      for i in [0...rows]
+        for j in [0...rows]
+          cmap["#{i},#{j}"] = labcolor i / (rows - 1), j / (rows - 1)
+      rescale_rgb _.values(cmap)
 
-  return
+      book.with_page (page) ->
+        ctx = page.context
+        for k, color of cmap
+          [i, j] = k.split(',').map (s) -> Number s
+          ctx.fillStyle = Color(color).rgbString()
+          x = i * cell_width
+          y = j * cell_width
+          ctx.fillRect x, y, cell_width + 3, cell_width + 3
+    # return
 
   with_book "Pitch Color Sampler", size: PaperSizes.letter, (book) ->
     with_grid cols: 3, rows: 4
@@ -258,9 +267,9 @@ pitch_color_sampler = () ->
         colors = (fn[i] or 'white' for i in intervals) unless _.isFunction(fn)
         colors ||=
           for n in intervals
+            m3 = Math.floor(((3 * n) % 12) / 3) / 2
+            m4 = Math.floor(((4 * n) % 12) / 3) / 3
             m5 = Math.floor(((5 * n + 10) % 12) / 3) / 3
-            m4 = Math.floor(((3 * n) % 12) / 3) / 3
-            m3 = Math.floor(((4 * n) % 12) / 3) / 2
             fn({n, m3, m4, m5}).rgbString()
         grid.add_cell ->
           with_graphics_context (ctx) ->
@@ -273,6 +282,7 @@ pitch_color_sampler = () ->
             draw_harmonic_table intervals, label_cells: true, fill_cells: true, interval_class_colors: colors
 
       # colorize ({n}) -> Color {h: 360 * n / 12, s: 100, v: 100}
+
       # colorize
       #    0: 'red'
       #    5: 'red'
@@ -285,23 +295,11 @@ pitch_color_sampler = () ->
       #    2: 'orange'
 
       rgbs = [0...12].map (n) ->
-        m3 = (3 * n % 12) / 9
-        m4 = (4 * n % 12) / 8
-        # console.info Intervals[n], m3, m4
-        xyz2rgb y: 1, z: m3, x: m4
-        # xyz2rgb l: 1, a: m3, b: 0
-      console.info rgbs
-      for field in ['r', 'g', 'b']
-        cs = _.pluck(rgbs, field)
-        min = Math.min cs...
-        max = Math.max cs...
-        rgb[field] = Math.floor 255 * (rgb[field] - min) / (max - min) for rgb in rgbs
-      # console.info rgbs
-
-      rgbs = [0...12].map (n) ->
-        m3 = (3 * n % 12) / 9
-        m4 = (4 * n % 12) / 8
-        {r: 255 * m3, g: 255 * m4, b: 255 * (1 - m4)}
+        m3 = (3 * n % 12 + .5) / 12
+        m4 = (4 * n % 12 + .5) / 12
+        console.info n, m3, m4
+        labcolor m4, m3
+      rescale_rgb rgbs
 
       colorize ({n}) -> Color rgbs[n]
       colorize ({n}) -> Color {h: 360 * ((5 * n + 1) % 12) / 12, s: 100, v: 100}
