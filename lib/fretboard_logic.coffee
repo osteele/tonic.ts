@@ -1,7 +1,7 @@
 util = require 'util'
 _ = require 'underscore'
-
-{interval_class_between} = require('./theory')
+{interval_class_between} = require './theory'
+FretboardModel = require './fretboard_model'
 
 {
   FretNumbers
@@ -9,17 +9,11 @@ _ = require 'underscore'
   StringNumbers
   fretboard_positions_each
   pitch_number_for_position
-} = require('./fretboard_model')
+} = FretboardModel
 
-Function::define ||= (name, desc) ->
-  Object.defineProperty @prototype, name, desc
+require './utils'
 
-Function::cached_getter ||= (name, fn) ->
-  Object.defineProperty @prototype, name, get: ->
-    cache = @_getter_cache ||= {}
-    return cache[name] if name of cache
-    cache[name] = fn.call(this)
-
+# These are "fingerings", not "voicings", because they also include barre information.
 class Fingering
   constructor: ({@positions, @chord, @barres}) ->
     @positions.sort (a, b) -> a.string - b.string

@@ -22,18 +22,8 @@ _ = require 'underscore'
   finger_positions_on_chord
 } = require('./fretboard_logic')
 
-{
-
-  draw: draw_chord_diagram
-  width: chord_diagram_width
-  height: chord_diagram_height
-} = require('./chord_diagram')
-
-{
-  draw: draw_fretboard
-  height: padded_fretboard_height
-  width: padded_fretboard_width
-} = require('./fretboard_diagram')
+ChordDiagram = require('./chord_diagram')
+FretboardDiagram = require('./fretboard_diagram')
 
 Layout = require('./layout')
 {
@@ -48,7 +38,6 @@ Layout = require('./layout')
 
 draw_pitch_diagram = require('./pitch_diagram').draw
 draw_harmonic_table = require('./harmonic_table').draw
-
 {chord_shape_fragments} = require './chord-fragment-book'
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
@@ -69,20 +58,20 @@ draw_license_footer = (page) ->
 
 interval_cards = ->
   fretboard_positions_each ({string, fret}) ->
-    canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
+    canvas = new Canvas FretboardDiagram.height, FretboardDiagram.width
     ctx = canvas.getContext('2d')
     erase_background()
-    draw_fretboard ctx
+    FretboardDiagram.draw ctx
     draw_note string_number: string, fret_number: fret
     filename = "#{string}-#{fret}.png"
     save_canvas_to_png canvas, filename
     console.info "Saved #{filename}"
 
     for interval_name, semitones in Intervals
-      canvas = new Canvas(padded_fretboard_width, padded_fretboard_height)
+      canvas = new Canvas FretboardDiagram.height, FretboardDiagram.width
       ctx = canvas.getContext('2d')
       erase_background()
-      draw_fretboard ctx
+      FretboardDiagram.draw ctx
       draw_intervals_from semitones, string, fret
       interval_long_name = interval_name.replace(/^m/, 'min').replace(/^M/, 'Maj')
       filename = "#{string}-#{fret}-#{interval_long_name}.png"
@@ -92,8 +81,8 @@ intervals_from_position_page = (root_position) ->
   canvas_gutter = 20
   header_height = 20
   with_grid cols: 3, rows: 4
-  , cell_width: padded_fretboard_width + canvas_gutter
-  , cell_height: padded_fretboard_height + header_height
+  , cell_width: FretboardDiagram.height + canvas_gutter
+  , cell_height: FretboardDiagram.width + header_height
   , (grid) ->
     for interval_name, semitones in Intervals
       grid.add_cell ->
@@ -105,7 +94,7 @@ intervals_from_position_page = (root_position) ->
         positions = (pos for pos in intervals_from(root_position, semitones) \
           when not (pos.string == root_position.string and pos.fret == root_position.fret))
         positions.push string: root_position.string, fret: root_position.fret, is_root: true
-        draw_fretboard grid.context, positions
+        FretboardDiagram.draw grid.context, positions
 
 draw_intervals_from = (root_position, semitones, color) ->
   root_note_number = pitch_number_for_position(root_position)
@@ -125,8 +114,8 @@ intervals_page = (semitones) ->
   rows = StringCount
 
   with_grid cols: cols, rows: rows
-  , cell_width: padded_fretboard_width + canvas_gutter
-  , cell_height: padded_fretboard_height + canvas_gutter
+  , cell_width: FretboardDiagram.height + canvas_gutter
+  , cell_height: FretboardDiagram.width + canvas_gutter
   , header_height: header_height
   , (grid) ->
     draw_text "#{LongIntervalNames[semitones]} Intervals"
@@ -135,7 +124,7 @@ intervals_page = (semitones) ->
 
     fretboard_positions_each (finger_position) ->
       grid.add_cell ->
-        draw_fretboard grid.context, intervals_from(finger_position, semitones)
+        FretboardDiagram.draw grid.context, intervals_from(finger_position, semitones)
 
 intervals_book = ({by_root, pages}={}) ->
   if by_root
@@ -153,7 +142,9 @@ intervals_book = ({by_root, pages}={}) ->
 #
 
 harmonic_table_chords = () ->
-  r = 20
+  draw_interval_diagrams = false
+  radius = 20
+
   with_book "Harmonic Table", size: PaperSizes.letter, (book) ->
     with_grid cols: 6, rows: 4
     , cell_width: 80
@@ -166,7 +157,7 @@ harmonic_table_chords = () ->
         grid.add_cell ->
           draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true
 
-      if false
+      if draw_interval_diagrams
         intervals = [7, 4, 3, 2, 1]
         interval_sets = [intervals]
         interval_sets.push (12 - interval for interval in intervals)
@@ -180,7 +171,7 @@ harmonic_table_chords = () ->
               draw_text interval_name
               , font: '12px Times', fillStyle: 'black'
               , x: 80 / 2, gravity: 'center'
-              draw_harmonic_table [semitones], radius: r, label_cells: true
+              draw_harmonic_table [semitones], radius: radius, label_cells: true
 
       grid.start_row()
       for chord in Chords
@@ -188,7 +179,7 @@ harmonic_table_chords = () ->
           draw_text chord.name
           , font: '12px Times', fillStyle: 'black'
           , x: 80 / 2, gravity: 'center'
-          draw_harmonic_table chord.pitch_classes, radius: r
+          draw_harmonic_table chord.pitch_classes, radius: radius, fill_cells: true
 
 
 #
@@ -200,8 +191,8 @@ chord_fingerings_page = (chord) ->
   Layout.filename "#{chord.name} Fingerings"
 
   with_grid cols: 10, rows: 10
-  , cell_width: chord_diagram_width + 10
-  , cell_height: chord_diagram_height + 5
+  , cell_width: ChordDiagram.width + 10
+  , cell_height: ChordDiagram.height + 5
   , header_height: 40
   , (grid) ->
     draw_text "#{chord.name} Fingerings"
@@ -209,14 +200,13 @@ chord_fingerings_page = (chord) ->
     , font: '25px Impact', fillStyle: 'black'
     for fingering in fingerings
       grid.add_cell ->
-        draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
+        ChordDiagram.draw grid.context, fingering.positions, barres: fingering.barres
 
 chord_page = (chord, options={}) ->
   {best_fingering} = options
-
   with_grid cols: 4, rows: 3
-  , cell_width: chord_diagram_width
-  , cell_height: chord_diagram_height
+  , cell_width: ChordDiagram.width
+  , cell_height: ChordDiagram.height
   , gutter_height: 20
   , header_height: 40
   , (grid) ->
@@ -243,7 +233,7 @@ chord_page = (chord, options={}) ->
         fingering = {positions: finger_positions_on_chord(rooted_chord)}
         fingering = best_fingering_for(rooted_chord) if best_fingering
 
-        draw_chord_diagram grid.context, fingering.positions, barres: fingering.barres
+        ChordDiagram.draw grid.context, fingering.positions, barres: fingering.barres
 
 chord_book = (options={}) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"

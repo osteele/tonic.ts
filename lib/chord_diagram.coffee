@@ -12,7 +12,9 @@ _ = require 'underscore'
 # Style
 #
 
-DefaultStyle =
+{hsv2css} = require './utils'
+
+SmallStyle =
   h_gutter: 5
   v_gutter: 5
   string_spacing: 6
@@ -22,24 +24,10 @@ DefaultStyle =
   closed_string_fontsize: 4
   chord_degree_colors: ['red', 'blue', 'green', 'orange']
   interval_class_colors: [0...12].map (n) ->
-    hsv_to_rgb = ([h, s, v]) ->
-      h /= 360
-      c = v * s
-      x = c * (1 - Math.abs((h * 6) % 2 - 1))
-      components = switch Math.floor(h * 6) % 6
-        when 0 then [c, x, 0]
-        when 1 then [x, c, 0]
-        when 2 then [0, c, x]
-        when 3 then [0, x, c]
-        when 4 then [x, 0, c]
-        when 5 then [c, 0, x]
-      (component + v - c for component in components)
-    # x = (7 * n) % 12  # color by circle of fifths
-    [r, g, b] = hsv_to_rgb [n * 360 / 12, 1, 1]
-    [r, g, b] = (Math.floor(255 * c) for c in [r, g, b])
-    "rgb(#{r}, #{g}, #{b})"
+    # i = (7 * n) % 12  # color by circle of fifth ascension
+    hsv2css h: n * 360 / 12, s: 1, v: 1
 
-_.extend DefaultStyle,
+DefaultStyle = _.extend {}, SmallStyle,
   string_spacing: 12
   fret_height: 16
   note_radius: 3

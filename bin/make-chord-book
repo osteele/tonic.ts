@@ -92,6 +92,7 @@ program
     console.log '  chordbook'
     console.log '  fingerings'
     console.log '  fragments'
+    console.log '  harmonic-table'
     console.log '  intervals'
 
 program.parse(process.argv)

@@ -1,40 +1,29 @@
 _ = require 'underscore'
 {Intervals} = require './theory'
-{draw_text, with_graphics_context} = require('./layout')
+{draw_text, with_graphics_context, with_alignment} = require './layout'
+ChordDiagram = require './chord_diagram'
 
 DefaultStyle =
-  interval_class_colors: require('./chord_diagram').defaultStyle.interval_class_colors
+  interval_class_colors: ChordDiagram.defaultStyle.interval_class_colors
   radius: 50
+  center: true
+  fill_cells: false
+  label_cells: false
 
-with_alignment = (options, cb) ->
-  align = options.align
-  bounds = options.measured
-  return cb() unless align
-  with_graphics_context (ctx) ->
-    dx = dy = 0
-    measured_height = bounds.bottom - bounds.top
-    dx = align.x - bounds.left if align.x?
-    dy = align.y - bounds.bottom if align.y?
-    ctx.translate dx, dy
-    cb()
-    if bounds
-      bounds = _.extend {}, bounds
-      bounds.left += dx
-      bounds.right += dx
-      bounds.top += dy
-      bounds.bottom += dy
-  return bounds
+# enumerate these explicitly instead of computing them,
+# so that we can fine-tune the position of cells that
+# could be placed at one of several different locations
+IntervalFactors =
+  2: {P5: -1, m3: -1}
+  3: {m3: 1}
+  4: {M3: 1}
+  5: {P5: -1}
+  6: {m3: 2}
+  11: {P5: 1, M3: 1}
 
 interval_class_vectors = (interval_class) ->
-  records =
-    2: {P5: -1, m3: -1}
-    3: {m3: 1}
-    4: {M3: 1}
-    5: {P5: -1}
-    6: {m3: 2}
-    11: {P5: 1, M3: 1}
-  [record, sign] = [records[interval_class], 1]
-  [record, sign] = [records[12 - interval_class], -1] unless record
+  [record, sign] = [IntervalFactors[interval_class], 1]
+  [record, sign] = [IntervalFactors[12 - interval_class], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
   intervals[k] *= sign for k of intervals
   computed_semitones = (12 + 7 * intervals.P5 + intervals.M3 * 4 + intervals.m3 * 3) % 12
@@ -42,7 +31,7 @@ interval_class_vectors = (interval_class) ->
   intervals
 
 draw_harmonic_table = (interval_classes, options={}) ->
-  options = _.extend {center: true}, DefaultStyle, options
+  options = _.extend {}, DefaultStyle, options
   options.center = false if options.align
   colors = options.interval_class_colors
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
@@ -53,8 +42,8 @@ draw_harmonic_table = (interval_classes, options={}) ->
     vectors = interval_class_vectors interval_klass
     dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
     dx = vectors.M3 - vectors.m3
-    x = dx * r
-    y = -dy * r
+    x = dx * r * .8
+    y = -dy * r * .95
     {x, y}
 
   bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
@@ -70,6 +59,7 @@ draw_harmonic_table = (interval_classes, options={}) ->
       ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
 
       for interval_klass in interval_classes
+        is_root = interval_klass == 0
         color = colors[interval_klass]
         color ||= colors[12 - interval_klass]
         ctx.beginPath()
@@ -82,11 +72,13 @@ draw_harmonic_table = (interval_classes, options={}) ->
           ctx.lineTo pos...
         ctx.strokeStyle = 'gray'
         ctx.stroke()
-        if interval_klass == 0 or options.fill_cells
+        if is_root or options.fill_cells
           ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
+          ctx.globalAlpha = 0.3 unless is_root
           ctx.fill()
+          ctx.globalAlpha = 1
 
-        continue if interval_klass == 0 or options.fill_cells
+        continue if is_root or options.fill_cells
         ctx.globalAlpha = 0.3 if options.label_cells
         ctx.beginPath()
         do ->

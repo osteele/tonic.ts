@@ -9,11 +9,9 @@ FretboardLogic = require '../index'
 Layout = FretboardLogic.utils.layout
 {with_book, with_page, draw_text, with_graphics_context} = Layout
 
-draw_pitch_diagram = require('./pitch_diagram').draw
-{
-  defaultStyle: ChordDiagramStyle
-  draw: draw_chord_diagram
-} = FretboardLogic.drawing.chord_diagram
+PitchDiagram = require './pitch_diagram'
+ChordDiagram = FretboardLogic.drawing.chord_diagram
+{defaultStyle: ChordDiagramStyle} = ChordDiagram
 
 ease = (s, x0, x1, method=null) ->
   s  = method.call easings, s if method
@@ -114,12 +112,12 @@ chord_shape_flipbook = (options={}) ->
         root = Math.min 11, pitch
         bend = s - root
         positions = finger_positions_on_chord chord.at(root)
-        draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
+        ChordDiagram.draw ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
         root = (root + 1) % 12
         bend -= 1
         positions = finger_positions_on_chord chord.at(root)
-        draw_chord_diagram ctx, positions, dy: bend * ChordDiagramStyle.fret_height
+        ChordDiagram.draw ctx, positions, dy: bend * ChordDiagramStyle.fret_height
 
       , (sprite) ->
         sprite.at 0, x: 0, y: 50
@@ -146,7 +144,7 @@ chord_shape_flipbook = (options={}) ->
         t0: t0
         draw: (ctx, dt) ->
           draw_text name, font: '12pt Times', fillStyle: 'black', y: -3
-          draw_chord_diagram ctx, fingering.positions, barres: fingering.barres
+          ChordDiagram.draw ctx, fingering.positions, barres: fingering.barres
 
       , (sprite) ->
         sprite.at 0, pos
