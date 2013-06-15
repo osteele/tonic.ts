@@ -3,8 +3,10 @@ _ = require 'underscore'
 {
   Chords
   NoteNames
-  Intervals
+  IntervalNames
   LongIntervalNames
+  Modes
+  Scales
   interval_class_between
 } = require('./theory')
 
@@ -67,13 +69,13 @@ interval_cards = ->
     save_canvas_to_png canvas, filename
     console.info "Saved #{filename}"
 
-    for interval_name, semitones in Intervals
+    for semitones in [0...12]
       canvas = new Canvas FretboardDiagram.height, FretboardDiagram.width
       ctx = canvas.getContext('2d')
       erase_background()
       FretboardDiagram.draw ctx
       draw_intervals_from semitones, string, fret
-      interval_long_name = interval_name.replace(/^m/, 'min').replace(/^M/, 'Maj')
+      interval_long_name = IntervalNames[semitones].replace(/^m/, 'min').replace(/^M/, 'Maj')
       filename = "#{string}-#{fret}-#{interval_long_name}.png"
       save_canvas_to_png canvas, filename
 
@@ -84,7 +86,8 @@ intervals_from_position_page = (root_position) ->
   , cell_width: FretboardDiagram.height + canvas_gutter
   , cell_height: FretboardDiagram.width + header_height
   , (grid) ->
-    for interval_name, semitones in Intervals
+    for semitones in [0...12]
+      interval_name = IntervalNames[semitones]
       grid.add_cell ->
 
         draw_text interval_name
@@ -126,14 +129,15 @@ intervals_page = (semitones) ->
       grid.add_cell ->
         FretboardDiagram.draw grid.context, intervals_from(finger_position, semitones)
 
-intervals_book = ({by_root, pages}={}) ->
+intervals_book = (options={}) ->
+  {by_root, pages} = options
   if by_root
     with_book "Fretboard Intervals by Root", pages: pages, (book) ->
       fretboard_positions_each (finger_position) ->
         intervals_from_position_page finger_position
   else
     with_book "Fretboard Intervals", pages: pages, (book) ->
-      for __, semitones in Intervals
+      for semitones in [0..12]
         intervals_page semitones
 
 
@@ -141,11 +145,29 @@ intervals_book = ({by_root, pages}={}) ->
 # Chord Lattice Diagrams
 #
 
-harmonic_table_chords = () ->
-  draw_interval_diagrams = false
-  radius = 20
+harmonic_table_chords = (options={}) ->
+  console.info 'chords', options.chords
+  options = _.extend {}, options, chords: true
+  harmonic_table options
 
-  with_book "Harmonic Table", size: PaperSizes.letter, (book) ->
+harmonic_table_scales = (options={}) ->
+  console.info 'scales', options.chords
+  options = _.extend {}, options, scales: true, modes: true
+  harmonic_table options
+
+harmonic_table = (options={}) ->
+  console.info options.chords
+  {title} = options
+  radius = 20
+  title ||= do ->
+    return 'Harmonic Table Chords' if options.chords
+    return 'Harmonic Table Scales' if options.scales
+    return 'Harmonic Table Modes' if options.modes
+    return 'Harmonic Table Intervals' if options.intervals
+    return 'Harmonic Table'
+  console.info title
+
+  with_book title, size: PaperSizes.letter, (book) ->
     with_grid cols: 6, rows: 4
     , cell_width: 80
     , cell_height: 80 + 40
@@ -157,29 +179,48 @@ harmonic_table_chords = () ->
         grid.add_cell ->
           draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true
 
-      if draw_interval_diagrams
+      if options.intervals
         intervals = [7, 4, 3, 2, 1]
         interval_sets = [intervals]
         interval_sets.push (12 - interval for interval in intervals)
         interval_sets[1].push 6
         for intervals in interval_sets
           grid.start_row()
-          for semitones in intervals
-            continue if semitones == 0
-            interval_name = Intervals[semitones]
+          for semitones in _.without(intervals, 0)
+            interval_name = IntervalNames[semitones]
             grid.add_cell ->
               draw_text interval_name
               , font: '12px Times', fillStyle: 'black'
               , x: 80 / 2, gravity: 'center'
               draw_harmonic_table [semitones], radius: radius, label_cells: true
 
-      grid.start_row()
-      for chord in Chords
-        grid.add_cell ->
-          draw_text chord.name
-          , font: '12px Times', fillStyle: 'black'
-          , x: 80 / 2, gravity: 'center'
-          draw_harmonic_table chord.pitch_classes, radius: radius, fill_cells: true
+      if options.scales
+        grid.start_row()
+        for name, {tones} of Scales
+          grid.add_cell ->
+            draw_text name
+            , font: '12px Times', fillStyle: 'black'
+            , x: 80 / 2, gravity: 'center'
+            draw_harmonic_table tones, radius: radius, fill_cells: true
+
+      if options.modes
+        grid.start_row()
+        for name, {tones} of Modes
+          continue if name == 'Ionian'
+          grid.add_cell ->
+            draw_text name
+            , font: '12px Times', fillStyle: 'black'
+            , x: 80 / 2, gravity: 'center'
+            draw_harmonic_table tones, radius: radius, fill_cells: true
+
+      if options.chords
+        grid.start_row()
+        Chords.forEach (chord) ->
+          grid.add_cell ->
+            draw_text chord.name
+            , font: '12px Times', fillStyle: 'black'
+            , x: 80 / 2, gravity: 'center'
+            draw_harmonic_table chord.pitch_classes, radius: radius, fill_cells: true
 
 
 #
@@ -250,6 +291,7 @@ module.exports = {
   chord_book
   chord_fingerings_page
   harmonic_table_chords
+  harmonic_table_scales
   chord_shape_fragments
   draw_license_footer
   intervals_book

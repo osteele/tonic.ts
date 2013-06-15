@@ -1,5 +1,5 @@
 _ = require 'underscore'
-{Intervals} = require './theory'
+{IntervalNames} = require './theory'
 {draw_text, with_graphics_context, with_alignment} = require './layout'
 ChordDiagram = require './chord_diagram'
 
@@ -10,10 +10,10 @@ DefaultStyle =
   fill_cells: false
   label_cells: false
 
-# enumerate these explicitly instead of computing them,
+# Enumerate these explicitly instead of computing them,
 # so that we can fine-tune the position of cells that
-# could be placed at one of several different locations
-IntervalFactors =
+# could be placed at one of several different locations.
+IntervalVectors =
   2: {P5: -1, m3: -1}
   3: {m3: 1}
   4: {M3: 1}
@@ -21,9 +21,11 @@ IntervalFactors =
   6: {m3: 2}
   11: {P5: 1, M3: 1}
 
+# Returns a record of {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
+# of the interval class.
 interval_class_vectors = (interval_class) ->
-  [record, sign] = [IntervalFactors[interval_class], 1]
-  [record, sign] = [IntervalFactors[12 - interval_class], -1] unless record
+  [record, sign] = [IntervalVectors[interval_class], 1]
+  [record, sign] = [IntervalVectors[12 - interval_class], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
   intervals[k] *= sign for k of intervals
   computed_semitones = (12 + 7 * intervals.P5 + intervals.M3 * 4 + intervals.m3 * 3) % 12
@@ -72,13 +74,14 @@ draw_harmonic_table = (interval_classes, options={}) ->
           ctx.lineTo pos...
         ctx.strokeStyle = 'gray'
         ctx.stroke()
+
         if is_root or options.fill_cells
           ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
           ctx.globalAlpha = 0.3 unless is_root
           ctx.fill()
           ctx.globalAlpha = 1
+          continue
 
-        continue if is_root or options.fill_cells
         ctx.globalAlpha = 0.3 if options.label_cells
         ctx.beginPath()
         do ->
@@ -102,7 +105,7 @@ draw_harmonic_table = (interval_classes, options={}) ->
 
       if options.label_cells
         for interval_klass in interval_classes
-          label = Intervals[interval_klass]
+          label = IntervalNames[interval_klass]
           label = 'R' if interval_klass == 0
           {x, y} = cell_center interval_klass
           draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'

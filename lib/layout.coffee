@@ -163,8 +163,8 @@ with_grid = (options, cb) ->
           with_graphics_context (ctx) ->
             ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
             draw_fn()
-        [col, row] = [col + 1, row]
-        [col, row] = [0, row + 1] if col >= @cols
+        col += 1
+        [col, row] = [0, row + 1] if col >= cols
         [@col, @row] = [col, row]
       start_row: ->
         [@col, @row] = [0, @row + 1] if @col > 0

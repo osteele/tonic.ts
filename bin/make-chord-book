@@ -13,20 +13,23 @@ books.chord_shape_flipbook = require '../lib/chord-shape-animation'
 program
   .version('0.0.1')
 
-with_book_options = (options, fn) ->
-  dir = './build/'
+mkdir_p = (dirname) ->
   try
-    fs.mkdirSync(dir)
+    fs.mkdirSync dirname
   catch err
     throw err unless err.code == 'EEXIST'
-  Layout.directory dir
+
+with_book_options = (options, fn) ->
+  dirname = './build/'
+  mkdir_p dirname
+  Layout.directory dirname
   fn()
 
 subcommands = []
 
 subcommand = (name) ->
   subcommands.push name
-  program.command(name)
+  program.command name
 
 book_command = (action, name) ->
   action_options = null
@@ -44,7 +47,8 @@ book_command(books.chord_book, 'chordbook')
   .option('-a, --combined', 'Combine all fingerings onto each chord chart')
   .action_options (options) -> {best_fingering: not options.combined}
 
-book_command(books.harmonic_table_chords, 'harmonic-table')
+book_command(books.harmonic_table_chords, 'harmonic-table-chords')
+book_command(books.harmonic_table_scales, 'harmonic-table-scales')
 
 book_command(books.chord_fingerings_page, 'fingerings')
   .description('Fingerings for a specific chord')
@@ -56,7 +60,7 @@ book_command(books.chord_shape_fragments, 'fragments')
   .action_options (options) -> {chord_pages: options.chordPages}
 
 book_command(books.intervals_book, 'intervals')
-  .description('Intervals on the fretboard')
+  .description('IntervalNames on the fretboard')
   .action_options -> {by_root: true}
 
 book_command(books.chord_shape_flipbook, 'animation')

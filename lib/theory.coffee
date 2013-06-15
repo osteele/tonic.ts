@@ -1,12 +1,37 @@
 _ = require 'underscore'
 
-Intervals = ['P8', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7']
+NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
+
+IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8']
 
 LongIntervalNames = [
-  'Octave', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
-  'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th']
+  'Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
+  'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave']
 
-NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
+Scales = do ->
+  scales = {
+    'Diatonic Major': '024579e'
+    'Natural Minor': '023578t'
+    'Melodic Minor': '023579e'
+    'Harmonic Minor': '023578e'
+    'Pentatonic Major': '02479'
+    'Pentatonic Minor': '0357t'
+    'Blues': '03567t'
+    'Freygish': '014578t'
+    'Whole Tone': '02486t'
+    'Alternating': '0235689e'
+  }
+  for name, tones of scales
+    scales[name] = {name, tones: _.map tones, (c) -> {'t':10, 'e':11}[c] or Number(c)}
+  scales
+
+Modes = do (root_tones=Scales['Diatonic Major'].tones) ->
+  modes = {}
+  mode_names = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
+  for displacement, i in root_tones
+    name = mode_names[i]
+    modes[name] = {name, degree: i, tones: ((d - displacement + 12) % 12 for d in root_tones[i...].concat root_tones[...i])}
+  modes
 
 class Chord
   constructor: (options) ->
@@ -24,13 +49,13 @@ class Chord
     degrees[1] = {'Sus2': 2, 'Sus4': 4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
     @components = for pc, pci in @pitch_classes
-      name = Intervals[pc]
+      name = IntervalNames[pc]
       degree = degrees[pci]
       if pc == 0
         name = 'R'
       else unless Number(name.match(/\d+/)?[0]) == degree
-        name = "A#{degree}" if Number(Intervals[pc - 1].match(/\d+/)?[0]) == degree
-        name = "d#{degree}" if Number(Intervals[pc + 1].match(/\d+/)?[0]) == degree
+        name = "A#{degree}" if Number(IntervalNames[pc - 1].match(/\d+/)?[0]) == degree
+        name = "d#{degree}" if Number(IntervalNames[pc + 1].match(/\d+/)?[0]) == degree
       name
     if typeof @root == 'number'
       Object.defineProperty this, 'name', get: ->
@@ -76,8 +101,10 @@ interval_class_between = (pca, pcb) ->
 
 module.exports = {
   Chords
-  Intervals
+  IntervalNames
   LongIntervalNames
+  Modes
   NoteNames
+  Scales
   interval_class_between
 }
