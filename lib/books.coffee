@@ -146,17 +146,14 @@ intervals_book = (options={}) ->
 #
 
 harmonic_table_chords = (options={}) ->
-  console.info 'chords', options.chords
   options = _.extend {}, options, chords: true
   harmonic_table options
 
 harmonic_table_scales = (options={}) ->
-  console.info 'scales', options.chords
   options = _.extend {}, options, scales: true, modes: true
   harmonic_table options
 
 harmonic_table = (options={}) ->
-  console.info options.chords
   {title} = options
   radius = 20
   title ||= do ->
@@ -165,19 +162,23 @@ harmonic_table = (options={}) ->
     return 'Harmonic Table Modes' if options.modes
     return 'Harmonic Table Intervals' if options.intervals
     return 'Harmonic Table'
-  console.info title
+
+  grid_options =
+    cols: 6
+    rows: 4
+    cell_width: 80
+    cell_height: 80 + 40
+    header_height: 180
+
+  if options.scales
+    grid_options.cell_height += 30
+    _.extend grid_options, cols: 4, cell_width: 130
 
   with_book title, size: PaperSizes.letter, (book) ->
-    with_grid cols: 6, rows: 4
-    , cell_width: 80
-    , cell_height: 80 + 40
-    , header_height: 140
-    , (grid) ->
+    with_grid grid_options, (grid) ->
 
       with_graphics_context (ctx) ->
-        ctx.translate 100, -130
-        grid.add_cell ->
-          draw_harmonic_table [0...12], radius: 50, label_cells: true, center: true
+        draw_harmonic_table [0...12], radius: 30, label_cells: true, center: true
 
       if options.intervals
         intervals = [7, 4, 3, 2, 1]
@@ -196,7 +197,10 @@ harmonic_table = (options={}) ->
 
       if options.scales
         grid.start_row()
-        for name, {tones} of Scales
+        for {name, tones} in Scales
+          t = tones.slice 0
+          tones = tones.concat (i + 12 for i in t)
+          tones = tones.concat (i + 24 for i in t)
           grid.add_cell ->
             draw_text name
             , font: '12px Times', fillStyle: 'black'
@@ -205,7 +209,7 @@ harmonic_table = (options={}) ->
 
       if options.modes
         grid.start_row()
-        for name, {tones} of Modes
+        for {name, tones} in Modes
           continue if name == 'Ionian'
           grid.add_cell ->
             draw_text name

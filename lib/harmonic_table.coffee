@@ -21,15 +21,28 @@ IntervalVectors =
   6: {m3: 2}
   11: {P5: 1, M3: 1}
 
-# Returns a record of {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
+# Returns a record {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
 # of the interval class.
 interval_class_vectors = (interval_class) ->
+  original_interval_class = interval_class
+  adj = {}
+  adjust = (d_ic, steps) ->
+    interval_class += d_ic
+    adj[k] ?= 0 for k of steps
+    adj[k] += v for k, v of steps
+  adjust -24, P5: 4, M3: -1 while interval_class >= 24
+  adjust -12, M3: 3 while interval_class >= 12
   [record, sign] = [IntervalVectors[interval_class], 1]
   [record, sign] = [IntervalVectors[12 - interval_class], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
   intervals[k] *= sign for k of intervals
-  computed_semitones = (12 + 7 * intervals.P5 + intervals.M3 * 4 + intervals.m3 * 3) % 12
-  console.error "#{computed_semitones} != #{interval_class}" unless computed_semitones == interval_class
+  intervals[k] += v for k, v of adj
+  computed_semitones = (12 + intervals.P5 * 7 + intervals.M3 * 4 + intervals.m3 * 3) % 12
+  unless computed_semitones == original_interval_class % 12
+    console.error "Error computing grid position for #{original_interval_class}:\n"
+      , "  #{original_interval_class} ->", intervals
+      , '->', computed_semitones
+      , '!=', original_interval_class % 12
   intervals
 
 draw_harmonic_table = (interval_classes, options={}) ->
@@ -62,11 +75,12 @@ draw_harmonic_table = (interval_classes, options={}) ->
 
       for interval_klass in interval_classes
         is_root = interval_klass == 0
-        color = colors[interval_klass]
+        color = colors[interval_klass % 12]
         color ||= colors[12 - interval_klass]
         ctx.beginPath()
         {x, y} = cell_center interval_klass
 
+        # frame
         for i in [0..6]
           a = i * Math.PI / 3
           pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
@@ -75,23 +89,28 @@ draw_harmonic_table = (interval_classes, options={}) ->
         ctx.strokeStyle = 'gray'
         ctx.stroke()
 
-        if is_root or options.fill_cells
+        # fill
+        if is_root or (options.fill_cells and interval_klass < 12)
           ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
           ctx.globalAlpha = 0.3 unless is_root
           ctx.fill()
           ctx.globalAlpha = 1
-          continue
 
+        continue if is_root or options.fill_cells
+
+        # fill
         ctx.globalAlpha = 0.3 if options.label_cells
-        ctx.beginPath()
         do ->
           [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
-          [dx, dy] = [dx * dn, dy * dn]
+          dx *= dn
+          dy *= dn
+          ctx.beginPath()
           ctx.moveTo 0, 0
           ctx.lineTo x + dx, y + dy
           ctx.lineTo x - dx, y - dy
           ctx.fillStyle = color
           ctx.fill()
+
         ctx.beginPath()
         ctx.arc x, y, 2, 0, 2 * Math.PI, false
         ctx.fillStyle = color

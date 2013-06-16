@@ -16,7 +16,7 @@ module.exports = (grunt) ->
           stderr: true
     watch:
       scripts:
-        files: ['**/*.coffee', 'bin/make-chord-book flipbook']
+        files: ['**/*.coffee', 'bin/make-chord-book']
         tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runAll']
         options:
           nospawn: true,

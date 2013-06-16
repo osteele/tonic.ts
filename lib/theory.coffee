@@ -9,28 +9,33 @@ LongIntervalNames = [
   'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave']
 
 Scales = do ->
-  scales = {
-    'Diatonic Major': '024579e'
-    'Natural Minor': '023578t'
-    'Melodic Minor': '023579e'
-    'Harmonic Minor': '023578e'
-    'Pentatonic Major': '02479'
-    'Pentatonic Minor': '0357t'
-    'Blues': '03567t'
-    'Freygish': '014578t'
-    'Whole Tone': '02486t'
-    'Alternating': '0235689e'
-  }
-  for name, tones of scales
-    scales[name] = {name, tones: _.map tones, (c) -> {'t':10, 'e':11}[c] or Number(c)}
+  scale_specs = [
+    'Diatonic Major: 024579e'
+    'Natural Minor: 023578t'
+    'Melodic Minor: 023579e'
+    'Harmonic Minor: 023578e'
+    'Pentatonic Major: 02479'
+    'Pentatonic Minor: 0357t'
+    'Blues: 03567t'
+    'Freygish: 014578t'
+    'Whole Tone: 02486t'
+    'Alternating: 0235689e'
+  ]
+  scales = []
+  for spec, i in scale_specs
+    [name, tones] = spec.split(/:\s*/, 2)
+    tones = _.map tones, (c) -> {'t':10, 'e':11}[c] or Number(c)
+    # console.info 'set', name, i
+    scales[name] = scales[i] = {name, tones}
   scales
 
 Modes = do (root_tones=Scales['Diatonic Major'].tones) ->
-  modes = {}
   mode_names = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
+  modes = []
   for displacement, i in root_tones
     name = mode_names[i]
-    modes[name] = {name, degree: i, tones: ((d - displacement + 12) % 12 for d in root_tones[i...].concat root_tones[...i])}
+    tones = ((d - displacement + 12) % 12 for d in root_tones[i...].concat root_tones[...i])
+    modes[name] = modes[i] = {name, degree: i, tones}
   modes
 
 class Chord
@@ -39,14 +44,11 @@ class Chord
     @abbrs = options.abbrs or [options.abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr = options.abbr or @abbrs[0]
-    parse_pitch_class = (pc) ->
-      pitch_class_codes = {'t': 10, 'e': 11}
-      pitch_class_codes[pc] or parseInt(pc, 10)
-    @pitch_classes = _.map(options.pitch_classes, parse_pitch_class)
+    @pitch_classes = _.map options.pitch_classes, (c) -> {'t':10, 'e':11}[c] or Number(c)
     @root = options.root
-    @root = NoteNames.indexOf(@root) if typeof @root == 'string'
+    @root = NoteNames.indexOf @root if typeof @root == 'string'
     degrees = (1 + 2 * i for i in [0..@pitch_classes.length])
-    degrees[1] = {'Sus2': 2, 'Sus4': 4}[@name] || degrees[1]
+    degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
     @components = for pc, pci in @pitch_classes
       name = IntervalNames[pc]
