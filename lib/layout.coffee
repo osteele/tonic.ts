@@ -17,20 +17,20 @@ erase_background = ->
 
 measure_text = (text, {font}={}) ->
   ctx.font = font if font
-  ctx.measureText(text)
+  ctx.measureText text
 
 draw_text = (text, options={}) ->
-  options = text if _.isObject(text)
+  options = text if _.isObject text
   {font, fillStyle, x, y, gravity, width} = options
   gravity ||= ''
   if options.choices
     for choice in options.choices
-      text = choice if _.isString(choice)
-      {font} = choice if _.isObject(choice)
+      text = choice if _.isString choice
+      {font} = choice if _.isObject choice
       break if measure_text(text, font: font).width <= options.width
   ctx.font = font if font
   ctx.fillStyle = fillStyle if fillStyle
-  m = ctx.measureText(text)
+  m = ctx.measureText text
   x ||= 0
   y ||= 0
   x -= m.width / 2 if gravity.match(/^(top|center|middle|centerbottom)$/i)
@@ -67,6 +67,76 @@ with_alignment = (options, cb) ->
 
 
 #
+# Block-based Declarative Layout
+#
+
+block = (options) -> options
+
+pad_block = (block, options) ->
+  block.height += options.bottom if options.bottom
+  block.descent = ((block.descent ? 0) + options.bottom) if options.bottom
+  block
+
+text_block = (text, options) ->
+  options = _.extend {}, options, gravity: false
+  measure = measure_text text, options
+  block
+    width: measure.width
+    height: measure.emHeightAscent + measure.emHeightDescent
+    descent: measure.emHeightDescent
+    draw: -> draw_text text, options
+
+above = (b1, b2) ->
+  width = Math.max b1.width, b2.width
+  block
+    width: width
+    height: b1.height + b2.height
+    draw: ->
+      with_graphics_context (ctx) ->
+        ctx.translate (width - b1.width) / 2, b1.height - (b1.descent ? 0)
+        b1.draw()
+      with_graphics_context (ctx) ->
+        ctx.translate (width - b2.width) / 2, b1.height + b2.height - (b2.descent ? 0)
+        b2.draw()
+
+labeled = (text, block) ->
+  options =
+    font: '12px Times'
+    fillStyle: 'black'
+  above text_block(text, options), block
+
+with_grid_blocks = (options, generator) ->
+  options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
+
+  header = null
+  cells = []
+  generator
+    header: (block) -> header = block
+    start_row: () -> cells.push {width: 0, height: 0, linebreak: true, draw: ->}
+    add_cell: (block) -> cells.push block
+
+  max_width = Math.max _.pluck(cells, 'width')...
+  max_height = Math.max _.pluck(cells, 'height')...
+
+  _.extend options
+    , header_height: header.height
+    , cell_width: max_width
+    , cell_height: max_height
+    , cols: Math.max 1, Math.floor(options.paper_size.width / (max_width + options.gutter_width))
+    # , rows: Math.max 1, Math.floor((options.paper_size.height - options.header_height) / (max_height + options.gutter_height))
+
+  with_grid options, (grid) ->
+    if header
+      with_graphics_context (ctx) ->
+        ctx.translate 0, header.height - (header.descent ? 0)
+        header?.draw()
+    cells.forEach (block) ->
+      grid.start_row() if block.linebreak?
+      unless block.linebreak?
+        grid.add_cell -> block.draw()
+
+
+#
 # File Saving
 #
 
@@ -84,7 +154,7 @@ save_canvas_to_png = (canvas, fname) ->
 
 
 #
-# Layout
+# Paper Sizes
 #
 
 PaperSizes =
@@ -101,6 +171,44 @@ PaperSizes =
   'ANSI C': '17in × 22in'
   'ANSI D': '22in × 34in'
   'ANSI E': '34in × 44in'
+
+get_page_size_dimensions = (size, orientation=null) ->
+  parseMeasure = (measure) ->
+    return measure if typeof measure == 'number'
+    unless measure.match /^(\d+(?:\.\d*)?)\s*(.+)$/
+      throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}"
+    [n, units] = [Number(RegExp.$1), RegExp.$2]
+    switch units
+      when "" then n
+      when "in" then n * 72
+      else throw new Error "Unrecognized units #{util.inspect units} in #{util.inspect size}"
+
+  {width, height} = size
+  while _.isString(size)
+    [size, orientation] = [RegExp.$1, RegExp.R2] if size.match /^(.+)\s+(landscape|portrait)$/
+    break unless size of PaperSizes
+    size = PaperSizes[size]
+    {width, height} = size
+  if _.isString(size)
+    throw new Error "Unrecognized book size format #{util.inspect size}" unless size.match /^(.+?)\s*[x×]\s*(.+)$/
+    [width, height] = [RegExp.$1, RegExp.$2]
+
+  [width, height] = [parseMeasure(width), parseMeasure(height)]
+  switch orientation or ''
+    when 'landscape' then [width, height] = [height, width] unless width > height
+    when 'portrait' then [width, height] = [height, width] if width > height
+    when '' then null
+    else throw new Error "Unknown orientation #{util.inspect orientation}"
+  {width, height}
+
+do ->
+  for name, value of PaperSizes
+    PaperSizes[name] = get_page_size_dimensions value
+
+
+#
+# Layout
+#
 
 CurrentPage = null
 CurrentBook = null
@@ -140,7 +248,6 @@ with_page = (options, draw_page) ->
   finally
     CurrentPage = null
 
-
 with_grid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
   options = _.extend defaults, options
@@ -176,34 +283,6 @@ with_grid = (options, cb) ->
           ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
           draw_fn()
     overflow = (cell for cell in overflow when cell.row >= rows)
-
-get_page_size_dimensions = (size, orientation=null) ->
-  parseMeasure = (measure) ->
-    return measure if typeof measure == 'number'
-    unless measure.match /^(\d+(?:\.\d*)?)\s*(.+)$/
-      throw new Error "Unrecognized measure #{util.inspect measure} in #{util.inspect size}"
-    [n, units] = [Number(RegExp.$1), RegExp.$2]
-    switch units
-      when "" then n
-      when "in" then n * 72
-      else throw new Error "Unrecognized units #{util.inspect units} in #{util.inspect size}"
-
-  {width, height} = size
-  while _.isString(size)
-    [size, orientation] = [RegExp.$1, RegExp.R2] if size.match /^(.+)\s+(landscape|portrait)$/
-    break unless size of PaperSizes
-    size = PaperSizes[size]
-  if _.isString(size)
-    throw new Error "Unrecognized book size format #{util.inspect size}" unless size.match /^(.+?)\s*[x×]\s*(.+)$/
-    [width, height] = [RegExp.$1, RegExp.$2]
-  [width, height] = [parseMeasure(width), parseMeasure(height)]
-  switch orientation
-    when 'landscape' then [width, height] = [height, width] unless width > height
-    when 'portrait' then [width, height] = [height, width] if width > height
-    when '' then null
-    when null then null
-    else throw new Error "Unknown oreientation #{util.inspect orientation}"
-  {width, height}
 
 with_book = (filename, options, cb) ->
   throw new Error "Already inside book" if CurrentBook
@@ -254,8 +333,12 @@ module.exports = {
   PaperSizes
   with_book
   with_grid
+  with_grid_blocks
   with_page
   draw_text
+  block
+  pad_block
+  labeled
   measure_text
   directory
   filename

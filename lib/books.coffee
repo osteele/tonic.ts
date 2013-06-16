@@ -32,14 +32,18 @@ Layout = require('./layout')
   PaperSizes
   erase_background
   draw_text
+  labeled
+  pad_block
   with_graphics_context
   save_canvas_to_png
-  with_grid
   with_book
+  with_grid
+  with_grid_blocks
 } = Layout
 
 draw_pitch_diagram = require('./pitch_diagram').draw
 draw_harmonic_table = require('./harmonic_table').draw
+harmonic_table_block = require('./harmonic_table').block
 {chord_shape_fragments} = require './chord-fragment-book'
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
@@ -169,16 +173,18 @@ harmonic_table = (options={}) ->
     cell_width: 80
     cell_height: 80 + 40
     header_height: 180
+    gutter_height: 20
 
   if options.scales
     grid_options.cell_height += 30
     _.extend grid_options, cols: 4, cell_width: 130
 
-  with_book title, size: PaperSizes.letter, (book) ->
-    with_grid grid_options, (grid) ->
+  grid_options.paper_size = PaperSizes.letter
 
-      with_graphics_context (ctx) ->
-        draw_harmonic_table [0...12], radius: 30, label_cells: true, center: true
+  with_book title, size: PaperSizes.letter, (book) ->
+    with_grid_blocks grid_options, (grid) ->
+
+      grid.header pad_block(harmonic_table_block([0...12], radius: 30, label_cells: true), bottom: 20)
 
       if options.intervals
         intervals = [7, 4, 3, 2, 1]
@@ -189,42 +195,38 @@ harmonic_table = (options={}) ->
           grid.start_row()
           for semitones in _.without(intervals, 0)
             interval_name = IntervalNames[semitones]
-            grid.add_cell ->
-              draw_text interval_name
-              , font: '12px Times', fillStyle: 'black'
-              , x: 80 / 2, gravity: 'center'
-              draw_harmonic_table [semitones], radius: radius, label_cells: true
+            grid.add_cell(
+              labeled interval_name
+              , harmonic_table_block [semitones], radius: radius, label_cells: true
+            )
 
       if options.scales
         grid.start_row()
-        for {name, tones} in Scales
+        Scales.forEach ({name, tones}) ->
           t = tones.slice 0
           tones = tones.concat (i + 12 for i in t)
           tones = tones.concat (i + 24 for i in t)
-          grid.add_cell ->
-            draw_text name
-            , font: '12px Times', fillStyle: 'black'
-            , x: 80 / 2, gravity: 'center'
-            draw_harmonic_table tones, radius: radius, fill_cells: true
+          grid.add_cell(
+            labeled name
+            , harmonic_table_block tones, radius: radius, fill_cells: true
+          )
 
       if options.modes
         grid.start_row()
-        for {name, tones} in Modes
-          continue if name == 'Ionian'
-          grid.add_cell ->
-            draw_text name
-            , font: '12px Times', fillStyle: 'black'
-            , x: 80 / 2, gravity: 'center'
-            draw_harmonic_table tones, radius: radius, fill_cells: true
+        Modes.forEach ({name, tones}) ->
+          return if name == 'Ionian'
+          grid.add_cell(
+            labeled name
+            , harmonic_table_block tones, radius: radius, fill_cells: true
+          )
 
       if options.chords
         grid.start_row()
         Chords.forEach (chord) ->
-          grid.add_cell ->
-            draw_text chord.name
-            , font: '12px Times', fillStyle: 'black'
-            , x: 80 / 2, gravity: 'center'
-            draw_harmonic_table chord.pitch_classes, radius: radius, fill_cells: true
+          grid.add_cell(
+            labeled chord.name
+            , harmonic_table_block chord.pitch_classes, radius: radius, fill_cells: true
+            )
 
 
 #

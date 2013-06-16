@@ -18,8 +18,9 @@ Scales = do ->
     'Pentatonic Minor: 0357t'
     'Blues: 03567t'
     'Freygish: 014578t'
-    'Whole Tone: 02486t'
-    'Alternating: 0235689e'
+    'Whole Tone: 02468t'
+    # 'Octatonic' is the classical name. It's the jazz 'Diminished' scale.
+    'Octatonic: 0235689e'
   ]
   scales = []
   for spec, i in scale_specs

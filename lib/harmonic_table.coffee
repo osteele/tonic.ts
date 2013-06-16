@@ -1,6 +1,6 @@
 _ = require 'underscore'
 {IntervalNames} = require './theory'
-{draw_text, with_graphics_context, with_alignment} = require './layout'
+{block, draw_text, with_graphics_context, with_alignment} = require './layout'
 ChordDiagram = require './chord_diagram'
 
 DefaultStyle =
@@ -21,22 +21,35 @@ IntervalVectors =
   6: {m3: 2}
   11: {P5: 1, M3: 1}
 
+# IntervalVectors =
+#   1: {M3: 1, m3: -1}
+#   2: {M3: 2, m3: -2}
+#   3: {m3: 1}
+#   4: {M3: 1}
+#   5: {M3: 2, m3: -1}
+#   6: {m3: 2}
+#   7: {M3: 1, m3: 1}
+#   8: {M3: 2}
+#   9: {m3: 3}
+#   10: {M3: 1, m3: 2}
+#   11: {P5: 1, M3: 1}
+
 # Returns a record {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
 # of the interval class.
 interval_class_vectors = (interval_class) ->
-  original_interval_class = interval_class
-  adj = {}
-  adjust = (d_ic, steps) ->
+  original_interval_class = interval_class # for error reporting
+  adjustments = {}
+  adjust = (d_ic, intervals) ->
     interval_class += d_ic
-    adj[k] ?= 0 for k of steps
-    adj[k] += v for k, v of steps
+    adjustments[k] ?= 0 for k of intervals
+    adjustments[k] += v for k, v of intervals
   adjust -24, P5: 4, M3: -1 while interval_class >= 24
   adjust -12, M3: 3 while interval_class >= 12
   [record, sign] = [IntervalVectors[interval_class], 1]
   [record, sign] = [IntervalVectors[12 - interval_class], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
   intervals[k] *= sign for k of intervals
-  intervals[k] += v for k, v of adj
+  intervals[k] += v for k, v of adjustments
   computed_semitones = (12 + intervals.P5 * 7 + intervals.M3 * 4 + intervals.m3 * 3) % 12
   unless computed_semitones == original_interval_class % 12
     console.error "Error computing grid position for #{original_interval_class}:\n"
@@ -47,7 +60,8 @@ interval_class_vectors = (interval_class) ->
 
 draw_harmonic_table = (interval_classes, options={}) ->
   options = _.extend {}, DefaultStyle, options
-  options.center = false if options.align
+  options.center = false if options.align or options.bottomLeft
+  options.align = false if options.bottomLeft
   colors = options.interval_class_colors
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
   r = options.radius
@@ -69,9 +83,12 @@ draw_harmonic_table = (interval_classes, options={}) ->
     bounds.right = Math.max bounds.right, x + hex_radius
     bounds.bottom = Math.max bounds.bottom, y + hex_radius
 
+  return {width: bounds.right - bounds.left, height: bounds.bottom - bounds.top} if options.compute_bounds
+
   with_graphics_context (ctx) ->
     with_alignment align: options.align, measured: bounds, ->
       ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
+      ctx.translate -bounds.left, -bounds.bottom if options.bottomLeft
 
       for interval_klass in interval_classes
         is_root = interval_klass == 0
@@ -129,6 +146,14 @@ draw_harmonic_table = (interval_classes, options={}) ->
           {x, y} = cell_center interval_klass
           draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
+harmonic_table_block = (tones, options) ->
+  bounds = draw_harmonic_table tones, _.extend({}, options, compute_bounds: true)
+  block
+    width: bounds.width
+    height: bounds.height
+    draw: -> draw_harmonic_table tones, _.extend({}, options, bottomLeft: true)
+
 module.exports = {
   draw: draw_harmonic_table
+  block: harmonic_table_block
 }
