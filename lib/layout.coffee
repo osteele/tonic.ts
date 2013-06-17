@@ -1,5 +1,6 @@
-util = require 'util'
 fs = require 'fs'
+path = require 'path'
+util = require 'util'
 _ = require 'underscore'
 Canvas = require 'canvas'
 
@@ -106,6 +107,9 @@ above = (b1, b2, options={}) ->
 hbox = (b1, b2) ->
   container_size = CurrentBook?.page_options or CurrentPage
   height = Math.max b1.height, b2.height
+  # console.info container_size.width, container_size.right_margin
+  console.info 'page', CurrentPage
+  console.info 'book', CurrentBook
   block
     width: b1.width + b2.width
     height: height
@@ -113,7 +117,7 @@ hbox = (b1, b2) ->
       with_graphics_context (ctx) ->
         b1.draw()
       with_graphics_context (ctx) ->
-        ctx.translate container_size.width - b2.width, 0
+        ctx.translate container_size.width - b2.width - (container_size.right_margin ? 0), 0
         b2.draw()
 
 labeled = (text, options, block) ->
@@ -172,7 +176,7 @@ directory = (path) -> BuildDirectory = path
 filename = (name) -> DefaultFilename = name
 
 save_canvas_to_png = (canvas, fname) ->
-  out = fs.createWriteStream(BuildDirectory + fname)
+  out = fs.createWriteStream(path.join(BuildDirectory, fname))
   stream = canvas.pngStream()
   stream.on 'data', (chunk) -> out.write(chunk)
   stream.on 'end', () -> console.info "Saved #{fname}"
@@ -241,25 +245,33 @@ Mode = null
 
 with_page = (options, draw_page) ->
   throw new Error "Already inside a page" if CurrentPage
-
   defaults = {width: 100, height: 100, page_margin: 10}
   {width, height, page_margin} = _.extend defaults, options
-  canvas ||= new Canvas width + 2 * page_margin, height + 2 * page_margin, Mode
+  {left_margin, top_margin, right_margin, bottom_margin} = options
+  left_margin ?= page_margin
+  top_margin ?= page_margin
+  right_margin ?= page_margin
+  bottom_margin ?= page_margin
+
+  canvas ||= new Canvas width + left_margin + right_margin, height + top_margin + bottom_margin, Mode
   ctx = canvas.getContext '2d'
   ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
 
   try
-    CurrentPage = page =
-      left_margin: page_margin
-      top_margin: page_margin
+    page =
+      left_margin: left_margin
+      top_margin: top_margin
+      right_margin: right_margin
+      bottom_margin: bottom_margin
       width: canvas.width
       height: canvas.height
       context: ctx
+    CurrentPage = page
 
     erase_background()
 
     with_graphics_context (ctx) ->
-      ctx.translate page_margin, page_margin
+      ctx.translate left_margin, bottom_margin
       CurrentBook?.header? page
       CurrentBook?.footer? page
       draw_page page
@@ -268,7 +280,7 @@ with_page = (options, draw_page) ->
       when 'pdf' then ctx.addPage()
       else
         filename = "#{DefaultFilename or 'test'}.png"
-        fs.writeFile BuildDirectory + filename, canvas.toBuffer()
+        fs.writeFile path.join(BuildDirectory, filename), canvas.toBuffer()
         console.info "Saved #{filename}"
   finally
     CurrentPage = null
@@ -310,15 +322,18 @@ with_grid = (options, cb) ->
     overflow = (cell for cell in overflow when cell.row >= rows)
 
 with_book = (filename, options, cb) ->
-  throw new Error "Already inside book" if CurrentBook
+  throw new Error "with_book called recursively" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
   page_limit = options.page_limit
   page_count = 0
-  page_header = null
+
   try
-    Mode = 'pdf'
-    CurrentBook = book =
+    book =
       page_options: {}
+
+    Mode = 'pdf'
+    CurrentBook = book
+
     size = options.size
     if size
       {width, height} = get_page_size_dimensions size
@@ -326,6 +341,7 @@ with_book = (filename, options, cb) ->
       canvas ||= new Canvas width, height, Mode
       ctx = canvas.getContext '2d'
       ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
+
     cb
       page_header: (header) -> book.header = header
       page_footer: (footer) -> book.footer = footer
@@ -339,20 +355,23 @@ with_book = (filename, options, cb) ->
         else
           with_page options, draw_page
         @done = true if page_limit and page_limit <= page_count
-    unless canvas
+
+    if canvas
+      write_pdf canvas, path.join(BuildDirectory, "#{filename}.pdf")
+    else
       console.warn "No pages"
-      return
-    pathname = BuildDirectory + filename + ".pdf"
-    fs.writeFile pathname, canvas.toBuffer(), (err) ->
-      if err
-        console.error "Error #{err.code} writing to #{err.path}"
-      else
-        console.info "Saved #{pathname}"
   finally
-    canvas = null
-    ctx = null
     CurrentBook = null
     Mode = null
+    canvas = null
+    ctx = null
+
+write_pdf = (canvas, pathname) ->
+  fs.writeFile pathname, canvas.toBuffer(), (err) ->
+    if err
+      console.error "Error #{err.code} writing to #{err.path}"
+    else
+      console.info "Saved #{pathname}"
 
 module.exports = {
   PaperSizes

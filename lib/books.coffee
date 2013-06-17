@@ -44,6 +44,7 @@ Layout = require('./layout')
 } = Layout
 
 draw_pitch_diagram = require('./pitch_diagram').draw
+pitch_diagram_block = require('./pitch_diagram').block
 draw_harmonic_table = require('./harmonic_table').draw
 harmonic_table_block = require('./harmonic_table').block
 {chord_shape_fragments} = require './chord-fragment-book'
@@ -261,16 +262,8 @@ chord_page = (chord, options={}) ->
     grid.header(
       hbox(
         text_block("#{chord.name} Chords", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'),
-        {
-          width: 50
-          height: 30
-          draw: ->
-            with_graphics_context (ctx) ->
-              # ctx.translate 285, 20
-              ctx.scale 0.85, 0.85
-              ctx.translate 17, -17
-              draw_pitch_diagram ctx, chord.pitch_classes
-        }
+        # hspring,
+        pitch_diagram_block chord.pitch_classes, 0.85
       )
     )
 
