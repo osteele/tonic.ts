@@ -47,25 +47,6 @@ with_graphics_context = (fn) ->
   finally
     ctx.restore()
 
-with_alignment = (options, cb) ->
-  align = options.align
-  bounds = options.measured
-  return cb() unless align
-  with_graphics_context (ctx) ->
-    dx = dy = 0
-    measured_height = bounds.bottom - bounds.top
-    dx = align.x - bounds.left if align.x?
-    dy = align.y - bounds.bottom if align.y?
-    ctx.translate dx, dy
-    cb()
-    if bounds
-      bounds = _.extend {}, bounds
-      bounds.left += dx
-      bounds.right += dx
-      bounds.top += dy
-      bounds.bottom += dy
-  return bounds
-
 
 #
 # Block-based Declarative Layout
@@ -88,30 +69,34 @@ text_block = (text, options) ->
     draw: -> draw_text text, options
 
 above = (b1, b2, options={}) ->
-  width = Math.max b1.width, b2.width
+  blocks = [b1, b2]
+  width = Math.max _.pluck(blocks, 'width')...
+  height = _.pluck(blocks, 'height').reduce (a, b) -> a + b
   block
     width: width
-    height: b1.height + b2.height
+    height: height
+    descent: b2.descent
     draw: ->
-      with_graphics_context (ctx) ->
-        dx = switch options.align
-          when 'left' then 0
-          else (width - b1.width) / 2
-        ctx.translate dx, b1.height - (b1.descent ? 0)
-        b1.draw()
-      with_graphics_context (ctx) ->
-        ctx.translate (width - b2.width) / 2, b1.height + b2.height - (b2.descent ? 0)
-        b2.draw()
+      dy = -height
+      blocks.forEach (b1) ->
+        with_graphics_context (ctx) ->
+          dx = switch options.align
+            when 'left' then 0
+            else (width - b1.width) / 2
+          descent = b1.descent ? 0
+          ctx.translate dx, dy + b1.height - descent
+          b1.draw()
+          dy += b1.height
 
 # Hardwired to assume an infinite spring between the two boxes
 hbox = (b1, b2) ->
   container_size = CurrentBook?.page_options or CurrentPage
-  height = Math.max b1.height, b2.height
-  # console.info container_size.width, container_size.right_margin
-  console.info 'page', CurrentPage
-  console.info 'book', CurrentBook
+  blocks = [b1, b2]
+  height = Math.max _.pluck(blocks, 'height')...
+  width = _.pluck(blocks, 'width').reduce (a, b) -> a + b
+  width = container_size.width if width == Infinity
   block
-    width: b1.width + b2.width
+    width: width
     height: height
     draw: ->
       with_graphics_context (ctx) ->
@@ -132,12 +117,14 @@ with_grid_blocks = (options, generator) ->
   options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
   container_size = CurrentBook?.page_options or CurrentPage
 
+  line_break = {width: 0, height: 0, linebreak: true}
   header = null
   cells = []
   generator
     header: (block) -> header = block
-    start_row: () -> cells.push {width: 0, height: 0, linebreak: true, draw: ->}
-    add_cell: (block) -> cells.push block
+    start_row: () -> cells.push line_break
+    cell: (block) -> cells.push block
+    cells: (blocks) -> cells.push b for b in blocks
 
   {max, floor} = Math
 
@@ -161,8 +148,11 @@ with_grid_blocks = (options, generator) ->
         header?.draw()
     cells.forEach (block) ->
       grid.start_row() if block.linebreak?
-      unless block.linebreak?
-        grid.add_cell -> block.draw()
+      unless block == line_break
+        grid.add_cell ->
+          with_graphics_context (ctx) ->
+            ctx.translate 0, block.height  # align the tops
+            block.draw()
 
 
 #
@@ -387,7 +377,6 @@ module.exports = {
   measure_text
   directory
   filename
-  with_alignment
   with_graphics_context
   hbox
 }

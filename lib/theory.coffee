@@ -94,7 +94,7 @@ ChordDefinitions = [
   {name: 'Dominant 7b5', abbr: '7b5', pitch_classes: '046t'},
   # following is also half-diminished 7th
   {name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
-  {name: 'Diminished` Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
+  {name: 'Diminished Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
   {name: 'Minor-Major 7th', abbrs: ['min/maj7', 'min(maj7)'], pitch_classes: '037e'},
   {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitch_classes: '0479'},
   {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitch_classes: '0379'},

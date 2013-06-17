@@ -46,20 +46,18 @@ interval_class_vectors = (interval_class) ->
   intervals
 
 draw_harmonic_table = (interval_classes, options={}) ->
-  options = _.extend {}, DefaultStyle, options
-  options.center = false if options.align or options.bottomLeft
-  options.align = false if options.bottomLeft
+  options = _.extend {draw: true}, DefaultStyle, options
   colors = options.interval_class_colors
   interval_classes = [0].concat interval_classes unless 0 in interval_classes
-  r = options.radius
-  hex_radius = r / 2
+  cell_radius = options.radius
+  hex_radius = cell_radius / 2
 
   cell_center = (interval_klass) ->
     vectors = interval_class_vectors interval_klass
     dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
     dx = vectors.M3 - vectors.m3
-    x = dx * r * .8
-    y = -dy * r * .95
+    x = dx * cell_radius * .8
+    y = -dy * cell_radius * .95
     {x, y}
 
   bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
@@ -70,75 +68,74 @@ draw_harmonic_table = (interval_classes, options={}) ->
     bounds.right = Math.max bounds.right, x + hex_radius
     bounds.bottom = Math.max bounds.bottom, y + hex_radius
 
-  return {width: bounds.right - bounds.left, height: bounds.bottom - bounds.top} if options.compute_bounds
+  return {width: bounds.right - bounds.left, height: bounds.bottom - bounds.top} unless options.draw
 
   with_graphics_context (ctx) ->
-    with_alignment align: options.align, measured: bounds, ->
-      ctx.translate r * 2 - (bounds.right + bounds.left) / 2, r * 2 - (bounds.bottom + bounds.top) / 2 if options.center
-      ctx.translate -bounds.left, -bounds.bottom if options.bottomLeft
+    ctx.translate -bounds.left, -bounds.bottom
 
-      for interval_klass in interval_classes
-        is_root = interval_klass == 0
-        color = colors[interval_klass % 12]
-        color ||= colors[12 - interval_klass]
-        ctx.beginPath()
-        {x, y} = cell_center interval_klass
+    for interval_klass in interval_classes
+      is_root = interval_klass == 0
+      color = colors[interval_klass % 12]
+      color ||= colors[12 - interval_klass]
+      ctx.beginPath()
+      {x, y} = cell_center interval_klass
 
-        # frame
-        for i in [0..6]
-          a = i * Math.PI / 3
-          pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
-          ctx.moveTo pos... if i == 0
-          ctx.lineTo pos...
-        ctx.strokeStyle = 'gray'
-        ctx.stroke()
+      # frame
+      for i in [0..6]
+        a = i * Math.PI / 3
+        pos = [x + hex_radius * Math.cos(a), y + hex_radius * Math.sin(a)]
+        ctx.moveTo pos... if i == 0
+        ctx.lineTo pos...
+      ctx.strokeStyle = 'gray'
+      ctx.stroke()
 
-        # fill
-        if is_root or (options.fill_cells and interval_klass < 12)
-          ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
-          ctx.globalAlpha = 0.3 unless is_root
-          ctx.fill()
-          ctx.globalAlpha = 1
-
-        continue if is_root or options.fill_cells
-
-        # fill
-        ctx.globalAlpha = 0.3 if options.label_cells
-        do ->
-          [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
-          dx *= dn
-          dy *= dn
-          ctx.beginPath()
-          ctx.moveTo 0, 0
-          ctx.lineTo x + dx, y + dy
-          ctx.lineTo x - dx, y - dy
-          ctx.fillStyle = color
-          ctx.fill()
-
-        ctx.beginPath()
-        ctx.arc x, y, 2, 0, 2 * Math.PI, false
-        ctx.fillStyle = color
+      # fill
+      if is_root or (options.fill_cells and interval_klass < 12)
+        ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
+        ctx.globalAlpha = 0.3 unless is_root
         ctx.fill()
         ctx.globalAlpha = 1
 
-      ctx.beginPath()
-      ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
-      ctx.fillStyle = 'red'
-      ctx.fill()
+      continue if is_root or options.fill_cells
 
-      if options.label_cells
-        for interval_klass in interval_classes
-          label = IntervalNames[interval_klass]
-          label = 'R' if interval_klass == 0
-          {x, y} = cell_center interval_klass
-          draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
+      # fill
+      ctx.globalAlpha = 0.3 if options.label_cells
+      do ->
+        [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x*x + y*y)]
+        dx *= dn
+        dy *= dn
+        ctx.beginPath()
+        ctx.moveTo 0, 0
+        ctx.lineTo x + dx, y + dy
+        ctx.lineTo x - dx, y - dy
+        ctx.fillStyle = color
+        ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc x, y, 2, 0, 2 * Math.PI, false
+      ctx.fillStyle = color
+      ctx.fill()
+      ctx.globalAlpha = 1
+
+    ctx.beginPath()
+    ctx.arc 0, 0, 2.5, 0, 2 * Math.PI, false
+    ctx.fillStyle = 'red'
+    ctx.fill()
+
+    if options.label_cells
+      for interval_klass in interval_classes
+        label = IntervalNames[interval_klass]
+        label = 'R' if interval_klass == 0
+        {x, y} = cell_center interval_klass
+        draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
 harmonic_table_block = (tones, options) ->
-  bounds = draw_harmonic_table tones, _.extend({}, options, compute_bounds: true)
+  dimensions = draw_harmonic_table tones, _.extend({}, options, compute_bounds: true, draw: false)
   block
-    width: bounds.width
-    height: bounds.height
-    draw: -> draw_harmonic_table tones, _.extend({}, options, bottomLeft: true)
+    width: dimensions.width
+    height: dimensions.height
+    draw: ->
+      draw_harmonic_table tones, options
 
 module.exports = {
   draw: draw_harmonic_table

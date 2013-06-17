@@ -72,8 +72,8 @@ program
   .command('all')
   .action (options) ->
     with_book_options (options), ->
-      books.intervals_book by_root: true
-      books.intervals_book by_root: false
+      # books.intervals_book by_root: true
+      # books.intervals_book by_root: false
       books.chord_book best_fingering: true
       books.chord_book best_fingering: false
       books.harmonic_table_chords()

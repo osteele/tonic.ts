@@ -63,8 +63,6 @@ pitch_diagram_block = (pitch_classes, scale=1) ->
     draw: ->
       with_graphics_context (ctx) ->
         ctx.scale scale, scale
-        ctx.fillStyle = 'red'
-        ctx.fillRect 0, 0, (bounds.right - bounds.left), -(bounds.bottom - bounds.top)
         ctx.translate -bounds.left, -bounds.bottom
         draw_pitch_diagram ctx, pitch_classes
 
