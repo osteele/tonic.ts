@@ -86,27 +86,47 @@ text_block = (text, options) ->
     descent: measure.emHeightDescent
     draw: -> draw_text text, options
 
-above = (b1, b2) ->
+above = (b1, b2, options={}) ->
   width = Math.max b1.width, b2.width
   block
     width: width
     height: b1.height + b2.height
     draw: ->
       with_graphics_context (ctx) ->
-        ctx.translate (width - b1.width) / 2, b1.height - (b1.descent ? 0)
+        dx = switch options.align
+          when 'left' then 0
+          else (width - b1.width) / 2
+        ctx.translate dx, b1.height - (b1.descent ? 0)
         b1.draw()
       with_graphics_context (ctx) ->
         ctx.translate (width - b2.width) / 2, b1.height + b2.height - (b2.descent ? 0)
         b2.draw()
 
-labeled = (text, block) ->
-  options =
+# Hardwired to assume an infinite spring between the two boxes
+hbox = (b1, b2) ->
+  container_size = CurrentBook?.page_options or CurrentPage
+  height = Math.max b1.height, b2.height
+  block
+    width: b1.width + b2.width
+    height: height
+    draw: ->
+      with_graphics_context (ctx) ->
+        b1.draw()
+      with_graphics_context (ctx) ->
+        ctx.translate container_size.width - b2.width, 0
+        b2.draw()
+
+labeled = (text, options, block) ->
+  [options, block] = [{}, options] if arguments.length == 2
+  default_options =
     font: '12px Times'
     fillStyle: 'black'
-  above text_block(text, options), block
+  options = _.extend default_options, options
+  above text_block(text, options), block, options
 
 with_grid_blocks = (options, generator) ->
   options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
+  container_size = CurrentBook?.page_options or CurrentPage
 
   header = null
   cells = []
@@ -115,15 +135,20 @@ with_grid_blocks = (options, generator) ->
     start_row: () -> cells.push {width: 0, height: 0, linebreak: true, draw: ->}
     add_cell: (block) -> cells.push block
 
-  max_width = Math.max _.pluck(cells, 'width')...
-  max_height = Math.max _.pluck(cells, 'height')...
+  {max, floor} = Math
+
+  max_width = max _.pluck(cells, 'width')...
+  max_height = max _.pluck(cells, 'height')...
 
   _.extend options
-    , header_height: header.height
+    , header_height: header?.height or 0
     , cell_width: max_width
     , cell_height: max_height
-    , cols: Math.max 1, Math.floor(options.paper_size.width / (max_width + options.gutter_width))
-    # , rows: Math.max 1, Math.floor((options.paper_size.height - options.header_height) / (max_height + options.gutter_height))
+    , cols: max 1, floor((container_size.width + options.gutter_width) / (max_width + options.gutter_width))
+  options.rows = do ->
+    content_height = container_size.height - options.header_height
+    cell_height = max_height + options.gutter_height
+    max 1, floor((content_height + options.gutter_height) / cell_height)
 
   with_grid options, (grid) ->
     if header
@@ -287,7 +312,7 @@ with_grid = (options, cb) ->
 with_book = (filename, options, cb) ->
   throw new Error "Already inside book" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
-  page_limit = options.pages
+  page_limit = options.page_limit
   page_count = 0
   page_header = null
   try
@@ -338,10 +363,12 @@ module.exports = {
   draw_text
   block
   pad_block
+  text_block
   labeled
   measure_text
   directory
   filename
   with_alignment
   with_graphics_context
+  hbox
 }

@@ -1,4 +1,5 @@
 ChordDiagramStyle = require('./chord_diagram').defaultStyle
+{PI, cos, sin} = Math
 
 draw_pitch_diagram = (ctx, pitch_classes, options={}) ->
   {pitch_colors, pitch_names} = options
@@ -9,14 +10,13 @@ draw_pitch_diagram = (ctx, pitch_classes, options={}) ->
   r_label = r + 7
 
   pitch_class_angle = (pitch_class) ->
-    (-3 + pitch_class) * 2 * Math.PI / 12
+    (pitch_class - 3) * 2 * PI / 12
 
   for pitch_class in pitch_classes
-    a = pitch_class_angle pitch_class
+    angle = pitch_class_angle pitch_class
     pitch_dot_center =
-      x: r * Math.cos(a)
-      y: r * Math.sin(a)
-    # console.info pitch_class, a, pitch_dot_center
+      x: r * cos(angle)
+      y: r * sin(angle)
 
     ctx.beginPath()
     ctx.moveTo 0, 0
@@ -24,16 +24,16 @@ draw_pitch_diagram = (ctx, pitch_classes, options={}) ->
     ctx.stroke()
 
     ctx.beginPath()
-    ctx.arc pitch_dot_center.x, pitch_dot_center.y, 2, 0, 2 * Math.PI, false
+    ctx.arc pitch_dot_center.x, pitch_dot_center.y, 2, 0, 2 * PI, false
     ctx.fillStyle = pitch_colors[pitch_class] or 'black'
     ctx.fill()
 
   ctx.font = '4pt Times'
   ctx.fillStyle = 'black'
   for class_name, pitch_class in pitch_names
-    a = pitch_class_angle pitch_class
+    angle = pitch_class_angle pitch_class
     m = ctx.measureText class_name
-    ctx.fillText class_name, r_label * Math.cos(a) - m.width / 2, r_label * Math.sin(a) + m.emHeightDescent
+    ctx.fillText class_name, r_label * cos(angle) - m.width / 2, r_label * sin(angle) + m.emHeightDescent
 
 module.exports =
   draw: draw_pitch_diagram

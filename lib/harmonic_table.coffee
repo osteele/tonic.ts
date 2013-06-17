@@ -21,19 +21,6 @@ IntervalVectors =
   6: {m3: 2}
   11: {P5: 1, M3: 1}
 
-# IntervalVectors =
-#   1: {M3: 1, m3: -1}
-#   2: {M3: 2, m3: -2}
-#   3: {m3: 1}
-#   4: {M3: 1}
-#   5: {M3: 2, m3: -1}
-#   6: {m3: 2}
-#   7: {M3: 1, m3: 1}
-#   8: {M3: 2}
-#   9: {m3: 3}
-#   10: {M3: 1, m3: 2}
-#   11: {P5: 1, M3: 1}
-
 # Returns a record {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
 # of the interval class.
 interval_class_vectors = (interval_class) ->

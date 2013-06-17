@@ -6,6 +6,7 @@ _ = require 'underscore'
   StringCount
   StringNumbers
 } = require './fretboard_model'
+Layout = require './layout'
 
 
 #
@@ -152,8 +153,19 @@ draw_chord_diagram = (ctx, positions, options={}) ->
   draw_finger_positions() if positions
   draw_closed_strings() if positions and options.draw_closed_strings
 
+draw_chord_block = (positions, options) ->
+  dimensions = compute_dimensions()
+  Layout.block
+    width: dimensions.width
+    height: dimensions.height
+    draw: () ->
+      Layout.with_graphics_context (ctx) ->
+        ctx.translate 0, -dimensions.height
+        draw_chord_diagram ctx, positions, options
+
 module.exports =
   defaultStyle: DefaultStyle
   width: compute_dimensions().width
   height: compute_dimensions().height
   draw: draw_chord_diagram
+  block: draw_chord_block

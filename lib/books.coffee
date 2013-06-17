@@ -33,12 +33,14 @@ Layout = require('./layout')
   erase_background
   draw_text
   labeled
+  text_block
   pad_block
   with_graphics_context
   save_canvas_to_png
   with_book
   with_grid
   with_grid_blocks
+  hbox
 } = Layout
 
 draw_pitch_diagram = require('./pitch_diagram').draw
@@ -136,11 +138,11 @@ intervals_page = (semitones) ->
 intervals_book = (options={}) ->
   {by_root, pages} = options
   if by_root
-    with_book "Fretboard Intervals by Root", pages: pages, (book) ->
+    with_book "Fretboard Intervals by Root", page_limit: pages, (book) ->
       fretboard_positions_each (finger_position) ->
         intervals_from_position_page finger_position
   else
-    with_book "Fretboard Intervals", pages: pages, (book) ->
+    with_book "Fretboard Intervals", page_limit: pages, (book) ->
       for semitones in [0..12]
         intervals_page semitones
 
@@ -168,18 +170,14 @@ harmonic_table = (options={}) ->
     return 'Harmonic Table'
 
   grid_options =
-    cols: 6
-    rows: 4
-    cell_width: 80
-    cell_height: 80 + 40
-    header_height: 180
+    # rows: 3
     gutter_height: 20
 
-  if options.scales
-    grid_options.cell_height += 30
-    _.extend grid_options, cols: 4, cell_width: 130
-
-  grid_options.paper_size = PaperSizes.letter
+  extend_octave = (tones, octaves) ->
+    first_octave = tones.slice 0
+    [1...1+octaves].forEach (octave) ->
+      tones = tones.concat (i + 12 * octave for i in first_octave)
+    tones
 
   with_book title, size: PaperSizes.letter, (book) ->
     with_grid_blocks grid_options, (grid) ->
@@ -203,9 +201,7 @@ harmonic_table = (options={}) ->
       if options.scales
         grid.start_row()
         Scales.forEach ({name, tones}) ->
-          t = tones.slice 0
-          tones = tones.concat (i + 12 for i in t)
-          tones = tones.concat (i + 24 for i in t)
+          tones = extend_octave tones, 2
           grid.add_cell(
             labeled name
             , harmonic_table_block tones, radius: radius, fill_cells: true
@@ -214,7 +210,8 @@ harmonic_table = (options={}) ->
       if options.modes
         grid.start_row()
         Modes.forEach ({name, tones}) ->
-          return if name == 'Ionian'
+          # return if name == 'Ionian'
+          tones = extend_octave tones, 2
           grid.add_cell(
             labeled name
             , harmonic_table_block tones, radius: radius, fill_cells: true
@@ -251,40 +248,45 @@ chord_fingerings_page = ({chord}) ->
 
 chord_page = (chord, options={}) ->
   {best_fingering} = options
-  with_grid cols: 4, rows: 3
+  pitches = ((i * 5 + 3) % 12 for i in [0...12])
+  pitches = [8...12].concat([0...8]) unless best_fingering
+
+  with_grid_blocks cols: 4, rows: 3
   , cell_width: ChordDiagram.width
   , cell_height: ChordDiagram.height
   , gutter_height: 20
   , header_height: 40
   , (grid) ->
 
-    draw_text "#{chord.name} Chords"
-    , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
-    , x: 0, y: 0, gravity: 'topLeft'
+    grid.header(
+      hbox(
+        text_block("#{chord.name} Chords", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'),
+        {
+          width: 50
+          height: 30
+          draw: ->
+            with_graphics_context (ctx) ->
+              # ctx.translate 285, 20
+              ctx.scale 0.85, 0.85
+              ctx.translate 17, -17
+              draw_pitch_diagram ctx, chord.pitch_classes
+        }
+      )
+    )
 
-    with_graphics_context (ctx) ->
-      ctx.translate 285, 20
-      ctx.scale 0.85, 0.85
-      draw_pitch_diagram ctx, chord.pitch_classes
-
-    pitches = ((i * 5 + 3) % 12 for i in [0...12])
-    pitches = [8...12].concat([0...8]) unless best_fingering
-    for pitch in pitches
+    pitches.forEach (pitch) ->
       rooted_chord = chord.at pitch
-      continue if options.only unless rooted_chord.name == options.only
-      grid.add_cell ->
-        draw_text rooted_chord.name
-        , font: '10pt Times', fillStyle: 'rgb(10,20,30)'
-        , x: 0, y: -3
-
-        fingering = {positions: finger_positions_on_chord(rooted_chord)}
-        fingering = best_fingering_for(rooted_chord) if best_fingering
-
-        ChordDiagram.draw grid.context, fingering.positions, barres: fingering.barres
+      return if options.only unless rooted_chord.name == options.only
+      fingering = {positions: finger_positions_on_chord rooted_chord}
+      fingering = best_fingering_for rooted_chord if best_fingering
+      grid.add_cell(
+        labeled rooted_chord.name, font: '10pt Times', fillStyle: 'rgb(10,20,30)', align: 'left',
+          ChordDiagram.block fingering.positions, barres: fingering.barres
+        )
 
 chord_book = (options={}) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
-  with_book title, pages: options.pages, (book) ->
+  with_book title, size: PaperSizes.letter, page_limit: options.pages, (book) ->
     for chord in Chords
       chord_page chord, options
 
