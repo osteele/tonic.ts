@@ -366,8 +366,10 @@ with_book = (filename, options, cb) ->
         options = _.extend {}, book.page_options, options
         page_count += 1
         if CurrentPage
+          console.info 'a'
           draw_page CurrentPage
         else
+          console.info 'b'
           with_page options, draw_page
         @done = true if page_limit and page_limit <= page_count
 
