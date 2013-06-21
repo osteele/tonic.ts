@@ -5,15 +5,20 @@ _ = require 'underscore'
 
 Layout = require('./layout')
 {
-  draw_text
+  above
+  hbox
+  labeled
+  text_block
   with_graphics_context
-  with_grid
+  with_grid_blocks
   with_book
 } = Layout
 
 ChordDiagram = require('./chord_diagram')
 draw_harmonic_table = require('./harmonic_table').draw
 draw_pitch_diagram = require('./pitch_diagram').draw
+harmonic_table_block = require('./harmonic_table').block
+pitch_diagram_block = require('./pitch_diagram').block
 
 collect_chord_shape_fragments = (chord) ->
   best_fingerings = {}
@@ -68,13 +73,11 @@ chord_shape_fragments = (options={}) ->
   options = _.extend {chord_pages: true}, options
 
   label_interval_names = (intervals, chord, positions) ->
-    bounds = draw_harmonic_table (chord.pitch_classes[degree_index] for {degree_index} in positions)
+    ht = harmonic_table_block (chord.pitch_classes[degree_index] for {degree_index} in positions)
     , fill_cells: true
     , radius: 5
     , align: {x: -2, y: 10}
-    draw_text intervals.join('-')
-    , font: '7pt Times', fillStyle: 'rgb(10,20,30)'
-    , x: bounds.right + 2, y: 7
+    hbox ht, text_block(intervals.join('-'), font: '7pt Times', fillStyle: 'rgb(10,20,30)')
 
   with_book "Chord Shape Fragments", pages: options.pages, size: 'quarto', (book) ->
     for chord in Chords
@@ -97,15 +100,10 @@ chord_shape_fragments = (options={}) ->
       book.page_footer book_utils.draw_license_footer
 
       do ->
-        with_grid cols: 7, rows: 7
-        , cell_width: ChordDiagram.width + 10
-        , cell_height: ChordDiagram.height + 15
-        , header_height: 40
+        with_grid_blocks cols: 7, rows: 7
         , (grid) ->
 
-          draw_text "#{chord.name} Chord Fragments"
-          , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
-          , x: 0, y: 0, gravity: 'topLeft'
+          grid.header text_block("#{chord.name} Chord Fragments", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)')
 
           fragments_by_interval_string = {}
           fragments.each_fragment (positions, intervals, roots) ->
@@ -125,67 +123,61 @@ chord_shape_fragments = (options={}) ->
             return b_count - a_count unless a_count == b_count
             return inversion_index(a) - inversion_index(b)
 
-          for interval_string in inversion_keys
+          inversion_keys.forEach (interval_string) ->
             fragment_list = fragments_by_interval_string[interval_string]
-            grid.col += 0.6 unless grid.col == 0
-            grid.start_row() unless grid.col + fragment_list.length <= grid.cols
+            # grid.col += 0.6 unless grid.col == 0
+            # grid.start_row() unless grid.col + fragment_list.length <= grid.cols
             fragment_list.forEach ({positions, intervals, roots}, i) ->
               draw_label = i == 0
-              grid.add_cell ->
-                if roots.length
-                  choices = [
-                    "(Used in #{roots.sort().join(', ')})"
-                    "(In #{roots.sort().join(', ')})"
-                    font: '5pt Times'
-                    "(In many chords)"
-                  ]
-                  draw_text choices: choices
-                  , width: ChordDiagram.width
-                  , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
-                  , x: 5, y: ChordDiagram.height + 6
 
-                label_interval_names intervals, chord, positions if draw_label
+              cell = ChordDiagram.block positions
+              , draw_closed_strings: false
+              , dim_unused_strings: true
+              , nut: false
 
-                ChordDiagram.draw grid.context, positions
-                , draw_closed_strings: false
-                , dim_unused_strings: true
-                , nut: false
+              if roots.length
+                choices = [
+                  "(Used in #{roots.sort().join(', ')})"
+                  "(In #{roots.sort().join(', ')})"
+                  font: '5pt Times'
+                  "(In many chords)"
+                ]
+                used = text_block choices: choices
+                , font: '6pt Times', fillStyle: 'rgb(10,20,30)'
+                cell = above cell, used, baseline: cell
+
+              cell = above label_interval_names(intervals, chord, positions), cell, baseline: cell if draw_label
+
+              grid.cell cell
 
       continue unless options.chord_pages
       do ->
-        with_grid cols: 7, rows: 7
-        , cell_width: ChordDiagram.width
-        , cell_height: ChordDiagram.height + 15
-        , header_height: 50
+        with_grid_blocks cols: 7, rows: 7
         , (grid) ->
 
-          draw_text "#{chord.name} Chord Shapes"
-          , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
-          , x: 0, y: 0, gravity: 'topLeft'
+          grid.header text_block("#{chord.name} Chord Shapes", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)')
 
           notes = (NoteNames[(i * 7 + 9) % 12] for i in [0...12])
-          notes.map (root) ->
-            rc = chord.at(root)
-            fingering = best_fingering_for(rc)
+          notes.forEach (root) ->
+            rc = chord.at root
+            fingering = best_fingering_for rc
             # return if fingering.barres?.length
             return if fingering.positions.length <= rc.pitch_classes.length
             fretstring = fingering.fretstring
             # return if fretstring.match /0/ and fretstring.match /4/
 
-            grid.start_row()
-            grid.add_cell ->
-              draw_text rc.name
-              , font: '12pt Times', fillStyle: 'rgb(10,20,30)'
-              , x: 5, y: -3
-
-              ChordDiagram.draw grid.context, fingering.positions
+            cell = ChordDiagram.block grid.context, fingering.positions
               , barres: fingering.barres
+            cell = labeled rc.name, cell, font: '12pt Times', fillStyle: 'rgb(10,20,30)'
+            if false
+              # TODO align vertical centers
+              cell = hbox cell, text_block('=', font: '18pt Times', fillStyle: 'black')
 
-              draw_text '=', font: '18pt Times', fillStyle: 'black'
-              , x: ChordDiagram.width + 2, y: ChordDiagram.height / 2 + 10, gravity: 'left'
+            grid.start_row()
+            grid.cell cell
 
             draw_plus = false
-            [0...fretstring.length].map (bass_string) ->
+            [0...fretstring.length].forEach (bass_string) ->
               treble_string = bass_string + rc.pitch_classes.length - 1
               positions = (pos for pos in fingering.positions when bass_string <= pos.string <= treble_string)
               return if positions.length < rc.pitch_classes.length
@@ -194,21 +186,23 @@ chord_shape_fragments = (options={}) ->
               positions = ({fret: fret + d_fret, string: string + d_string, degree_index, interval_class} \
                 for {fret, string, degree_index, interval_class} in positions)
 
-              grid.add_cell ->
-                with_graphics_context (ctx) ->
-                  ctx.scale 0.8, 0.8
-                  ctx.translate 10, 10
+              cell = ChordDiagram.block positions
+                , draw_closed_strings: false
+                , nut: false
+                , dim_unused_strings: true
 
-                  label_interval_names (rc.degree_name degree_index for {degree_index} in positions), chord, positions
-                  ChordDiagram.draw grid.context, positions
-                  , draw_closed_strings: false
-                  , nut: false
-                  , dim_unused_strings: true
+              if draw_plus
+                cell = vbox cell, text_block('+', font: '18pt Times', fillStyle: 'black')
+              # draw_plus = true  # TODO
 
-                if draw_plus
-                  draw_text '+', font: '18pt Times', fillStyle: 'black'
-                  , x: 2, y: ChordDiagram.height / 2 + 10, gravity: 'right'
-                draw_plus = true
+              if false
+                ctx.scale 0.8, 0.8
+                ctx.translate 10, 10
+
+                label_interval_names (rc.degree_name degree_index for {degree_index} in positions), chord, positions
+
+              grid.cell cell
+
 
 module.exports = {
   chord_shape_fragments

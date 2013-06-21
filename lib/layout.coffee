@@ -52,7 +52,8 @@ with_graphics_context = (fn) ->
 # Block-based Declarative Layout
 #
 
-block = (options) -> options
+block = (options) ->
+  _.extend {width: 0, height: 0, descent: 0}, options
 
 pad_block = (block, options) ->
   block.height += options.bottom if options.bottom
@@ -68,42 +69,60 @@ text_block = (text, options) ->
     descent: measure.emHeightDescent
     draw: -> draw_text text, options
 
-above = (b1, b2, options={}) ->
-  blocks = [b1, b2]
+vbox = (blocks...) ->
+  options = {}
+  options = blocks.pop() unless blocks[blocks.length - 1].width?
+  options = _.extend {align: 'left'}, options
   width = Math.max _.pluck(blocks, 'width')...
   height = _.pluck(blocks, 'height').reduce (a, b) -> a + b
+  descent = blocks[blocks.length - 1].descent
+  if options.baseline
+    blocks_below = blocks[blocks.indexOf(options.baseline)+1...]
+    descent = options.baseline.descent + _.pluck(blocks_below, 'height').reduce ((a, b) -> a + b), 0
   block
     width: width
     height: height
-    descent: b2.descent
+    descent: descent
     draw: ->
       dy = -height
       blocks.forEach (b1) ->
         with_graphics_context (ctx) ->
           dx = switch options.align
             when 'left' then 0
-            else (width - b1.width) / 2
-          descent = b1.descent ? 0
-          ctx.translate dx, dy + b1.height - descent
-          b1.draw()
+            when 'center' then Math.max 0, (width - b1.width) / 2
+          ctx.translate dx, dy + b1.height - b1.descent
+          b1.draw?()
           dy += b1.height
 
-# Hardwired to assume an infinite spring between the two boxes
+above = vbox
+
 hbox = (b1, b2) ->
   container_size = CurrentBook?.page_options or CurrentPage
   blocks = [b1, b2]
   height = Math.max _.pluck(blocks, 'height')...
   width = _.pluck(blocks, 'width').reduce (a, b) -> a + b
   width = container_size.width if width == Infinity
+  spring_count = (b for b in blocks when b.width == Infinity).length
   block
     width: width
     height: height
     draw: ->
-      with_graphics_context (ctx) ->
-        b1.draw()
-      with_graphics_context (ctx) ->
-        ctx.translate container_size.width - b2.width - (container_size.right_margin ? 0), 0
-        b2.draw()
+      x = 0
+      blocks.forEach (b) ->
+        with_graphics_context (ctx) ->
+          ctx.translate x, 0
+          b.draw?()
+        if b.width == Infinity
+          x += (width - (width for {width} in blocks when width != Infinity).reduce (a, b) -> a + b) / spring_count
+        else
+          x += b.width
+
+overlay = (blocks...) ->
+  block
+    width: Math.max _.pluck(blocks, 'width')...
+    height: Math.max _.pluck(blocks, 'height')...
+    draw: ->
+      b.draw() for b in blocks
 
 labeled = (text, options, block) ->
   [options, block] = [{}, options] if arguments.length == 2
@@ -114,6 +133,8 @@ labeled = (text, options, block) ->
   above text_block(text, options), block, options
 
 with_grid_blocks = (options, generator) ->
+  {max, floor} = Math
+
   options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
   container_size = CurrentBook?.page_options or CurrentPage
 
@@ -126,33 +147,36 @@ with_grid_blocks = (options, generator) ->
     cell: (block) -> cells.push block
     cells: (blocks) -> cells.push b for b in blocks
 
-  {max, floor} = Math
-
-  max_width = max _.pluck(cells, 'width')...
-  max_height = max _.pluck(cells, 'height')...
+  cell_width = max _.pluck(cells, 'width')...
+  cell_height = max _.pluck(cells, 'height')...
+  # cell.descent ?= 0 for cell in cells
 
   _.extend options
     , header_height: header?.height or 0
-    , cell_width: max_width
-    , cell_height: max_height
-    , cols: max 1, floor((container_size.width + options.gutter_width) / (max_width + options.gutter_width))
+    , cell_width: cell_width
+    , cell_height: cell_height
+    , cols: max 1, floor((container_size.width + options.gutter_width) / (cell_width + options.gutter_width))
   options.rows = do ->
     content_height = container_size.height - options.header_height
-    cell_height = max_height + options.gutter_height
+    cell_height = cell_height + options.gutter_height
     max 1, floor((content_height + options.gutter_height) / cell_height)
+
+  cell.descent ?= 0 for cell in cells
+  max_descent = max _.pluck(cells, 'descent')...
+  # console.info 'descent', max_descent, 'from', _.pluck(cells, 'descent')
 
   with_grid options, (grid) ->
     if header
       with_graphics_context (ctx) ->
-        ctx.translate 0, header.height - (header.descent ? 0)
+        ctx.translate 0, header.height - header.descent
         header?.draw()
-    cells.forEach (block) ->
-      grid.start_row() if block.linebreak?
-      unless block == line_break
-        grid.add_cell ->
-          with_graphics_context (ctx) ->
-            ctx.translate 0, block.height  # align the tops
-            block.draw()
+    cells.forEach (cell) ->
+      grid.start_row() if cell.linebreak?
+      return if cell == line_break
+      grid.add_cell ->
+        with_graphics_context (ctx) ->
+          ctx.translate 0, cell_height - cell.descent
+          cell.draw()
 
 
 #
@@ -312,6 +336,7 @@ with_grid = (options, cb) ->
     overflow = (cell for cell in overflow when cell.row >= rows)
 
 with_book = (filename, options, cb) ->
+  console.info 1
   throw new Error "with_book called recursively" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
   page_limit = options.page_limit
@@ -365,6 +390,7 @@ write_pdf = (canvas, pathname) ->
 
 module.exports = {
   PaperSizes
+  above
   with_book
   with_grid
   with_grid_blocks
