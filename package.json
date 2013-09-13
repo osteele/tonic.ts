@@ -25,16 +25,28 @@
     "ease-component": "~1.0.0"
   },
   "devDependencies": {
-    "grunt": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-shell": "*",
-    "grunt-coffeelint": "*"
+    "coffeeify": "~0.5.x",
+    "grunt": "~0.4.x",
+    "grunt-browserify": "~1.2.x",
+    "grunt-clean": "~0.4.x",
+    "grunt-coffeelint": "*",
+    "grunt-contrib-clean": "~0.5.x",
+    "grunt-contrib-copy": "~0.4.x",
+    "grunt-contrib-connect": "~0.5.x",
+    "grunt-contrib-jade": "~0.8.x",
+    "grunt-contrib-watch": "~0.4.x",
+    "grunt-github-pages": "0.0.x",
+    "grunt-notify": "~0.2.x",
+    "grunt-shell": "~0.2.2",
+    "chai": "*",
+    "mocha": "*"
   },
   "main": "index.coffee",
   "bin": {
     "make-chord-book": "./bin/make-chord-book"
   },
   "scripts": {
-    "test": "coffee bin/make-chord-book all"
+    "build": "coffee bin/make-chord-book all",
+    "test": "./node_modules/mocha/bin/mocha --compilers coffee:coffee-script tests/*test.coffee"
   }
 }
