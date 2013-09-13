@@ -49,90 +49,96 @@ with_graphics_context = (fn) ->
 
 
 #
-# Block-based Declarative Layout
+# Box-based Declarative Layout
 #
 
-block = (options) ->
-  _.extend {width: 0, height: 0, descent: 0}, options
+box = (params) ->
+  box = _.extend {width: 0}, params
+  box.height ?= (box.ascent ? 0) + (box.descent ? 0)
+  box.ascent ?= box.height - (box.descent ? 0)
+  box.descent ?= box.height - box.ascent
+  box
 
-pad_block = (block, options) ->
-  block.height += options.bottom if options.bottom
-  block.descent = ((block.descent ? 0) + options.bottom) if options.bottom
-  block
+pad_box = (box, options) ->
+  box.height += options.bottom if options.bottom
+  box.descent = ((box.descent ? 0) + options.bottom) if options.bottom
+  box
 
-text_block = (text, options) ->
+text_box = (text, options) ->
   options = _.extend {}, options, gravity: false
   measure = measure_text text, options
-  block
+  box
     width: measure.width
     height: measure.emHeightAscent + measure.emHeightDescent
     descent: measure.emHeightDescent
     draw: -> draw_text text, options
 
-vbox = (blocks...) ->
+vbox = (boxes...) ->
   options = {}
-  options = blocks.pop() unless blocks[blocks.length - 1].width?
+  options = boxes.pop() unless boxes[boxes.length - 1].width?
   options = _.extend {align: 'left'}, options
-  width = Math.max _.pluck(blocks, 'width')...
-  height = _.pluck(blocks, 'height').reduce (a, b) -> a + b
-  descent = blocks[blocks.length - 1].descent
+  width = Math.max _.pluck(boxes, 'width')...
+  height = _.pluck(boxes, 'height').reduce (a, b) -> a + b
+  descent = boxes[boxes.length - 1].descent
   if options.baseline
-    blocks_below = blocks[blocks.indexOf(options.baseline)+1...]
-    descent = options.baseline.descent + _.pluck(blocks_below, 'height').reduce ((a, b) -> a + b), 0
-  block
+    boxes_below = boxes[boxes.indexOf(options.baseline)+1...]
+    descent = options.baseline.descent + _.pluck(boxes_below, 'height').reduce ((a, b) -> a + b), 0
+  box
     width: width
     height: height
     descent: descent
     draw: ->
       dy = -height
-      blocks.forEach (b1) ->
+      boxes.forEach (b1) ->
         with_graphics_context (ctx) ->
           dx = switch options.align
             when 'left' then 0
             when 'center' then Math.max 0, (width - b1.width) / 2
           ctx.translate dx, dy + b1.height - b1.descent
-          b1.draw?()
+          b1.draw?(ctx)
           dy += b1.height
 
 above = vbox
 
 hbox = (b1, b2) ->
   container_size = CurrentBook?.page_options or CurrentPage
-  blocks = [b1, b2]
-  height = Math.max _.pluck(blocks, 'height')...
-  width = _.pluck(blocks, 'width').reduce (a, b) -> a + b
+  boxes = [b1, b2]
+  height = Math.max _.pluck(boxes, 'height')...
+  width = _.pluck(boxes, 'width').reduce (a, b) -> a + b
   width = container_size.width if width == Infinity
-  spring_count = (b for b in blocks when b.width == Infinity).length
-  block
+  spring_count = (b for b in boxes when b.width == Infinity).length
+  box
     width: width
     height: height
     draw: ->
       x = 0
-      blocks.forEach (b) ->
+      boxes.forEach (b) ->
         with_graphics_context (ctx) ->
           ctx.translate x, 0
-          b.draw?()
+          b.draw?(ctx)
         if b.width == Infinity
-          x += (width - (width for {width} in blocks when width != Infinity).reduce (a, b) -> a + b) / spring_count
+          x += (width - (width for {width} in boxes when width != Infinity).reduce (a, b) -> a + b) / spring_count
         else
           x += b.width
 
-overlay = (blocks...) ->
-  block
-    width: Math.max _.pluck(blocks, 'width')...
-    height: Math.max _.pluck(blocks, 'height')...
+overlay = (boxes...) ->
+  box
+    width: Math.max _.pluck(boxes, 'width')...
+    height: Math.max _.pluck(boxes, 'height')...
     draw: ->
-      b.draw() for b in blocks
+      for b in boxes
+        with_graphics_context (ctx) ->
+          b.draw ctx
 
-labeled = (text, options, block) ->
-  [options, block] = [{}, options] if arguments.length == 2
+labeled = (text, options, box) ->
+  [options, box] = [{}, options] if arguments.length == 2
   default_options =
     font: '12px Times'
     fillStyle: 'black'
   options = _.extend default_options, options
-  above text_block(text, options), block, options
+  above text_box(text, options), box, options
 
-with_grid_blocks = (options, generator) ->
+with_grid_boxes = (options, generator) ->
   {max, floor} = Math
 
   options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
@@ -142,10 +148,10 @@ with_grid_blocks = (options, generator) ->
   header = null
   cells = []
   generator
-    header: (block) -> header = block
+    header: (box) -> header = box
     start_row: () -> cells.push line_break
-    cell: (block) -> cells.push block
-    cells: (blocks) -> cells.push b for b in blocks
+    cell: (box) -> cells.push box
+    cells: (boxes) -> cells.push b for b in boxes
 
   cell_width = max _.pluck(cells, 'width')...
   cell_height = max _.pluck(cells, 'height')...
@@ -169,14 +175,14 @@ with_grid_blocks = (options, generator) ->
     if header
       with_graphics_context (ctx) ->
         ctx.translate 0, header.height - header.descent
-        header?.draw()
+        header?.draw ctx
     cells.forEach (cell) ->
       grid.start_row() if cell.linebreak?
       return if cell == line_break
       grid.add_cell ->
         with_graphics_context (ctx) ->
           ctx.translate 0, cell_height - cell.descent
-          cell.draw()
+          cell.draw ctx
 
 
 #
@@ -257,6 +263,38 @@ CurrentPage = null
 CurrentBook = null
 Mode = null
 
+_.mixin
+  sum:
+    do (plus=(a,b) -> a+b) ->
+      (xs) -> _.reduce(xs, plus, 0)
+
+TDLRLayout = (boxes) ->
+  page_width = CurrentPage.width - CurrentPage.left_margin - CurrentPage.top_margin
+  boxes = boxes[..]
+  b.descent ?= 0 for b in boxes
+  dy = 0
+  width = 0
+  while boxes.length
+    console.info 'next', boxes.length
+    line = []
+    while boxes.length
+      b = boxes[0]
+      break if width + b.width > page_width and line.length > 0
+      line.push b
+      boxes.shift()
+      width += b.width
+    ascent = _.max(b.height - b.descent for b in line)
+    descent = _.chain(line).pluck('descent').max()
+    dx = 0
+    console.info 'draw', line.length
+    for b in line
+      with_graphics_context (ctx) ->
+        ctx.translate dx, dy + ascent
+        console.info 'draw', dx, dy + ascent, b.draw
+        b.draw ctx
+      dx += b.width
+    dy += ascent + descent
+
 with_page = (options, draw_page) ->
   throw new Error "Already inside a page" if CurrentPage
   defaults = {width: 100, height: 100, page_margin: 10}
@@ -270,6 +308,7 @@ with_page = (options, draw_page) ->
   canvas ||= new Canvas width + left_margin + right_margin, height + top_margin + bottom_margin, Mode
   ctx = canvas.getContext '2d'
   ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
+  boxes = []
 
   try
     page =
@@ -280,6 +319,8 @@ with_page = (options, draw_page) ->
       width: canvas.width
       height: canvas.height
       context: ctx
+      box: (options) ->
+        boxes.push box(options)
     CurrentPage = page
 
     erase_background()
@@ -288,7 +329,8 @@ with_page = (options, draw_page) ->
       ctx.translate left_margin, bottom_margin
       CurrentBook?.header? page
       CurrentBook?.footer? page
-      draw_page page
+      draw_page? page
+      TDLRLayout boxes
 
     switch Mode
       when 'pdf' then ctx.addPage()
@@ -336,7 +378,6 @@ with_grid = (options, cb) ->
     overflow = (cell for cell in overflow when cell.row >= rows)
 
 with_book = (filename, options, cb) ->
-  console.info 1
   throw new Error "with_book called recursively" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
   page_limit = options.page_limit
@@ -366,10 +407,8 @@ with_book = (filename, options, cb) ->
         options = _.extend {}, book.page_options, options
         page_count += 1
         if CurrentPage
-          console.info 'a'
           draw_page CurrentPage
         else
-          console.info 'b'
           with_page options, draw_page
         @done = true if page_limit and page_limit <= page_count
 
@@ -395,16 +434,16 @@ module.exports = {
   above
   with_book
   with_grid
-  with_grid_blocks
+  with_grid_boxes
   with_page
   draw_text
-  block
-  pad_block
-  text_block
+  box
+  hbox
+  pad_box
+  text_box
   labeled
   measure_text
   directory
   filename
   with_graphics_context
-  hbox
 }
