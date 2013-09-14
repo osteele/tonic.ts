@@ -30,5 +30,5 @@ hsv2css = (hsv) -> rgb2css hsv2rgb(hsv)
 module.exports = {
   hsv2css
   hsv2rgb
-  hsv2css
+  rgb2css
 }

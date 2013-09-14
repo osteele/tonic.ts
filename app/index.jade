@@ -1,0 +1,13 @@
+doctype 5
+html(lang="en")
+  head
+    title Fretboard Logic
+
+    link(href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.0-rc2/css/bootstrap.min.css", rel="stylesheet", type="text/css")
+
+    script(src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js")
+    script(src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js", defer)
+    script(data-main="./js/app.js", src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
+
+  body(ng:controller="ChordCtrl")
+    chord(name="E")
