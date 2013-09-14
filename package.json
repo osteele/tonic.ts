@@ -28,7 +28,6 @@
     "coffeeify": "~0.5.x",
     "grunt": "~0.4.x",
     "grunt-browserify": "~1.2.x",
-    "grunt-clean": "~0.4.x",
     "grunt-coffeelint": "*",
     "grunt-contrib-clean": "~0.5.x",
     "grunt-contrib-coffee": "~0.7.x",
@@ -40,7 +39,8 @@
     "grunt-notify": "~0.2.x",
     "grunt-shell": "~0.2.2",
     "chai": "*",
-    "mocha": "*"
+    "mocha": "*",
+    "load-grunt-tasks": "~0.1.0"
   },
   "main": "index.coffee",
   "bin": {

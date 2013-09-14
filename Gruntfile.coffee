@@ -1,21 +1,12 @@
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
+    build_directory: 'build'
     browserify:
-      debug:
         files: [
-          'build/js/app.js': [
-            'app/**/*.coffee', '!app/js/loader.*'
-
-            'lib/chord_diagram.coffee'
-            'lib/fretboard_diagram.coffee'
-            'lib/fretboard_logic.coffee'
-            'lib/fretboard_model.coffee'
-            'lib/harmonic_table.coffee'
-            'lib/client-layout.coffee'
-            'lib/pitch_diagram.coffee'
-            'lib/theory.coffee'
-            'lib/utils.coffee'
+          '<%= build_directory %>/js/app.js': [
+            'app/**/*.coffee'
+            'lib/**/*.coffee', '!lib/books/**/*.coffee', '!lib/movies/**/*.coffee'
           ]
         ]
         options:
@@ -23,22 +14,12 @@ module.exports = (grunt) ->
           debug: true
           fast: true
           alias: [
-            'lib/chord_diagram.coffee:./chord_diagram'
-            'lib/fretboard_diagram.coffee:./fretboard_diagram'
-            'lib/fretboard_logic.coffee:./fretboard_logic'
-            'lib/fretboard_model.coffee:./fretboard_model'
-            'lib/harmonic_table.coffee:./harmonic_table'
-            'lib/client-layout.coffee:./layout'
-            'lib/pitch_diagram.coffee:./pitch_diagram'
-            'lib/theory.coffee:./theory'
-            'lib/utils.coffee:./utils'
+            'lib/browser/layout.coffee:./layout'
+            'lib/browser/canvas.coffee:canvas'
           ]
     clean:
-      debug: 'build'
+      debug: '<%= build_directory %>'
       release: 'release/*'
-    coffee:
-      debug:
-        files: ['build/js/loader.js': 'app/js/loader.coffee']
     coffeelint:
       app: ['lib/*.coffee']
       gruntfile: 'Gruntfile.coffee'
@@ -47,12 +28,12 @@ module.exports = (grunt) ->
     connect:
       server:
         options:
-          base: 'build'
+          base: '<%= build_directory %>'
     copy:
       debug:
         expand: true
         cwd: 'app'
-        dest: 'build'
+        dest: '<%= build_directory %>'
         src: ['**/*', '!**/*.coffee', '!**/*.jade', '!**/*.scss']
         filter: 'isFile'
       release:
@@ -69,7 +50,7 @@ module.exports = (grunt) ->
         expand: true
         cwd: 'app'
         src: '**/*.jade'
-        dest: 'build'
+        dest: '<%= build_directory %>'
         ext: '.html'
         options:
           pretty: true
@@ -96,27 +77,21 @@ module.exports = (grunt) ->
       jade:
         files: 'app/**/*.jade'
         tasks: ['jade:debug']
+      lib:
+        files: 'lib/**/*.coffee'
+        tasks: ['browserify:debug']
       scripts:
         files: 'app/**/*.coffee'
-        tasks: ['browserify:debug', 'coffee']
-      # scripts:
-      #   files: ['**/*.coffee', 'bin/make-chord-book']
-      #   tasks: ['coffeelint', 'shell:makeBuildDir', 'shell:runAll']
-      #   options:
-      #     nospawn: true,
+        tasks: ['browserify:debug']
 
-  grunt.loadNpmTasks 'grunt-browserify'
-  grunt.loadNpmTasks 'grunt-contrib-coffee'
-  grunt.loadNpmTasks 'grunt-coffeelint'
-  grunt.loadNpmTasks 'grunt-contrib-clean'
-  grunt.loadNpmTasks 'grunt-contrib-connect'
-  grunt.loadNpmTasks 'grunt-contrib-copy'
-  grunt.loadNpmTasks 'grunt-contrib-jade'
-  grunt.loadNpmTasks 'grunt-contrib-uglify'
-  grunt.loadNpmTasks 'grunt-contrib-watch'
-  grunt.loadNpmTasks 'grunt-github-pages'
-  grunt.loadNpmTasks 'grunt-notify'
-  grunt.loadNpmTasks 'grunt-shell'
+  do ->
+    path = require 'path'
+    propertyName = 'browserify.debug.options.alias'
+    files = grunt.file.expand('lib/*.coffee', '!lib/books', '!lib/movies')
+    aliases = ("#{name}:./#{path.basename name, '.coffee'}" for name in files)
+    grunt.config.set propertyName, grunt.config.get(propertyName).concat(aliases)
+
+  require('load-grunt-tasks')(grunt)
 
   grunt.registerTask 'build', ['clean:debug', 'browserify:debug', 'copy:debug', 'jade:debug']
   grunt.registerTask 'build:release', ['clean:release', 'browserify:release', 'copy:release', 'jade:release']
