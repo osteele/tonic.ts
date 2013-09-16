@@ -35,7 +35,7 @@ app.directive 'chord', ->
   link: (scope, element, attrs) ->
     canvas = element[0]
     attrs.$observe 'name', (chordName) ->
-      chord = Chords.Major.at('E')
+      chord = Chords.Major.at(chordName)
       fingerings = fingerings_for chord
       fingering = fingerings[0]
       ctx = canvas.getContext('2d')
