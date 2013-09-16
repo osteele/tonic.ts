@@ -12,10 +12,15 @@ html(lang="en")
     script(data-main="./js/app.js", src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
 
   body(ng:controller="ChordCtrl")
-    h2(ng:repeat="tonic in tonics") {{tonic}} Major
-      .chord-diagram.ng-cloak(ng:repeat="chord in getScaleChords(tonic)")
-        h3 {{chord}}
-        chord(name="{{chord}}")
+    table.table.ng-cloak
+      tr
+        th
+        th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
+      tr(ng:repeat="tonic in tonics")
+        th {{tonic}} Major
+        td(ng:repeat="chord in getScaleChords(tonic)")
+          h3 {{chord}}
+          chord(name="{{chord}}")
 
     .github-fork-ribbon-wrapper.right
       .github-fork-ribbon
