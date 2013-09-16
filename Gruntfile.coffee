@@ -1,13 +1,17 @@
 module.exports = (grunt) ->
   grunt.initConfig
 
-    options:
-      build_directory: 'build'
+    directories:
+      build: '<%= directories.dev %>'
+      dev: 'build'
+      release: 'release'
+      ':release':
+        build: '<%= directories.release %>'
 
     browserify:
       app:
         files: [
-          '<%= options.build_directory %>/js/app.js': [
+          '<%= directories.build %>/js/app.js': [
             'app/**/*.coffee'
             'lib/**/*.coffee', '!lib/books/**/*.coffee', '!lib/movies/**/*.coffee'
           ]
@@ -21,8 +25,9 @@ module.exports = (grunt) ->
           ]
 
     clean:
-      target: '<%= options.build_directory %>'
-      release: 'release/*'
+      dev: '<%= directories.dev %>'
+      release: '<%= directories.release %>/*'
+      target: '<%= directories.build %>/*'
 
     coffeelint:
       app: ['lib/*.coffee']
@@ -33,36 +38,45 @@ module.exports = (grunt) ->
     connect:
       server:
         options:
-          base: '<%= options.build_directory %>'
+          base: '<%= directories.build %>'
 
     copy:
       app:
         expand: true
         cwd: 'app'
-        dest: '<%= options.build_directory %>'
+        dest: '<%= directories.build %>'
         src: ['**/*', '!**/*.coffee', '!**/*.{coffee,jade,scss}']
         filter: 'isFile'
+
+    githubPages:
+      target:
+        src: '<%= directories.release %>'
 
     jade:
       app:
         expand: true
         cwd: 'app'
         src: '**/*.jade'
-        dest: '<%= options.build_directory %>'
+        dest: '<%= directories.build %>'
         ext: '.html'
       options:
         pretty: true
+        ':release':
+          pretty: false
 
     sass:
       app:
         expand: true
         cwd: 'app'
-        dest: '<%= options.build_directory %>'
+        dest: '<%= directories.build %>'
         src: ['css/**.scss']
         ext: '.css'
         filter: 'isFile'
       options:
         sourcemap: true
+        ':release':
+          sourcemap: false
+          style: 'compressed'
 
     shell:
       makeBuildDir:
@@ -101,7 +115,22 @@ module.exports = (grunt) ->
 
   require('load-grunt-tasks')(grunt)
 
-  grunt.registerTask 'build', ['clean', 'browserify', 'copy', 'jade', 'sass']
-  # grunt.registerTask 'build:release', ['clean:release', 'browserify:release', 'copy:release', 'jade:release']
-  # grunt.registerTask 'deploy', ['build:release', 'githubPages:target']
+  grunt.registerTask 'context', (contextName) ->
+    contextKey = ":#{contextName}"
+    installContexts = (obj) ->
+      recursiveMerge obj, obj[contextKey] if contextKey of obj
+      for k, v of obj
+        installContexts v if typeof v == 'object' and not k.match(/^:/)
+    recursiveMerge = (target, source) ->
+      for k, v of source
+        if k of target and typeof v == 'object'
+          recursiveMerge target[k], v
+        else
+          target[k] = v
+    installContexts grunt.config.data
+    return
+
+  grunt.registerTask 'build', ['clean:target', 'browserify', 'copy', 'jade', 'sass']
+  grunt.registerTask 'build:release', ['context:release', 'build']
+  grunt.registerTask 'deploy', ['build:release', 'githubPages:target']
   grunt.registerTask 'default', ['build', 'connect', 'watch']
