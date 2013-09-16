@@ -17,7 +17,7 @@ Given this, I don't know whether `brew install cairo` is actually necessary.
     PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig npm install
 
 
-# Usage
+# Usage (Server tools)
 
     coffee intervals.coffee chordbook
 
@@ -38,7 +38,15 @@ fretboard position.
 Create a flipbook that shows how the different chord shapes relate to each other.
 This is very much in progress.
 
+# Collophon
 
-# License
+- [Angular](http://angularjs.org)
+- [CoffeeScript](http://coffeescript.org/)
+- [Github Pages](http://pages.github.com/)
+- [Grunt](http://gruntjs.com/), and plugins
+- [Jade](http://jade-lang.com/)
+- [Sass](http://sass-lang.com/)
+- [Twitter Bootstrap](http://getbootstrap.com/)
+- [Simon Whitaker's CSS Github Fork ribbon](fork-ribbon)
 
-MIT and BSD, of course.
+[fork-ribbon]: http://simonwhitaker.github.io/github-fork-ribbon-css/

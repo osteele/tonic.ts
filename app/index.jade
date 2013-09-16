@@ -5,6 +5,7 @@ html(lang="en")
 
     link(href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.0-rc2/css/bootstrap.min.css", rel="stylesheet", type="text/css")
     link(href="css/app.css", rel="stylesheet")
+    link(href="css/gh-fork-ribbon.css", rel="stylesheet")
 
     script(src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js")
     script(src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js")
@@ -14,3 +15,7 @@ html(lang="en")
     .chord-diagram.ng-cloak(ng:repeat="key in ['E', 'F', 'G', 'A', 'B', 'C', 'D']")
       h3 {{key}} Major
       chord(name="E")
+
+    .github-fork-ribbon-wrapper.right
+      .github-fork-ribbon
+        a(href="https://github.com/osteele/fretboard-logic") Fork me on GitHub
