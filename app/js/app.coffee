@@ -21,8 +21,8 @@ angular.element(document).ready ->
 app = angular.module 'FretboardApp', []
 
 app.controller 'ChordCtrl', ($scope) ->
-  $scope.scaleChords = # (scaleName) ->
-    Scale.find('E').chords()
+  $scope.getScaleChords = (scaleName) ->
+    Scale.find(scaleName).chords().map (chord) -> chord.name
 
 app.directive 'chord', ->
   restrict: 'CE'

@@ -12,9 +12,10 @@ html(lang="en")
     script(data-main="./js/app.js", src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
 
   body(ng:controller="ChordCtrl")
-    .chord-diagram.ng-cloak(ng:repeat="chord in scaleChords")
-      h3 {{chord.name}}
-      chord(name="{{chord.name}}")
+    .chord-diagram.ng-cloak(ng:repeat="scale in ['E', 'F', 'G', 'A', 'B', 'C', 'D']")
+      .chord-diagram.ng-cloak(ng:repeat="chord in getScaleChords(scale)")
+        h3 {{chord}}
+        chord(name="{{chord}}")
 
     .github-fork-ribbon-wrapper.right
       .github-fork-ribbon
