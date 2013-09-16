@@ -50,8 +50,19 @@ module.exports = (grunt) ->
         src: '**/*.jade'
         dest: '<%= options.build_directory %>'
         ext: '.html'
-        options:
-          pretty: true
+      options:
+        pretty: true
+
+    sass:
+      app:
+        expand: true
+        cwd: 'app'
+        dest: '<%= options.build_directory %>'
+        src: ['css/**.scss']
+        ext: '.css'
+        filter: 'isFile'
+      options:
+        sourcemap: true
 
     shell:
       makeBuildDir:
@@ -74,6 +85,9 @@ module.exports = (grunt) ->
       lib:
         files: 'lib/**/*.coffee'
         tasks: ['browserify']
+      sass:
+        files: ['app/**/*.scss']
+        tasks: ['sass']
       scripts:
         files: 'app/**/*.coffee'
         tasks: ['browserify']
@@ -87,7 +101,7 @@ module.exports = (grunt) ->
 
   require('load-grunt-tasks')(grunt)
 
-  grunt.registerTask 'build', ['clean', 'browserify', 'copy', 'jade']
+  grunt.registerTask 'build', ['clean', 'browserify', 'copy', 'jade', 'sass']
   # grunt.registerTask 'build:release', ['clean:release', 'browserify:release', 'copy:release', 'jade:release']
   # grunt.registerTask 'deploy', ['build:release', 'githubPages:target']
   grunt.registerTask 'default', ['build', 'connect', 'watch']

@@ -4,10 +4,13 @@ html(lang="en")
     title Fretboard Logic
 
     link(href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.0-rc2/css/bootstrap.min.css", rel="stylesheet", type="text/css")
+    link(href="css/app.css", rel="stylesheet")
 
     script(src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js")
-    script(src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js", defer)
+    script(src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js")
     script(data-main="./js/app.js", src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
 
   body(ng:controller="ChordCtrl")
-    chord(name="E")
+    .chord-diagram.ng-cloak(ng:repeat="key in ['E', 'F', 'G', 'A', 'B', 'C', 'D']")
+      h3 {{key}} Major
+      chord(name="E")
