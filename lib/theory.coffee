@@ -146,7 +146,10 @@ class Chord
     @components[degree_index]
 
   @find: (name) ->
-    [noteName, chordName] = name.match(/^([a-gA-G])(.*)$/)[1...]
+    match = name.match(/^([a-gA-G][♯♭]*)(.*)$/)
+    throw new Error("#{name} is not a chord name") unless match
+    [noteName, chordName] = match[1...]
+    throw new Error("#{name} is not a chord name") unless Chords[chordName]
     return Chords[chordName].at(noteName)
 
   @fromPitches: (pitches) ->

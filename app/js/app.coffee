@@ -49,15 +49,18 @@ app.directive 'chord', ->
   link: (scope, element, attrs) ->
     canvas = element[0]
     render = ->
-      chord = Chords.Major.at(attrs.name)
+      {name, fingering} = attrs
+      chord = Chord.find(name)
       fingerings = fingerings_for(chord)
-      index = Number(attrs.fingering) or 0
+      index = Number(fingering) or 0
       fingering = fingerings[index]
+      return unless fingering
       ctx = canvas.getContext('2d')
+      ctx.clearRect 0, 0, 90, 100
       ChordDiagram.draw ctx, fingering.positions, barres: fingering.barres
     attrs.$observe 'fingering', -> render()
     attrs.$observe 'name', -> render()
 
 app.filter 'raiseAccidentals', ->
   (name) ->
-    name.replace(/([♯])/, '<sup>$1</sup>')
+    name.replace(/([♯♭])/, '<sup>$1</sup>')
