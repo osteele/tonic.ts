@@ -9,12 +9,8 @@ Layout = require './layout'
 
 {
   Chords
-  NoteNames
-  IntervalNames
-  LongIntervalNames
-  Modes
+  Scale
   Scales
-  interval_class_between
 } = require('./theory')
 
 
@@ -25,6 +21,8 @@ angular.element(document).ready ->
 app = angular.module 'FretboardApp', []
 
 app.controller 'ChordCtrl', ($scope) ->
+  $scope.scaleChords = # (scaleName) ->
+    Scale.find('E').chords()
 
 app.directive 'chord', ->
   restrict: 'CE'

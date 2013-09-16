@@ -1,12 +1,47 @@
-_ = require 'underscore'
+#
+# Notes and Pitches
+#
 
-NoteNames = "G# A A# B C C# D D# E F F# G".split(/\s/)
+SharpNoteNames = 'C C# D D# E F F# G G# A A# B'.replace(/#/g, '\u266F').split(/\s/)
+FlatNoteNames = 'C Db D Eb E F Gb G Ab A Bb B'.replace(/b/g, '\u266D').split(/\s/)
+NoteNames = SharpNoteNames  # "G# A A# B C C# D D# E F F# G". split(/\s/)
 
 IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8']
 
 LongIntervalNames = [
   'Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
   'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave']
+
+# The interval class (integer in [0...12]) between two pitch class numbers
+interval_class_between = (pca, pcb) ->
+  n = (pcb - pca) % 12
+  n += 12 while n < 0
+  return n
+
+
+#
+# Scales
+#
+
+class Scale
+  constructor: ({@name, @pitches, @tonicName}) ->
+
+  chords: ->
+    tonicPitch = NoteNames.indexOf(@tonicName)
+    for i in [0...@pitches.length]
+      pitches = @pitches[i..].concat(@pitches[...i])
+      pitches = [pitches[0], pitches[2], pitches[4]].map (n) -> (n + tonicPitch) % 12
+      Chord.fromPitches(pitches)
+
+  at: (tonicName) ->
+    new Scale
+      name: @name
+      pitches: @pitches
+      tonicName: tonicName
+
+  @find: (tonicName) ->
+    scaleName = 'Diatonic Major'
+    Scales[scaleName].at(tonicName)
 
 Scales = do ->
   scale_specs = [
@@ -22,25 +57,46 @@ Scales = do ->
     # 'Octatonic' is the classical name. It's the jazz 'Diminished' scale.
     'Octatonic: 0235689e'
   ]
-  scales = []
-  for spec, i in scale_specs
-    [name, tones] = spec.split(/:\s*/, 2)
-    tones = _.map tones, (c) -> {'t':10, 'e':11}[c] or Number(c)
-    # console.info 'set', name, i
-    scales[name] = scales[i] = {name, tones}
-  scales
+  for spec in scale_specs
+    [name, pitches] = spec.split(/:\s*/, 2)
+    pitches = pitches.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
+    new Scale {name, pitches}
 
-Modes = do (root_tones=Scales['Diatonic Major'].tones) ->
+do ->
+  Scales[scale.name] = scale for scale in Scales
+
+Modes = do ->
+  root_tones = Scales['Diatonic Major'].pitches
   mode_names = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
-  modes = []
-  for displacement, i in root_tones
+  for delta, i in root_tones
     name = mode_names[i]
-    tones = ((d - displacement + 12) % 12 for d in root_tones[i...].concat root_tones[...i])
-    modes[name] = modes[i] = {name, degree: i, tones}
-  modes
+    pitches = ((d - delta + 12) % 12 for d in root_tones[i...].concat root_tones[...i])
+    new Scale {name, pitches}
+
+do ->
+  Modes[mode.name] = mode for mode in Modes
 
 # Indexed by scale degree
 Functions = 'Tonic Supertonic Mediant Subdominant Dominant Submediant Subtonic Leading'.split(/\s/)
+
+parseChordNumeral = (name) ->
+  chord = {
+    degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)[1]) + 1
+    major: name == name.toUpperCase()
+    flat: name.match(/^b/)
+    diminished: name.match(/°/)
+    augmented: name.match(/\+/)
+  }
+  return chord
+
+FunctionQualities =
+  major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
+  minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
+
+
+#
+# Chords
+#
 
 class Chord
   constructor: (options) ->
@@ -79,6 +135,17 @@ class Chord
   degree_name: (degree_index) ->
     @components[degree_index]
 
+  @fromPitches: (pitches) ->
+    root = pitches[0]
+    Chord.fromPitchClasses(pitch - root for pitch in pitches).at(root)
+
+  @fromPitchClasses: (pitchClasses) ->
+    pitchClasses = ((n + 12) % 12 for n in pitchClasses).sort()
+    chord = Chords[pitchClasses]
+    throw new Error("Couldn''t find chord with pitch classes #{pitchClasses}") unless chord
+    return chord
+
+
 ChordDefinitions = [
   {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
   {name: 'Minor', abbr: 'm', pitch_classes: '037'},
@@ -111,19 +178,20 @@ Chords = ChordDefinitions.map (spec) ->
   spec.abbrs or= [spec.abbr]
   spec.abbrs = spec.abbrs.split(/s/) if typeof spec.abbrs == 'string'
   spec.abbr or= spec.abbrs[0]
-  spec.pitch_classes = _.map spec.pitch_classes, (c) -> {'t':10, 'e':11}[c] or Number(c)
+  spec.pitch_classes = spec.pitch_classes.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
   new Chord spec
 
-# Chords is also indexed by chord naes and abbreviations
-for chord in Chords
-  {name, full_name, abbrs} = chord
-  Chords[key] = chord for key in [name, full_name].concat(abbrs)
+# `Chords` is also indexed by chord names and abbreviations, and by pitch classes
+do ->
+  for chord in Chords
+    {name, full_name, abbrs} = chord
+    Chords[key] = chord for key in [name, full_name].concat(abbrs)
+    Chords[chord.pitch_classes] = chord
 
-# The interval class (integer in [0...12]) between two pitch class numbers
-interval_class_between = (pca, pcb) ->
-  n = (pcb - pca) % 12
-  n += 12 while n < 0
-  return n
+
+#
+# Exports
+#
 
 module.exports = {
   Chords
@@ -131,6 +199,7 @@ module.exports = {
   LongIntervalNames
   Modes
   NoteNames
+  Scale
   Scales
   interval_class_between
 }
