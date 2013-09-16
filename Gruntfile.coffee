@@ -48,9 +48,10 @@ module.exports = (grunt) ->
         src: ['**/*', '!**/*.coffee', '!**/*.{coffee,jade,scss}']
         filter: 'isFile'
 
-    githubPages:
-      target:
-        src: '<%= directories.release %>'
+    'gh-pages':
+      options:
+        base: '<%= directories.release %>'
+      src: '**/*'
 
     jade:
       app:
@@ -132,5 +133,5 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build', ['clean:target', 'browserify', 'copy', 'jade', 'sass']
   grunt.registerTask 'build:release', ['context:release', 'build']
-  grunt.registerTask 'deploy', ['build:release', 'githubPages:target']
+  grunt.registerTask 'deploy', ['build:release', 'gh-pages']
   grunt.registerTask 'default', ['build', 'connect', 'watch']
