@@ -1,4 +1,4 @@
-{interval_class_between} = require('./theory')
+{interval_class_between, pitchFromScientificNotation} = require('./theory')
 
 #
 # Fretboard
@@ -10,13 +10,7 @@ StringCount = StringNumbers.length
 FretNumbers = [0..4]  # includes nut
 FretCount = FretNumbers.length - 1  # doesn't include nut
 
-StringIntervals = [5, 5, 5, 4, 5]
-
-OpenStringPitches = do (numbers=[]) ->
-  numbers.push 20
-  for interval, i in StringIntervals
-    numbers.push numbers[i] + interval
-  numbers
+OpenStringPitches = 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
 
 pitch_number_for_position = ({string, fret}) ->
   OpenStringPitches[string] + fret

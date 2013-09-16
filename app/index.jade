@@ -12,8 +12,8 @@ html(lang="en")
     script(data-main="./js/app.js", src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
 
   body(ng:controller="ChordCtrl")
-    .chord-diagram.ng-cloak(ng:repeat="scale in ['E', 'F', 'G', 'A', 'B', 'C', 'D']")
-      .chord-diagram.ng-cloak(ng:repeat="chord in getScaleChords(scale)")
+    h2(ng:repeat="tonic in tonics") {{tonic}} Major
+      .chord-diagram.ng-cloak(ng:repeat="chord in getScaleChords(tonic)")
         h3 {{chord}}
         chord(name="{{chord}}")
 

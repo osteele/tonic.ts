@@ -21,6 +21,8 @@ angular.element(document).ready ->
 app = angular.module 'FretboardApp', []
 
 app.controller 'ChordCtrl', ($scope) ->
+  $scope.tonics = ['E', 'F', 'G', 'A', 'B', 'C', 'D']
+
   $scope.getScaleChords = (scaleName) ->
     Scale.find(scaleName).chords().map (chord) -> chord.name
 

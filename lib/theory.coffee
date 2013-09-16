@@ -12,12 +12,22 @@ LongIntervalNames = [
   'Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
   'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave']
 
+getPitchClassName = (pitchClass) ->
+  NoteNames[normalizePitchClass(pitchClass)]
+
 # The interval class (integer in [0...12]) between two pitch class numbers
 interval_class_between = (pca, pcb) ->
-  n = (pcb - pca) % 12
-  n += 12 while n < 0
-  return n
+  normalizePitchClass (pcb - pca)
 
+normalizePitchClass = (pitchClass) ->
+  ((pitchClass % 12) + 12) % 12
+
+pitchFromScientificNotation = (name) ->
+  match = name.match(/^([A-G])(\d+)$/)
+  throw new Error("Unimplemented: parser for #{name}") unless match
+  [naturalName, octave] = match[1...]
+  pitch = SharpNoteNames.indexOf(naturalName) + 12 * (1 + Number(octave))
+  return pitch
 
 #
 # Scales
@@ -201,5 +211,7 @@ module.exports = {
   NoteNames
   Scale
   Scales
+  getPitchClassName
   interval_class_between
+  pitchFromScientificNotation
 }
