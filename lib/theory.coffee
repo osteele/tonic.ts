@@ -100,6 +100,7 @@ ChordDefinitions = [
   {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitch_classes: '0379'},
 ]
 
+# Chords is an array of chord classes
 Chords = ChordDefinitions.map (spec) ->
   spec.full_name = spec.name
   spec.name = spec.name
@@ -113,7 +114,12 @@ Chords = ChordDefinitions.map (spec) ->
   spec.pitch_classes = _.map spec.pitch_classes, (c) -> {'t':10, 'e':11}[c] or Number(c)
   new Chord spec
 
+# Chords is also indexed by chord naes and abbreviations
+for chord in Chords
+  {name, full_name, abbrs} = chord
+  Chords[key] = chord for key in [name, full_name].concat(abbrs)
 
+# The interval class (integer in [0...12]) between two pitch class numbers
 interval_class_between = (pca, pcb) ->
   n = (pcb - pca) % 12
   n += 12 while n < 0

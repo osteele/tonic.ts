@@ -1,4 +1,22 @@
 ChordDiagram = require './chord_diagram'
+Layout = require './layout'
+
+{
+  best_fingering_for
+  fingerings_for
+  finger_positions_on_chord
+} = require('./fretboard_logic')
+
+{
+  Chords
+  NoteNames
+  IntervalNames
+  LongIntervalNames
+  Modes
+  Scales
+  interval_class_between
+} = require('./theory')
+
 
 # requirejs necessitates this
 angular.element(document).ready ->
@@ -7,7 +25,6 @@ angular.element(document).ready ->
 app = angular.module 'FretboardApp', []
 
 app.controller 'ChordCtrl', ($scope) ->
-  console.info 'init controller'
 
 app.directive 'chord', ->
   restrict: 'CE'
@@ -18,4 +35,8 @@ app.directive 'chord', ->
   link: (scope, element, attrs) ->
     canvas = element[0]
     attrs.$observe 'name', (chordName) ->
-      console.info 'chord', chordName
+      chord = Chords.Major.at('E')
+      fingerings = fingerings_for chord
+      fingering = fingerings[0]
+      ctx = canvas.getContext('2d')
+      ChordDiagram.draw ctx, fingering.positions, barres: fingering.barres

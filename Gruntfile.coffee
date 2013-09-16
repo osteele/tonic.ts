@@ -17,7 +17,6 @@ module.exports = (grunt) ->
           debug: true
           fast: true
           alias: [
-            'lib/browser/layout.coffee:./layout'
             'lib/browser/canvas.coffee:canvas'
           ]
 
@@ -86,7 +85,6 @@ module.exports = (grunt) ->
     aliases = ("#{name}:./#{path.basename name, '.coffee'}" for name in files)
     grunt.config.set propertyName, grunt.config.get(propertyName).concat(aliases)
 
-  # grunt.loadNpmTask 'grunt-contrib-connect'
   require('load-grunt-tasks')(grunt)
 
   grunt.registerTask 'build', ['clean', 'browserify', 'copy', 'jade']

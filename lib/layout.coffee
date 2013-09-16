@@ -9,18 +9,22 @@ Canvas = require 'canvas'
 # Drawing
 #
 
-canvas = null
-ctx = null
+Context =
+  canvas: null
+  ctx: null
 
 erase_background = ->
+  {canvas, ctx} = Context
   ctx.fillStyle = 'white'
   ctx.fillRect 0, 0, canvas.width, canvas.height
 
 measure_text = (text, {font}={}) ->
+  ctx = Context.ctx
   ctx.font = font if font
   ctx.measureText text
 
 draw_text = (text, options={}) ->
+  ctx = Context.ctx
   options = text if _.isObject text
   {font, fillStyle, x, y, gravity, width} = options
   gravity ||= ''
@@ -40,7 +44,19 @@ draw_text = (text, options={}) ->
   y += m.emHeightAscent if gravity.match(/^(top|topLeft|topRight)$/i)
   ctx.fillText text, x, y
 
+with_canvas = (canvas, cb) ->
+  savedCanvas = Context.canvas
+  savedContext = Context.context
+  try
+    Context.canvas = canvas
+    Context.ctx = canvas.getContext('2d')
+    return cb()
+  finally
+    Context.canvas = savedCanvas
+    Context.context = savedContext
+
 with_graphics_context = (fn) ->
+  ctx = Context.ctx
   ctx.save()
   try
     fn ctx
@@ -305,8 +321,9 @@ with_page = (options, draw_page) ->
   right_margin ?= page_margin
   bottom_margin ?= page_margin
 
-  canvas ||= new Canvas width + left_margin + right_margin, height + top_margin + bottom_margin, Mode
-  ctx = canvas.getContext '2d'
+  canvas = Context.canvas ||=
+    new Canvas width + left_margin + right_margin, height + top_margin + bottom_margin, Mode
+  ctx = Context.ctx = canvas.getContext('2d')
   ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
   boxes = []
 
@@ -394,8 +411,8 @@ with_book = (filename, options, cb) ->
     if size
       {width, height} = get_page_size_dimensions size
       _.extend book.page_options, {width, height}
-      canvas ||= new Canvas width, height, Mode
-      ctx = canvas.getContext '2d'
+      canvas = Context.canvas ||= new Canvas width, height, Mode
+      ctx = Context.ctx = canvas.getContext '2d'
       ctx.textDrawingMode = 'glyph' if Mode == 'pdf'
 
     cb
@@ -446,4 +463,5 @@ module.exports = {
   directory
   filename
   with_graphics_context
+  withCanvas: with_canvas
 }
