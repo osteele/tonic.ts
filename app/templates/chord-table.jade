@@ -1,0 +1,10 @@
+table.table.ng-cloak
+  tr
+    th
+    th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
+  tr(ng:repeat="tonic in tonics")
+    th {{tonic}} Major
+    td(ng:repeat="chordName in getScaleChords(tonic)")
+      a(ng:href="#/chord/{{chordName}}")
+        h3(ng-bind-html-unsafe="chordName | raiseAccidentals")
+        chord(name="{{chordName}}")

@@ -145,6 +145,10 @@ class Chord
   degree_name: (degree_index) ->
     @components[degree_index]
 
+  @find: (name) ->
+    [noteName, chordName] = name.match(/^([a-gA-G])(.*)$/)[1...]
+    return Chords[chordName].at(noteName)
+
   @fromPitches: (pitches) ->
     root = pitches[0]
     Chord.fromPitchClasses(pitch - root for pitch in pitches).at(root)
@@ -204,6 +208,7 @@ do ->
 #
 
 module.exports = {
+  Chord
   Chords
   IntervalNames
   LongIntervalNames

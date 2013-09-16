@@ -11,17 +11,9 @@ html(lang="en")
     script(src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.1.5/angular.min.js")
     script(data-main="./js/app.js", src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js")
 
-  body(ng:controller="ChordCtrl")
-    table.table.ng-cloak
-      tr
-        th
-        th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
-      tr(ng:repeat="tonic in tonics")
-        th {{tonic}} Major
-        td(ng:repeat="chord in getScaleChords(tonic)")
-          h3 {{chord}}
-          chord(name="{{chord}}")
+  body
+    .ng-view
 
-    .github-fork-ribbon-wrapper.right
-      .github-fork-ribbon
-        a(href="https://github.com/osteele/fretboard-logic") Fork me on GitHub
+  .github-fork-ribbon-wrapper.right
+    .github-fork-ribbon
+      a(href="https://github.com/osteele/fretboard-logic") Fork me on GitHub

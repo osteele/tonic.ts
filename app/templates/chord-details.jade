@@ -1,0 +1,6 @@
+h1 {{chord.name}}
+
+h2 Fingerings
+.chord-diagram(ng:repeat="index in fingeringIndices")
+  p {{index}}
+  chord(name="{{chordName}}", fingering="{{index}}")
