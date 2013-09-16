@@ -28,7 +28,7 @@
     "coffeeify": "~0.5.x",
     "grunt": "~0.4.x",
     "grunt-browserify": "~1.2.x",
-    "grunt-coffeelint": "*",
+    "grunt-coffeelint": "0.0.x",
     "grunt-contrib-clean": "~0.5.x",
     "grunt-contrib-coffee": "~0.7.x",
     "grunt-contrib-copy": "~0.4.x",
@@ -40,7 +40,7 @@
     "grunt-shell": "~0.2.2",
     "chai": "*",
     "mocha": "*",
-    "load-grunt-tasks": "~0.1.0"
+    "load-grunt-tasks": "~0.1.x"
   },
   "main": "index.coffee",
   "bin": {
