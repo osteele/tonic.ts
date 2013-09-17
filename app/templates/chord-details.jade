@@ -1,7 +1,7 @@
 .container.ng-cloak
   ol.breadcrumb
     li: a(href='#') Chords
-    li {{chord.name}} Fingerings
+    li {{chord.full_name}}
 
   .chord-diagram(ng:repeat="fingering in fingerings")
     div {{$index + 1}}

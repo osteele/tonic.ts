@@ -15,6 +15,10 @@ LongIntervalNames = [
 getPitchClassName = (pitchClass) ->
   NoteNames[normalizePitchClass(pitchClass)]
 
+getPitchName = (pitch) ->
+  return pitch if typeof pitch == 'string'
+  getPitchClassName(pitch)
+
 # The interval class (integer in [0...12]) between two pitch class numbers
 interval_class_between = (pca, pcb) ->
   normalizePitchClass (pcb - pca)
@@ -109,14 +113,10 @@ FunctionQualities =
 #
 
 class Chord
-  constructor: (options) ->
-    @name = options.name
-    @full_name = options.full_name
-    @abbrs = options.abbrs or [options.abbr]
+  constructor: ({@name, @full_name, @abbr, @abbrs, @pitch_classes, @root}) ->
+    @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
-    @abbr = options.abbr or @abbrs[0]
-    @pitch_classes = options.pitch_classes
-    @root = options.root
+    @abbr ?= @abbrs[0]
     @root = NoteNames.indexOf @root if typeof @root == 'string'
     degrees = (1 + 2 * i for i in [0..@pitch_classes.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
@@ -137,7 +137,7 @@ class Chord
   at: (root) ->
     new Chord
       name: @name
-      full_name: @full_name
+      full_name: "#{getPitchName(root)} #{@full_name}"
       abbrs: @abbrs
       pitch_classes: @pitch_classes
       root: root
