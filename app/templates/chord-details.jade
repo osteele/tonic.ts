@@ -1,8 +1,8 @@
-h1
-  a(href='#') Chords
-  | &nbsp;» {{chord.name}}
+.container.ng-cloak
+  ol.breadcrumb
+    li: a(href='#') Chords
+    li {{chord.name}} Fingerings
 
-h2 Fingerings
-.chord-diagram(ng:repeat="fingering in fingerings")
-  span {{$index + 1}}
-  chord(chord="chord", fingering="fingering")
+  .chord-diagram(ng:repeat="fingering in fingerings")
+    div {{$index + 1}}
+    chord(chord="chord", fingering="fingering")
