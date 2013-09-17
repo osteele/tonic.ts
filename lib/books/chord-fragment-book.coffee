@@ -35,15 +35,15 @@ collect_chord_shape_fragments = (chord) ->
         names = []
         names[string] = rc.degree_name degree_index for {string, degree_index} in fingering.positions
         names
-      for bass_string in [0..(fretstring.length - chord.pitch_classes.length)]
-        slice = fretstring[bass_string...(bass_string + chord.pitch_classes.length)]
-        intervals = interval_names[bass_string...(bass_string + chord.pitch_classes.length)]
+      for bass_string in [0..(fretstring.length - chord.pitchClasses.length)]
+        slice = fretstring[bass_string...(bass_string + chord.pitchClasses.length)]
+        intervals = interval_names[bass_string...(bass_string + chord.pitchClasses.length)]
         continue unless slice.match /^\d+$/
         # include open positions only if there's not an equivalent closed position
         # continue if slice.match /0/ and not slice.match /4/
         positions = (pos \
           for pos in fingering.positions \
-            when bass_string <= pos.string < bass_string + chord.pitch_classes.length)
+            when bass_string <= pos.string < bass_string + chord.pitchClasses.length)
         # shift bass fingerings
         d_string = (if bass_string == 0 then 1 else 0)
         # lower fingerings to first position:
@@ -54,7 +54,7 @@ collect_chord_shape_fragments = (chord) ->
           for {fret, string, degree_index, interval_class} in positions)
         continue if slice.match /5/
         fragment_index = bass_string
-        fragment_index = 0 if bass_string + chord.pitch_classes.length - 1 <= 3
+        fragment_index = 0 if bass_string + chord.pitchClasses.length - 1 <= 3
         fragments_by_bass[fragment_index] ||= {}
         record = fragments_by_bass[fragment_index][slice] ||= {positions, intervals, roots: []}
         used_in = best_fingerings[fretstring]
@@ -73,7 +73,7 @@ chord_shape_fragments = (options={}) ->
   options = _.extend {chord_pages: true}, options
 
   label_interval_names = (intervals, chord, positions) ->
-    ht = harmonic_table_block (chord.pitch_classes[degree_index] for {degree_index} in positions)
+    ht = harmonic_table_block (chord.pitchClasses[degree_index] for {degree_index} in positions)
     , fill_cells: true
     , radius: 5
     , align: {x: -2, y: 10}
@@ -89,11 +89,11 @@ chord_shape_fragments = (options={}) ->
         with_graphics_context (ctx) ->
           ctx.translate page.width - 50, 15
           ctx.scale 0.85, 0.85
-          draw_pitch_diagram ctx, chord.pitch_classes
+          draw_pitch_diagram ctx, chord.pitchClasses
 
         with_graphics_context (ctx) ->
           ctx.translate page.width - 120, -15
-          draw_harmonic_table chord.pitch_classes, radius: 12
+          draw_harmonic_table chord.pitchClasses, radius: 12
 
       # FIXME required here to break cyclic reference, which should be removed instead
       book_utils = require './books'
@@ -162,7 +162,7 @@ chord_shape_fragments = (options={}) ->
             rc = chord.at root
             fingering = best_fingering_for rc
             # return if fingering.barres?.length
-            return if fingering.positions.length <= rc.pitch_classes.length
+            return if fingering.positions.length <= rc.pitchClasses.length
             fretstring = fingering.fretstring
             # return if fretstring.match /0/ and fretstring.match /4/
 
@@ -178,9 +178,9 @@ chord_shape_fragments = (options={}) ->
 
             draw_plus = false
             [0...fretstring.length].forEach (bass_string) ->
-              treble_string = bass_string + rc.pitch_classes.length - 1
+              treble_string = bass_string + rc.pitchClasses.length - 1
               positions = (pos for pos in fingering.positions when bass_string <= pos.string <= treble_string)
-              return if positions.length < rc.pitch_classes.length
+              return if positions.length < rc.pitchClasses.length
               d_fret = 1 - Math.min((fret for {fret} in positions)...)
               d_string = (if bass_string == 0 then 1 else 0)
               positions = ({fret: fret + d_fret, string: string + d_string, degree_index, interval_class} \

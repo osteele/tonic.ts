@@ -1,4 +1,4 @@
-{interval_class_between, pitchFromScientificNotation} = require('./theory')
+{intervalClassDifference, pitchFromScientificNotation} = require('./theory')
 
 #
 # Fretboard
@@ -24,7 +24,7 @@ intervals_from = (root_position, semitones) ->
   root_note_number = pitch_number_for_position(root_position)
   positions = []
   fretboard_positions_each (finger_position) ->
-    return unless interval_class_between(root_note_number, pitch_number_for_position(finger_position)) == semitones
+    return unless intervalClassDifference(root_note_number, pitch_number_for_position(finger_position)) == semitones
     positions.push finger_position
   return positions
 

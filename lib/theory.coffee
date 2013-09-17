@@ -20,7 +20,7 @@ getPitchName = (pitch) ->
   getPitchClassName(pitch)
 
 # The interval class (integer in [0...12]) between two pitch class numbers
-interval_class_between = (pca, pcb) ->
+intervalClassDifference = (pca, pcb) ->
   normalizePitchClass (pcb - pca)
 
 normalizePitchClass = (pitchClass) ->
@@ -80,11 +80,11 @@ do ->
   Scales[scale.name] = scale for scale in Scales
 
 Modes = do ->
-  root_tones = Scales['Diatonic Major'].pitches
-  mode_names = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
-  for delta, i in root_tones
-    name = mode_names[i]
-    pitches = ((d - delta + 12) % 12 for d in root_tones[i...].concat root_tones[...i])
+  rootTones = Scales['Diatonic Major'].pitches
+  modeNames = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
+  for delta, i in rootTones
+    name = modeNames[i]
+    pitches = ((d - delta + 12) % 12 for d in rootTones[i...].concat rootTones[...i])
     new Scale {name, pitches}
 
 do ->
@@ -113,15 +113,15 @@ FunctionQualities =
 #
 
 class Chord
-  constructor: ({@name, @full_name, @abbr, @abbrs, @pitch_classes, @root}) ->
+  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @root}) ->
     @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
     @root = NoteNames.indexOf @root if typeof @root == 'string'
-    degrees = (1 + 2 * i for i in [0..@pitch_classes.length])
+    degrees = (1 + 2 * i for i in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
-    @components = for pc, pci in @pitch_classes
+    @components = for pc, pci in @pitchClasses
       name = IntervalNames[pc]
       degree = degrees[pci]
       if pc == 0
@@ -137,9 +137,9 @@ class Chord
   at: (root) ->
     new Chord
       name: @name
-      full_name: "#{getPitchName(root)} #{@full_name}"
+      fullName: "#{getPitchName(root)} #{@fullName}"
       abbrs: @abbrs
-      pitch_classes: @pitch_classes
+      pitchClasses: @pitchClasses
       root: root
 
   degree_name: (degree_index) ->
@@ -164,29 +164,29 @@ class Chord
 
 
 ChordDefinitions = [
-  {name: 'Major', abbrs: ['', 'M'], pitch_classes: '047'},
-  {name: 'Minor', abbr: 'm', pitch_classes: '037'},
-  {name: 'Augmented', abbrs: ['+', 'aug'], pitch_classes: '048'},
-  {name: 'Diminished', abbrs: ['°', 'dim'], pitch_classes: '036'},
-  {name: 'Sus2', abbr: 'sus2', pitch_classes: '027'},
-  {name: 'Sus4', abbr: 'sus4', pitch_classes: '057'},
-  {name: 'Dominant 7th', abbrs: ['7', 'dom7'], pitch_classes: '047t'},
-  {name: 'Augmented 7th', abbrs: ['+7', '7aug'], pitch_classes: '048t'},
-  {name: 'Diminished 7th', abbrs: ['°7', 'dim7'], pitch_classes: '0369'},
-  {name: 'Major 7th', abbr: 'maj7', pitch_classes: '047e'},
-  {name: 'Minor 7th', abbr: 'min7', pitch_classes: '037t'},
-  {name: 'Dominant 7b5', abbr: '7b5', pitch_classes: '046t'},
+  {name: 'Major', abbrs: ['', 'M'], pitchClasses: '047'},
+  {name: 'Minor', abbr: 'm', pitchClasses: '037'},
+  {name: 'Augmented', abbrs: ['+', 'aug'], pitchClasses: '048'},
+  {name: 'Diminished', abbrs: ['°', 'dim'], pitchClasses: '036'},
+  {name: 'Sus2', abbr: 'sus2', pitchClasses: '027'},
+  {name: 'Sus4', abbr: 'sus4', pitchClasses: '057'},
+  {name: 'Dominant 7th', abbrs: ['7', 'dom7'], pitchClasses: '047t'},
+  {name: 'Augmented 7th', abbrs: ['+7', '7aug'], pitchClasses: '048t'},
+  {name: 'Diminished 7th', abbrs: ['°7', 'dim7'], pitchClasses: '0369'},
+  {name: 'Major 7th', abbr: 'maj7', pitchClasses: '047e'},
+  {name: 'Minor 7th', abbr: 'min7', pitchClasses: '037t'},
+  {name: 'Dominant 7b5', abbr: '7b5', pitchClasses: '046t'},
   # following is also half-diminished 7th
-  {name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], pitch_classes: '036t'},
-  {name: 'Diminished Maj 7th', abbr: '°Maj7', pitch_classes: '036e'},
-  {name: 'Minor-Major 7th', abbrs: ['min/maj7', 'min(maj7)'], pitch_classes: '037e'},
-  {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitch_classes: '0479'},
-  {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitch_classes: '0379'},
+  {name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], pitchClasses: '036t'},
+  {name: 'Diminished Maj 7th', abbr: '°Maj7', pitchClasses: '036e'},
+  {name: 'Minor-Major 7th', abbrs: ['min/maj7', 'min(maj7)'], pitchClasses: '037e'},
+  {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitchClasses: '0479'},
+  {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitchClasses: '0379'},
 ]
 
 # Chords is an array of chord classes
 Chords = ChordDefinitions.map (spec) ->
-  spec.full_name = spec.name
+  spec.fullName = spec.name
   spec.name = spec.name
     .replace(/Major(?!$)/, 'Maj')
     .replace(/Minor(?!$)/, 'Min')
@@ -195,15 +195,15 @@ Chords = ChordDefinitions.map (spec) ->
   spec.abbrs or= [spec.abbr]
   spec.abbrs = spec.abbrs.split(/s/) if typeof spec.abbrs == 'string'
   spec.abbr or= spec.abbrs[0]
-  spec.pitch_classes = spec.pitch_classes.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
+  spec.pitchClasses = spec.pitchClasses.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
   new Chord spec
 
 # `Chords` is also indexed by chord names and abbreviations, and by pitch classes
 do ->
   for chord in Chords
-    {name, full_name, abbrs} = chord
-    Chords[key] = chord for key in [name, full_name].concat(abbrs)
-    Chords[chord.pitch_classes] = chord
+    {name, fullName, abbrs} = chord
+    Chords[key] = chord for key in [name, fullName].concat(abbrs)
+    Chords[chord.pitchClasses] = chord
 
 
 #
@@ -220,6 +220,6 @@ module.exports = {
   Scale
   Scales
   getPitchClassName
-  interval_class_between
+  intervalClassDifference
   pitchFromScientificNotation
 }

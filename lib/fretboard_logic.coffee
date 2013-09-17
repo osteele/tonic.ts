@@ -1,6 +1,6 @@
 util = require 'util'
 _ = require 'underscore'
-{interval_class_between} = require './theory'
+{intervalClassDifference} = require './theory'
 FretboardModel = require './fretboard_model'
 
 {
@@ -24,7 +24,7 @@ class Fingering
     ((if x >= 0 then x else 'x') for x in fret_vector).join('')
 
   @cached_getter 'inversion', ->
-    @chord.pitch_classes.indexOf interval_class_between(@chord.root, pitch_number_for_position(@positions[0]))
+    @chord.pitchClasses.indexOf intervalClassDifference(@chord.root, pitch_number_for_position(@positions[0]))
 
 find_barres = (positions) ->
   fret_rows = for fn in FretNumbers
@@ -61,8 +61,8 @@ find_barre_sets = (positions) ->
 finger_positions_on_chord = (chord) ->
   positions = []
   fretboard_positions_each (pos) ->
-    interval_class = interval_class_between chord.root, pitch_number_for_position(pos)
-    degree_index = chord.pitch_classes.indexOf interval_class
+    interval_class = intervalClassDifference chord.root, pitch_number_for_position(pos)
+    degree_index = chord.pitchClasses.indexOf interval_class
     positions.push {string: pos.string, fret: pos.fret, interval_class, degree_index} if degree_index >= 0
   positions
 
@@ -94,7 +94,7 @@ fingerings_for = (chord, options={}) ->
       for barres in find_barre_sets(positions) \
       for positions in collect_fingering_positions(frets_per_string))
 
-  chord_note_count = chord.pitch_classes.length
+  chord_note_count = chord.pitchClasses.length
 
 
   #

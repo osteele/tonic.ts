@@ -7,7 +7,7 @@ _ = require 'underscore'
   LongIntervalNames
   Modes
   Scales
-  interval_class_between
+  intervalClassDifference
 } = require('./theory')
 
 {
@@ -209,7 +209,7 @@ harmonic_table = (options={}) ->
         grid.start_row()
         grid.cells Chords.map (chord) ->
           labeled chord.name
-          , harmonic_table_block chord.pitch_classes, radius: cell_radius, fill_cells: true
+          , harmonic_table_block chord.pitchClasses, radius: cell_radius, fill_cells: true
 
 
 #
@@ -236,7 +236,7 @@ chord_page = (chord, options={}) ->
       hbox(
         text_block("#{chord.name} Chords", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'),
         # hspring,
-        pitch_diagram_block chord.pitch_classes, 0.85
+        pitch_diagram_block chord.pitchClasses, 0.85
       )
     )
 
