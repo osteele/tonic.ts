@@ -4,5 +4,5 @@ h1
 
 h2 Fingerings
 .chord-diagram(ng:repeat="index in fingeringIndices")
-  p {{index}}
+  p {{index + 1}}
   chord(name="{{chordName}}", fingering="{{index}}")

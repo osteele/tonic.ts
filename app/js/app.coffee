@@ -43,8 +43,8 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
 app.directive 'chord', ->
   restrict: 'CE'
   replace: true
-  template: '<canvas width="90" height="100"/>'
-  transclude: true
+  template: ->
+    "<canvas width='#{ChordDiagram.width}' height='#{ChordDiagram.height}'/>"
   scope: {name: '@', fingering: '@'}
   link: (scope, element, attrs) ->
     canvas = element[0]
