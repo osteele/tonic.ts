@@ -4,7 +4,7 @@ table.table.ng-cloak
     th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
   tr(ng:repeat="tonic in tonics")
     th {{tonic}} Major
-    td(ng:repeat="chordName in getScaleChords(tonic)")
-      a(ng:href="#/chord/{{chordName}}")
-        h3(ng-bind-html-unsafe="chordName | raiseAccidentals")
-        chord(name="{{chordName}}")
+    td(ng:repeat="chord in getScaleChords(tonic)")
+      a(ng:href="#/chord/{{chord.name}}")
+        h3(ng-bind-html-unsafe="chord.name | raiseAccidentals")
+        chord(chord="chord")

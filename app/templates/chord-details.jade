@@ -3,6 +3,6 @@ h1
   | &nbsp;» {{chord.name}}
 
 h2 Fingerings
-.chord-diagram(ng:repeat="index in fingeringIndices")
-  p {{index + 1}}
-  chord(name="{{chordName}}", fingering="{{index}}")
+.chord-diagram(ng:repeat="fingering in fingerings")
+  span {{$index + 1}}
+  chord(chord="chord", fingering="fingering")
