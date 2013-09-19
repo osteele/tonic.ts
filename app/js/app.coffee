@@ -1,11 +1,8 @@
 ChordDiagram = require './chord_diagram'
 Layout = require './layout'
+FretboardModel = require('./fretboard_model')
+{chordFingerings} = require('./fretboard_logic')
 
-{
-  best_fingering_for
-  fingerings_for
-  finger_positions_on_chord
-} = require('./fretboard_logic')
 
 {
   Chord
@@ -33,29 +30,40 @@ app.controller 'ChordTableCtrl', ($scope) ->
   $scope.getScaleChords = do ->
     cache = {}
     (scaleName) ->
-      cache[scaleName] or= Scale.find(scaleName).chords()#.map (chord) -> chord.name
+      cache[scaleName] or= Scale.find(scaleName).chords()
 
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chord = Chord.find($routeParams.chordName)
+  instrument = FretboardModel.DefaultInstrument
+  $scope.instrument = instrument
   $scope.chord = chord
-  $scope.fingerings = fingerings_for(chord)
+  $scope.fingerings = chordFingerings(chord, instrument)
+
+# console.info 'DefaultInstrument', FretboardModel.DefaultInstrument
+DefaultChordDiagramDimensions =
+  # width: ChordDiagram.width(FretboardModel.DefaultInstrument)
+  # height: ChordDiagram.height(FretboardModel.DefaultInstrument)
+  width: 100
+  height: 100
+# console.info 'DefaultChordDiagramDimensions', DefaultChordDiagramDimensions
 
 app.directive 'chord', ->
   restrict: 'CE'
   replace: true
   template: ->
-    "<canvas width='#{ChordDiagram.width}' height='#{ChordDiagram.height}'/>"
+    "<canvas width='#{DefaultChordDiagramDimensions.width}' height='#{DefaultChordDiagramDimensions.height}'/>"
   scope: {chord: '=', fingering: '=?'}
   link: (scope, element, attrs) ->
     canvas = element[0]
+    instrument = FretboardModel.DefaultInstrument
     render = ->
       {chord, fingering} = scope
-      fingerings = fingerings_for(chord)
+      fingerings = chordFingerings(chord, instrument)
       fingering or= fingerings[0]
       return unless fingering
       ctx = canvas.getContext('2d')
       ctx.clearRect 0, 0, 90, 100
-      ChordDiagram.draw ctx, fingering.positions, barres: fingering.barres
+      ChordDiagram.draw ctx, instrument, fingering.positions, barres: fingering.barres
     render()
 
 app.filter 'raiseAccidentals', ->

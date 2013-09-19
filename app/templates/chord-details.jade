@@ -6,3 +6,4 @@
   .chord-diagram(ng:repeat="fingering in fingerings")
     div {{$index + 1}}
     chord(chord="chord", fingering="fingering")
+    //- code {{fingering.tags | json}}

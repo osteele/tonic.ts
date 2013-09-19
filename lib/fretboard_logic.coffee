@@ -5,30 +5,35 @@ FretboardModel = require './fretboard_model'
 
 {
   FretNumbers
-  OpenStringPitches
-  StringNumbers
-  fretboard_positions_each
-  pitch_number_for_position
+  fretboardPositionsEach
+  pitchNumberForPosition
 } = FretboardModel
 
 require './utils'
 
 # These are "fingerings", not "voicings", because they also include barre information.
 class Fingering
-  constructor: ({@positions, @chord, @barres}) ->
+  constructor: ({@positions, @chord, @barres, @instrument}) ->
     @positions.sort (a, b) -> a.string - b.string
+    @tags = []
 
   @cached_getter 'fretstring', ->
-    fret_vector = (-1 for s in StringNumbers)
+    fret_vector = (-1 for s in @instrument.stringNumbers)
     fret_vector[string] = fret for {string, fret} in @positions
     ((if x >= 0 then x else 'x') for x in fret_vector).join('')
 
-  @cached_getter 'inversion', ->
-    @chord.pitchClasses.indexOf intervalClassDifference(@chord.root, pitch_number_for_position(@positions[0]))
+  # @cached_getter 'pitches', ->
+  #   (@instrument.pitchAt(positions) for positions in @positions)
 
-find_barres = (positions) ->
+  # @cached_getter 'intervals', ->
+  #   _.uniq(intervalClassDifference(@chord.root, pitchClass) for pitchClass in @.pitches)
+
+  @cached_getter 'inversion', ->
+    @chord.pitchClasses.indexOf intervalClassDifference(@chord.root, @instrument.pitchAt(@positions[0]))
+
+findBarres = (instrument, positions) ->
   fret_rows = for fn in FretNumbers
-    (for sn in StringNumbers
+    (for sn in instrument.stringNumbers
       if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
         '.'
       else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
@@ -49,25 +54,25 @@ find_barres = (positions) ->
       subsumption_count: m[1].match(/x/g).length
   barres
 
-find_barre_sets = (positions) ->
+collectBarreSets = (instrument, positions) ->
   powerset = (xs) ->
     return [[]] unless xs.length
     [x, xs...] = xs
     tail = powerset xs
     tail.concat([x].concat(ys) for ys in tail)
-  barres = find_barres positions
-  return powerset barres
+  barres = findBarres(instrument, positions)
+  return powerset(barres)
 
-finger_positions_on_chord = (chord) ->
+fingerPositionsOnChord = (chord, instrument) ->
   positions = []
-  fretboard_positions_each (pos) ->
-    interval_class = intervalClassDifference chord.root, pitch_number_for_position(pos)
-    degree_index = chord.pitchClasses.indexOf interval_class
-    positions.push {string: pos.string, fret: pos.fret, interval_class, degree_index} if degree_index >= 0
+  instrument.eachPosition (pos) ->
+    intervalClass = intervalClassDifference chord.root, instrument.pitchAt(pos)
+    degreeIndex = chord.pitchClasses.indexOf intervalClass
+    positions.push {string: pos.string, fret: pos.fret, intervalClass, degreeIndex} if degreeIndex >= 0
   positions
 
 # TODO add options for strumming vs. fingerstyle; muting; span
-fingerings_for = (chord, options={}) ->
+chordFingerings = (chord, instrument, options={}) ->
   options = _.extend {filter: true}, options
   warn = false
   throw new Error "No root for #{util.inspect chord}" unless chord.root?
@@ -76,23 +81,23 @@ fingerings_for = (chord, options={}) ->
   #
   # Generate
   #
-  positions = finger_positions_on_chord(chord)
+  positions = fingerPositionsOnChord(chord, instrument)
 
-  frets_per_string = do (strings=([] for __ in OpenStringPitches)) ->
+  fretsPerString = do (strings=([] for __ in instrument.stringPitches)) ->
     strings[position.string].push position for position in positions
     strings
 
-  collect_fingering_positions = (string_frets) ->
+  collectFingeringPositions = (string_frets) ->
     return [[]] unless string_frets.length
     frets = string_frets[0]
-    following_finger_positions = collect_fingering_positions(string_frets[1..])
-    return following_finger_positions.concat(([n].concat(right) \
-      for n in frets for right in following_finger_positions)...)
+    followingFingerPositions = collectFingeringPositions(string_frets[1..])
+    return followingFingerPositions.concat(([n].concat(right) \
+      for n in frets for right in followingFingerPositions)...)
 
-  generate_fingerings = ->
-    _.flatten(new Fingering {positions, chord, barres} \
-      for barres in find_barre_sets(positions) \
-      for positions in collect_fingering_positions(frets_per_string))
+  generateFingerings = ->
+    _.flatten(new Fingering {positions, chord, barres, instrument} \
+      for barres in collectBarreSets(instrument, positions) \
+      for positions in collectFingeringPositions(fretsPerString))
 
   chord_note_count = chord.pitchClasses.length
 
@@ -101,45 +106,46 @@ fingerings_for = (chord, options={}) ->
   # Filters
   #
 
-  count_distinct_notes = (fingering) ->
-    _.chain(fingering.positions).pluck('interval_class').uniq().value().length
+  countDistinctNotes = (fingering) ->
+    _.chain(fingering.positions).pluck('intervalClass').uniq().value().length
 
-  has_all_notes = (fingering) ->
-    return count_distinct_notes(fingering) == chord_note_count
+  hasAllNotes = (fingering) ->
+    return countDistinctNotes(fingering) == chord_note_count
 
-  muted_medial_strings = (fingering) ->
+  mutedMedialStrings = (fingering) ->
     return fingering.fretstring.match(/\dx+\d/)
 
-  muted_treble_strings = (fingering) ->
+  mutedTrebleStrings = (fingering) ->
     return fingering.fretstring.match(/x$/)
 
-  finger_count = (fingering) ->
+  getFingerCount = (fingering) ->
     n = (pos for pos in fingering.positions when pos.fret > 0).length
     n -= barre.subsumption_count for barre in fingering.barres
     n
 
-  four_fingers_or_fewer = (fingering) ->
-    return finger_count(fingering) <= 4
+  fourFingersOrFewer = (fingering) ->
+    return getFingerCount(fingering) <= 4
 
-  cmp = (fn) -> (x...) -> !fn(x...)
 
   # Construct the filter set
 
   filters = []
-  filters.push name: 'has all chord notes', select: has_all_notes
+  filters.push name: 'has all chord notes', select: hasAllNotes
 
   if options.filter
-    filters.push name: 'four fingers or fewer', select: four_fingers_or_fewer
+    filters.push name: 'four fingers or fewer', select: fourFingersOrFewer
 
   unless options.fingerpicking
-    filters.push name: 'no muted medial strings', reject: muted_medial_strings
-    filters.push name: 'no muted treble strings', reject: muted_treble_strings
+    filters.push name: 'no muted medial strings', reject: mutedMedialStrings
+    filters.push name: 'no muted treble strings', reject: mutedTrebleStrings
 
   # filter by all the filters in the list, except ignore those that wouldn't pass anything
-  filter_fingerings = (fingerings) ->
+  filterFingerings = (fingerings) ->
     for {name, select, reject} in filters
-      select ||= cmp(reject)
-      filtered = (fingering for fingering in fingerings when select fingering)
+      filtered = fingerings
+      select = ((x) -> not reject(x)) if reject
+      fingering.tags.push name if select(fingering) for fingering in fingerings
+      filtered = filtered.filter(select) if select
       unless filtered.length
         console.warn "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
         filtered = fingerings
@@ -152,23 +158,25 @@ fingerings_for = (chord, options={}) ->
   #
 
   # FIXME count pitch classes, not sounded strings
-  high_note_count = (fingering) ->
+  highNoteCount = (fingering) ->
     fingering.positions.length
 
-  is_root_position = (fingering) ->
-    _(fingering.positions).sortBy((pos) -> pos.string)[0].degree_index == 0
+  isRootPosition = (fingering) ->
+    _(fingering.positions).sortBy((pos) -> pos.string)[0].degreeIndex == 0
 
-  reverse_sort_key = (fn) -> (a) -> -fn(a)
+  reverseSortKey = (fn) -> (a) -> -fn(a)
 
   # ordered list of preferences, from most to least important
   preferences = [
-    {name: 'root position', key: is_root_position}
-    {name: 'high note count', key: high_note_count}
-    {name: 'avoid barres', key: reverse_sort_key((fingering) -> fingering.barres.length)}
-    {name: 'low finger count', key: reverse_sort_key(finger_count)}
+    {name: 'root position', key: isRootPosition}
+    {name: 'high note count', key: highNoteCount}
+    {name: 'avoid barres', key: reverseSortKey((fingering) -> fingering.barres.length)}
+    {name: 'low finger count', key: reverseSortKey(getFingerCount)}
   ]
 
-  sort_fingerings = (fingerings) ->
+  sortFingerings = (fingerings) ->
+    for {name, key} in preferences
+      fingering.tags.push "#{name}: #{key(fingering)}" for fingering in fingerings
     fingerings = _(fingerings).sortBy(key) for {key} in preferences.slice(0).reverse()
     fingerings.reverse()
     return fingerings
@@ -178,18 +186,16 @@ fingerings_for = (chord, options={}) ->
   # Generate, filter, and sort
   #
 
-  chord_name = chord.name
-  fingerings = generate_fingerings()
-  fingerings = filter_fingerings fingerings
-  fingerings = sort_fingerings fingerings
+  fingerings = generateFingerings()
+  fingerings = filterFingerings(fingerings)
+  fingerings = sortFingerings(fingerings)
 
   return fingerings
 
-best_fingering_for = (chord) ->
-  return fingerings_for(chord)[0]
+bestFingeringFor = (chord, instrument) ->
+  return chordFingerings(chord, instrument)[0]
 
 module.exports = {
-  best_fingering_for
-  fingerings_for
-  finger_positions_on_chord
+  bestFingeringFor
+  chordFingerings
 }

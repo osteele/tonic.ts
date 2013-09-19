@@ -142,8 +142,8 @@ class Chord
       pitchClasses: @pitchClasses
       root: root
 
-  degree_name: (degree_index) ->
-    @components[degree_index]
+  degree_name: (degreeIndex) ->
+    @components[degreeIndex]
 
   @find: (name) ->
     match = name.match(/^([a-gA-G][♯♭]*)(.*)$/)

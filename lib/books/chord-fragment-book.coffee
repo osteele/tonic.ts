@@ -33,7 +33,7 @@ collect_chord_shape_fragments = (chord) ->
       fretstring = fingering.fretstring
       interval_names = do ->
         names = []
-        names[string] = rc.degree_name degree_index for {string, degree_index} in fingering.positions
+        names[string] = rc.degree_name degreeIndex for {string, degreeIndex} in fingering.positions
         names
       for bass_string in [0..(fretstring.length - chord.pitchClasses.length)]
         slice = fretstring[bass_string...(bass_string + chord.pitchClasses.length)]
@@ -50,8 +50,8 @@ collect_chord_shape_fragments = (chord) ->
         frets = (Number(c) for c in slice)
         d_fret = 1 - Math.min(frets...)
         slice = (fret + d_fret for fret in frets).join('') if d_fret
-        positions = ({fret: fret + d_fret, string: string + d_string, degree_index, interval_class} \
-          for {fret, string, degree_index, interval_class} in positions)
+        positions = ({fret: fret + d_fret, string: string + d_string, degreeIndex, intervalClass} \
+          for {fret, string, degreeIndex, intervalClass} in positions)
         continue if slice.match /5/
         fragment_index = bass_string
         fragment_index = 0 if bass_string + chord.pitchClasses.length - 1 <= 3
@@ -73,7 +73,7 @@ chord_shape_fragments = (options={}) ->
   options = _.extend {chord_pages: true}, options
 
   label_interval_names = (intervals, chord, positions) ->
-    ht = harmonic_table_block (chord.pitchClasses[degree_index] for {degree_index} in positions)
+    ht = harmonic_table_block (chord.pitchClasses[degreeIndex] for {degreeIndex} in positions)
     , fill_cells: true
     , radius: 5
     , align: {x: -2, y: 10}
@@ -183,8 +183,8 @@ chord_shape_fragments = (options={}) ->
               return if positions.length < rc.pitchClasses.length
               d_fret = 1 - Math.min((fret for {fret} in positions)...)
               d_string = (if bass_string == 0 then 1 else 0)
-              positions = ({fret: fret + d_fret, string: string + d_string, degree_index, interval_class} \
-                for {fret, string, degree_index, interval_class} in positions)
+              positions = ({fret: fret + d_fret, string: string + d_string, degreeIndex, intervalClass} \
+                for {fret, string, degreeIndex, intervalClass} in positions)
 
               cell = ChordDiagram.block positions
                 , draw_closed_strings: false
@@ -199,7 +199,7 @@ chord_shape_fragments = (options={}) ->
                 ctx.scale 0.8, 0.8
                 ctx.translate 10, 10
 
-                label_interval_names (rc.degree_name degree_index for {degree_index} in positions), chord, positions
+                label_interval_names (rc.degree_name degreeIndex for {degreeIndex} in positions), chord, positions
 
               grid.cell cell
 

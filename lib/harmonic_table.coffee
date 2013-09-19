@@ -4,7 +4,7 @@ _ = require 'underscore'
 ChordDiagram = require './chord_diagram'
 
 DefaultStyle =
-  interval_class_colors: ChordDiagram.defaultStyle.interval_class_colors
+  intervalClass_colors: ChordDiagram.defaultStyle.intervalClass_colors
   radius: 50
   center: true
   fill_cells: false
@@ -23,37 +23,37 @@ IntervalVectors =
 
 # Returns a record {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
 # of the interval class.
-interval_class_vectors = (interval_class) ->
-  original_interval_class = interval_class # for error reporting
+intervalClassVectors = (intervalClass) ->
+  original_intervalClass = intervalClass # for error reporting
   adjustments = {}
   adjust = (d_ic, intervals) ->
-    interval_class += d_ic
+    intervalClass += d_ic
     adjustments[k] ?= 0 for k of intervals
     adjustments[k] += v for k, v of intervals
-  adjust -24, P5: 4, M3: -1 while interval_class >= 24
-  adjust -12, M3: 3 while interval_class >= 12
-  [record, sign] = [IntervalVectors[interval_class], 1]
-  [record, sign] = [IntervalVectors[12 - interval_class], -1] unless record
+  adjust -24, P5: 4, M3: -1 while intervalClass >= 24
+  adjust -12, M3: 3 while intervalClass >= 12
+  [record, sign] = [IntervalVectors[intervalClass], 1]
+  [record, sign] = [IntervalVectors[12 - intervalClass], -1] unless record
   intervals = _.extend {m3: 0, M3: 0, P5: 0, sign: 1}, record
   intervals[k] *= sign for k of intervals
   intervals[k] += v for k, v of adjustments
   computed_semitones = (12 + intervals.P5 * 7 + intervals.M3 * 4 + intervals.m3 * 3) % 12
-  unless computed_semitones == original_interval_class % 12
-    console.error "Error computing grid position for #{original_interval_class}:\n"
-      , "  #{original_interval_class} ->", intervals
+  unless computed_semitones == original_intervalClass % 12
+    console.error "Error computing grid position for #{original_intervalClass}:\n"
+      , "  #{original_intervalClass} ->", intervals
       , '->', computed_semitones
-      , '!=', original_interval_class % 12
+      , '!=', original_intervalClass % 12
   intervals
 
-draw_harmonic_table = (interval_classes, options={}) ->
+drawHarmonicTable = (intervalClasses, options={}) ->
   options = _.extend {draw: true}, DefaultStyle, options
-  colors = options.interval_class_colors
-  interval_classes = [0].concat interval_classes unless 0 in interval_classes
+  colors = options.intervalClass_colors
+  intervalClasses = [0].concat intervalClasses unless 0 in intervalClasses
   cell_radius = options.radius
   hex_radius = cell_radius / 2
 
   cell_center = (interval_klass) ->
-    vectors = interval_class_vectors interval_klass
+    vectors = intervalClassVectors interval_klass
     dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2
     dx = vectors.M3 - vectors.m3
     x = dx * cell_radius * .8
@@ -61,7 +61,7 @@ draw_harmonic_table = (interval_classes, options={}) ->
     {x, y}
 
   bounds = {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
-  for interval_klass in interval_classes
+  for interval_klass in intervalClasses
     {x, y} = cell_center interval_klass
     bounds.left = Math.min bounds.left, x - hex_radius
     bounds.top = Math.min bounds.top, y - hex_radius
@@ -73,7 +73,7 @@ draw_harmonic_table = (interval_classes, options={}) ->
   with_graphics_context (ctx) ->
     ctx.translate -bounds.left, -bounds.bottom
 
-    for interval_klass in interval_classes
+    for interval_klass in intervalClasses
       is_root = interval_klass == 0
       color = colors[interval_klass % 12]
       color ||= colors[12 - interval_klass]
@@ -123,21 +123,21 @@ draw_harmonic_table = (interval_classes, options={}) ->
     ctx.fill()
 
     if options.label_cells
-      for interval_klass in interval_classes
+      for interval_klass in intervalClasses
         label = IntervalNames[interval_klass]
         label = 'R' if interval_klass == 0
         {x, y} = cell_center interval_klass
         draw_text label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
-harmonic_table_block = (tones, options) ->
-  dimensions = draw_harmonic_table tones, _.extend({}, options, compute_bounds: true, draw: false)
+harmonicTableBlock = (tones, options) ->
+  dimensions = drawHarmonicTable tones, _.extend({}, options, compute_bounds: true, draw: false)
   block
     width: dimensions.width
     height: dimensions.height
     draw: ->
-      draw_harmonic_table tones, options
+      drawHarmonicTable tones, options
 
 module.exports = {
-  draw: draw_harmonic_table
-  block: harmonic_table_block
+  draw: drawHarmonicTable
+  block: harmonicTableBlock
 }

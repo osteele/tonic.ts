@@ -1,8 +1,6 @@
 {
   FretCount
   FretNumbers
-  StringCount
-  StringNumbers
 } = require './fretboard_model'
 
 
@@ -17,20 +15,20 @@ DefaultStyle =
   fret_width: 45
   fret_overhang: .3 * 45
 
-padded_fretboard_width = do (style=DefaultStyle) ->
+paddedFretboardWidth = (instrument, style=DefaultStyle) ->
   2 * style.v_gutter + style.fret_width * FretCount + style.fret_overhang
 
-padded_fretboard_height = do (style=DefaultStyle) ->
-  2 * style.h_gutter + (StringCount - 1) * style.string_spacing
+paddedFretboardHeight = (instrument, style=DefaultStyle) ->
+  2 * style.h_gutter + (instrument.strings - 1) * style.string_spacing
 
 
 #
 # Drawing Methods
 #
 
-draw_fretboard_strings = (ctx) ->
+drawFretboardStrings = (instrument, ctx) ->
   style = DefaultStyle
-  for string in StringNumbers
+  for string in instrument.stringNumbers
     y = string * style.string_spacing + style.h_gutter
     ctx.beginPath()
     ctx.moveTo style.h_gutter, y
@@ -38,18 +36,18 @@ draw_fretboard_strings = (ctx) ->
     ctx.lineWidth = 1
     ctx.stroke()
 
-draw_fretboard_frets = (ctx) ->
+drawFretboardFrets = (ctx, instrument) ->
   style = DefaultStyle
   for fret in FretNumbers
     x = style.h_gutter + fret * style.fret_width
     ctx.beginPath()
     ctx.moveTo x, style.h_gutter
-    ctx.lineTo x, style.h_gutter + (StringCount - 1) * style.string_spacing
+    ctx.lineTo x, style.h_gutter + (instrument.strings - 1) * style.string_spacing
     ctx.lineWidth = 3 if fret == 0
     ctx.stroke()
     ctx.lineWidth = 1
 
-draw_fretboard_finger_position = (ctx, position, options={}) ->
+drawFretboardFingerPosition = (ctx, instrument, position, options={}) ->
   {string, fret} = position
   {is_root, color} = options
   style = DefaultStyle
@@ -66,12 +64,12 @@ draw_fretboard_finger_position = (ctx, position, options={}) ->
   ctx.strokeStyle = 'black'
   ctx.lineWidth = 1
 
-draw_fretboard = (ctx, positions) ->
-  draw_fretboard_strings ctx
-  draw_fretboard_frets ctx
-  draw_fretboard_finger_position ctx, position, position for position in (positions or [])
+drawFretboard = (ctx, instrument, positions) ->
+  drawFretboardStrings ctx, instrument
+  drawFretboardFrets ctx, instrument
+  drawFretboardFingerPosition ctx, instrument, position, position for position in (positions or [])
 
 module.exports =
-  draw: draw_fretboard
-  height: padded_fretboard_height
-  width: padded_fretboard_width
+  draw: drawFretboard
+  height: paddedFretboardHeight
+  width: paddedFretboardWidth

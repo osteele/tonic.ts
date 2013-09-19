@@ -4,37 +4,33 @@
 # Fretboard
 #
 
-StringNumbers = [0..5]
-StringCount = StringNumbers.length
+class Instrument
+  strings: 6
+  stringNumbers: [0..5]
+  stringPitches: 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
+
+  eachPosition: (fn) ->
+    for string in @stringNumbers
+      for fret in FretNumbers
+        fn string: string, fret: fret
+
+  pitchAt: ({string, fret}) ->
+    @stringPitches[string] + fret
 
 FretNumbers = [0..4]  # includes nut
 FretCount = FretNumbers.length - 1  # doesn't include nut
 
-OpenStringPitches = 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
-
-pitch_number_for_position = ({string, fret}) ->
-  OpenStringPitches[string] + fret
-
-fretboard_positions_each = (fn) ->
-  for string in StringNumbers
-    for fret in FretNumbers
-      fn string: string, fret: fret
-
-intervals_from = (root_position, semitones) ->
-  root_note_number = pitch_number_for_position(root_position)
+intervalPositionsFromRoot = (instrument, rootPosition, semitones) ->
+  rootPitch = instrument.pitchAt(rootPosition)
   positions = []
-  fretboard_positions_each (finger_position) ->
-    return unless intervalClassDifference(root_note_number, pitch_number_for_position(finger_position)) == semitones
-    positions.push finger_position
+  fretboard_positions_each (fingerPosition) ->
+    return unless intervalClassDifference(rootPitch, instrument.pitchAt(fingerPosition)) == semitones
+    positions.push fingerPosition
   return positions
 
 module.exports = {
-  StringNumbers
-  StringCount
+  DefaultInstrument: new Instrument
   FretNumbers
   FretCount
-  OpenStringPitches
-  fretboard_positions_each
-  pitch_number_for_position
-  intervals_from
+  intervalPositionsFromRoot
 }
