@@ -23,6 +23,14 @@ module.exports = (grunt) ->
           alias: [
             'lib/browser/canvas.coffee:canvas'
           ]
+          # aliasMappings: [
+          #   # {'lib/browser/canvas.coffee': 'canvas'}
+          #   {
+          #     cwd: 'lib'
+          #     src: ['*.coffee', '!books', '!movies']
+          #     dst: '.'
+          #   }
+          # ]
 
     clean:
       dev: '<%= directories.dev %>'
@@ -95,16 +103,13 @@ module.exports = (grunt) ->
         files: 'Gruntfile.coffee'
         tasks: ['coffeelint:gruntfile', 'build']
       jade:
-        files: 'app/**/*.jade'
+        files: '<%= jade.app.src %>'
         tasks: ['jade']
-      lib:
-        files: 'lib/**/*.coffee'
-        tasks: ['browserify']
       sass:
-        files: ['app/**/*.scss']
+        files: ['<%= sass.app.src %>']
         tasks: ['sass']
       scripts:
-        files: 'app/**/*.coffee'
+        files: '<%= browserify.app.src %> '
         tasks: ['browserify']
 
   do ->
