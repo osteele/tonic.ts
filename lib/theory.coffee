@@ -40,18 +40,20 @@ pitchFromScientificNotation = (name) ->
 class Scale
   constructor: ({@name, @pitches, @tonicName}) ->
 
-  chords: ->
-    tonicPitch = NoteNames.indexOf(@tonicName)
-    for i in [0...@pitches.length]
-      pitches = @pitches[i..].concat(@pitches[...i])
-      pitches = [pitches[0], pitches[2], pitches[4]].map (n) -> (n + tonicPitch) % 12
-      Chord.fromPitches(pitches)
-
   at: (tonicName) ->
     new Scale
       name: @name
       pitches: @pitches
       tonicName: tonicName
+
+  chords: (options={}) ->
+    tonicPitch = NoteNames.indexOf(@tonicName)
+    degrees = [0, 2, 4]
+    degrees.push 6 if options.sevenths
+    for i in [0...@pitches.length]
+      pitches = @pitches[i..].concat(@pitches[...i])
+      pitches = (pitches[degree] for degree in degrees).map (n) -> (n + tonicPitch) % 12
+      Chord.fromPitches(pitches)
 
   @find: (tonicName) ->
     scaleName = 'Diatonic Major'
@@ -157,7 +159,7 @@ class Chord
     Chord.fromPitchClasses(pitch - root for pitch in pitches).at(root)
 
   @fromPitchClasses: (pitchClasses) ->
-    pitchClasses = ((n + 12) % 12 for n in pitchClasses).sort()
+    pitchClasses = ((n + 12) % 12 for n in pitchClasses).sort((a, b) -> a > b)
     chord = Chords[pitchClasses]
     throw new Error("Couldn''t find chord with pitch classes #{pitchClasses}") unless chord
     return chord

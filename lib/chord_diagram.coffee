@@ -162,7 +162,7 @@ drawChordBlock = (instrument, positions, options) ->
 
 module.exports =
   defaultStyle: DefaultStyle
-  width: (instrument) -> computeChordDiagramDimensions().width
-  height: (instrument) -> computeChordDiagramDimensions().height
+  width: (instrument) -> computeChordDiagramDimensions(instrument).width
+  height: (instrument) -> computeChordDiagramDimensions(instrument).height
   draw: drawChordDiagram
   block: drawChordBlock

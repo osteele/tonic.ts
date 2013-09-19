@@ -29,8 +29,8 @@ app.controller 'ChordTableCtrl', ($scope) ->
 
   $scope.getScaleChords = do ->
     cache = {}
-    (scaleName) ->
-      cache[scaleName] or= Scale.find(scaleName).chords()
+    (scaleName, sevenths) ->
+      cache[[scaleName, sevenths]] or= Scale.find(scaleName).chords(sevenths: sevenths)
 
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chord = Chord.find($routeParams.chordName)
@@ -39,30 +39,24 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   $scope.chord = chord
   $scope.fingerings = chordFingerings(chord, instrument)
 
-# console.info 'DefaultInstrument', FretboardModel.DefaultInstrument
-DefaultChordDiagramDimensions =
-  # width: ChordDiagram.width(FretboardModel.DefaultInstrument)
-  # height: ChordDiagram.height(FretboardModel.DefaultInstrument)
-  width: 100
-  height: 100
-# console.info 'DefaultChordDiagramDimensions', DefaultChordDiagramDimensions
-
 app.directive 'chord', ->
   restrict: 'CE'
   replace: true
   template: ->
-    "<canvas width='#{DefaultChordDiagramDimensions.width}' height='#{DefaultChordDiagramDimensions.height}'/>"
+    instrument = FretboardModel.DefaultInstrument
+    dimensions = {width: ChordDiagram.width(instrument), height: ChordDiagram.height(instrument)}
+    "<canvas width='#{dimensions.width}' height='#{dimensions.height}'/>"
   scope: {chord: '=', fingering: '=?'}
   link: (scope, element, attrs) ->
     canvas = element[0]
+    ctx = canvas.getContext('2d')
     instrument = FretboardModel.DefaultInstrument
     render = ->
       {chord, fingering} = scope
       fingerings = chordFingerings(chord, instrument)
       fingering or= fingerings[0]
       return unless fingering
-      ctx = canvas.getContext('2d')
-      ctx.clearRect 0, 0, 90, 100
+      ctx.clearRect 0, 0, canvas.width, canvas.height
       ChordDiagram.draw ctx, instrument, fingering.positions, barres: fingering.barres
     render()
 
