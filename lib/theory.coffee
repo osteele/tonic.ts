@@ -146,7 +146,7 @@ class Chord
       @rootPitch ?= parsePitchClass(@rootName)
       rootlessAbbr = @abbr
       rootlessFullName = @fullName
-      Object.defineProperty this, 'name', get: -> "#{@rootName}#{@rootlessAbbr}"
+      Object.defineProperty this, 'name', get: -> "#{@rootName}#{rootlessAbbr}"
       Object.defineProperty this, 'fullName', get: -> "#{@rootName} #{rootlessFullName}"
     degrees = (1 + 2 * i for i in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]

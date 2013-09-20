@@ -19,17 +19,10 @@ tr.sevenths {
 
 tr {
   &.ng-hide-add, &.ng-hide-remove {
-    -webkit-transition: 0.5s linear all;
-    -moz-transition: 0.5s linear all;
-    -o-transition: 0.5s linear all;
-    transition: 0.5s linear all;
-
-    tr, td, th {
-      -webkit-transition: 0.5s linear all;
-      -moz-transition: 0.5s linear all;
-      -o-transition: 0.5s linear all;
-      transition: 0.5s linear all;
-    }
+    -webkit-transition: 0.25s ease all;
+    -moz-transition: 0.25s ease all;
+    -o-transition: 0.25s ease all;
+    transition: 0.25s ease all;
   }
 
   &.ng-hide-add,
