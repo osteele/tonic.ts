@@ -39,6 +39,12 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   $scope.instrument = instrument
   $scope.chord = chord
   $scope.fingerings = chordFingerings(chord, instrument)
+  for fingering in $scope.fingerings
+    labels = []
+    for name, badge of fingering.properties
+      badge = null if badge == true
+      labels.push {name, badge}
+    fingering.labels = labels.sort()
 
 app.directive 'chord', ->
   restrict: 'CE'

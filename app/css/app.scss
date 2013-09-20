@@ -2,6 +2,15 @@
   display: inline-block;
   margin: 10px;
   vertical-align: top;
+
+  li {
+    color: white;
+    background: lightBlue;
+    padding: 3px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+  }
 }
 
 tr.sevenths {

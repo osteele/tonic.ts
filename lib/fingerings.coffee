@@ -15,7 +15,7 @@ require './utils'
 class Fingering
   constructor: ({@positions, @chord, @barres, @instrument}) ->
     @positions.sort (a, b) -> a.string - b.string
-    @tags = []
+    @properties = {}
 
   @cached_getter 'fretstring', ->
     fret_vector = (-1 for s in @instrument.stringNumbers)
@@ -144,7 +144,6 @@ chordFingerings = (chord, instrument, options={}) ->
     for {name, select, reject} in filters
       filtered = fingerings
       select = ((x) -> not reject(x)) if reject
-      fingering.tags.push name if select(fingering) for fingering in fingerings
       filtered = filtered.filter(select) if select
       unless filtered.length
         console.warn "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
@@ -175,8 +174,6 @@ chordFingerings = (chord, instrument, options={}) ->
   ]
 
   sortFingerings = (fingerings) ->
-    for {name, key} in preferences
-      fingering.tags.push "#{name}: #{key(fingering)}" for fingering in fingerings
     fingerings = _(fingerings).sortBy(key) for {key} in preferences.slice(0).reverse()
     fingerings.reverse()
     return fingerings
@@ -189,6 +186,22 @@ chordFingerings = (chord, instrument, options={}) ->
   fingerings = generateFingerings()
   fingerings = filterFingerings(fingerings)
   fingerings = sortFingerings(fingerings)
+
+  properties = {
+    root: isRootPosition
+    barres: (f) -> f.barres.length
+    fingers: getFingerCount
+    inverted: (f) -> not isRootPosition(f)
+    skipping: /\dx\d/
+    muting: /\dx/
+    open: /0/
+    triad: (f) -> fingering.positions.length == 3
+  }
+  for name, fn of properties
+    for fingering in fingerings
+      value = if fn instanceof RegExp then fn.test(fingering.fretstring) else fn(fingering)
+      fingering.properties[name] = value if value
+
 
   return fingerings
 
