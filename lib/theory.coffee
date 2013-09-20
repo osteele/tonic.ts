@@ -4,7 +4,15 @@
 
 SharpNoteNames = 'C C# D D# E F F# G G# A A# B'.replace(/#/g, '\u266F').split(/\s/)
 FlatNoteNames = 'C Db D Eb E F Gb G Ab A Bb B'.replace(/b/g, '\u266D').split(/\s/)
-NoteNames = SharpNoteNames  # "G# A A# B C C# D D# E F F# G". split(/\s/)
+NoteNames = SharpNoteNames
+
+AccidentalValues =
+  '#': 1
+  '♯': 1
+  'b': -1
+  '♭': -1
+  '𝄪': 2
+  '𝄫': -2
 
 IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8']
 
@@ -21,17 +29,27 @@ getPitchName = (pitch) ->
 
 # The interval class (integer in [0...12]) between two pitch class numbers
 intervalClassDifference = (pca, pcb) ->
-  normalizePitchClass (pcb - pca)
+  normalizePitchClass(pcb - pca)
 
 normalizePitchClass = (pitchClass) ->
   ((pitchClass % 12) + 12) % 12
 
 pitchFromScientificNotation = (name) ->
-  match = name.match(/^([A-G])(\d+)$/)
-  throw new Error("Unimplemented: parser for #{name}") unless match
-  [naturalName, octave] = match[1...]
-  pitch = SharpNoteNames.indexOf(naturalName) + 12 * (1 + Number(octave))
+  match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i)
+  throw new Error("#{name} is not in scientific notation") unless match
+  [naturalName, accidentals, octave] = match[1...]
+  pitch = SharpNoteNames.indexOf(naturalName.toUpperCase()) + 12 * (1 + Number(octave))
+  pitch += AccidentalValues[c] for c in accidentals
   return pitch
+
+parsePitchClass = (name) ->
+  match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i)
+  throw new Error("#{name} is not a pitch class name") unless match
+  [naturalName, accidentals] = match[1...]
+  pitch = SharpNoteNames.indexOf(naturalName.toUpperCase())
+  pitch += AccidentalValues[c] for c in accidentals
+  return pitch
+
 
 #
 # Scales
@@ -39,6 +57,7 @@ pitchFromScientificNotation = (name) ->
 
 class Scale
   constructor: ({@name, @pitches, @tonicName}) ->
+    @tonicPitch or= parsePitchClass(@tonicName) if @tonicName
 
   at: (tonicName) ->
     new Scale
@@ -47,13 +66,15 @@ class Scale
       tonicName: tonicName
 
   chords: (options={}) ->
-    tonicPitch = NoteNames.indexOf(@tonicName)
+    throw new Error("only implemented for scales with tonics") unless @tonicPitch?
+    noteNames = SharpNoteNames
+    noteNames = FlatNoteNames if noteNames.indexOf(@tonicName) < 0 or @tonicName == 'F'
     degrees = [0, 2, 4]
     degrees.push 6 if options.sevenths
     for i in [0...@pitches.length]
       pitches = @pitches[i..].concat(@pitches[...i])
-      pitches = (pitches[degree] for degree in degrees).map (n) -> (n + tonicPitch) % 12
-      Chord.fromPitches(pitches)
+      pitches = (pitches[degree] for degree in degrees).map (n) => (n + @tonicPitch) % 12
+      Chord.fromPitches(pitches).enharmonicizeTo(noteNames)
 
   @find: (tonicName) ->
     scaleName = 'Diatonic Major'
@@ -115,11 +136,18 @@ FunctionQualities =
 #
 
 class Chord
-  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @root}) ->
+  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @rootName, @rootPitch}) ->
     @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
-    @root = NoteNames.indexOf @root if typeof @root == 'string'
+    if @rootPitch?
+      @rootName or= NoteNames[@rootPitch]
+    if @rootName?
+      @rootPitch ?= parsePitchClass(@rootName)
+      rootlessAbbr = @abbr
+      rootlessFullName = @fullName
+      Object.defineProperty this, 'name', get: -> "#{@rootName}#{@rootlessAbbr}"
+      Object.defineProperty this, 'fullName', get: -> "#{@rootName} #{rootlessFullName}"
     degrees = (1 + 2 * i for i in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
@@ -132,20 +160,31 @@ class Chord
         name = "A#{degree}" if Number(IntervalNames[pc - 1].match(/\d+/)?[0]) == degree
         name = "d#{degree}" if Number(IntervalNames[pc + 1].match(/\d+/)?[0]) == degree
       name
-    if typeof @root == 'number'
-      Object.defineProperty this, 'name', get: ->
-        "#{NoteNames[@root]}#{@abbr}"
 
-  at: (root) ->
+  at: (rootNameOrPitch) ->
+    [rootName, rootPitch] = switch typeof rootNameOrPitch
+      when 'string'
+        [rootNameOrPitch, null]
+      when 'number'
+        [null, rootNameOrPitch]
+      else
+        throw new Error("#rootNameOrPitch} must be a pitch name or number")
+
     new Chord
       name: @name
-      fullName: "#{getPitchName(root)} #{@fullName}"
       abbrs: @abbrs
+      fullName: @fullName
       pitchClasses: @pitchClasses
-      root: root
+      rootName: rootName
+      rootPitch: rootPitch
 
-  degree_name: (degreeIndex) ->
+  degreeName: (degreeIndex) ->
     @components[degreeIndex]
+
+  enharmonicizeTo: (pitchNameArray) ->
+    for pitchName, pitchClass in pitchNameArray
+      @rootName = pitchName if @rootPitch == pitchClass
+    return this
 
   @find: (name) ->
     match = name.match(/^([a-gA-G][♯♭]*)(.*)$/)

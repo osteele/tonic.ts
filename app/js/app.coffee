@@ -28,6 +28,7 @@ app.controller 'ChordTableCtrl', ($scope) ->
   $scope.tonics = ['E', 'F', 'G', 'A', 'B', 'C', 'D']
 
   $scope.getScaleChords = do ->
+    # The cache is necessary to prevent a digest iteration error
     cache = {}
     (scaleName, sevenths) ->
       cache[[scaleName, sevenths]] or= Scale.find(scaleName).chords(sevenths: sevenths)

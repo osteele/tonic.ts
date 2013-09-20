@@ -33,7 +33,7 @@ collect_chord_shape_fragments = (chord) ->
       fretstring = fingering.fretstring
       interval_names = do ->
         names = []
-        names[string] = rc.degree_name degreeIndex for {string, degreeIndex} in fingering.positions
+        names[string] = rc.degreeName degreeIndex for {string, degreeIndex} in fingering.positions
         names
       for bass_string in [0..(fretstring.length - chord.pitchClasses.length)]
         slice = fretstring[bass_string...(bass_string + chord.pitchClasses.length)]
@@ -199,7 +199,7 @@ chord_shape_fragments = (options={}) ->
                 ctx.scale 0.8, 0.8
                 ctx.translate 10, 10
 
-                label_interval_names (rc.degree_name degreeIndex for {degreeIndex} in positions), chord, positions
+                label_interval_names (rc.degreeName degreeIndex for {degreeIndex} in positions), chord, positions
 
               grid.cell cell
 

@@ -26,10 +26,10 @@ class Fingering
   #   (@instrument.pitchAt(positions) for positions in @positions)
 
   # @cached_getter 'intervals', ->
-  #   _.uniq(intervalClassDifference(@chord.root, pitchClass) for pitchClass in @.pitches)
+  #   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
 
   @cached_getter 'inversion', ->
-    @chord.pitchClasses.indexOf intervalClassDifference(@chord.root, @instrument.pitchAt(@positions[0]))
+    @chord.pitchClasses.indexOf intervalClassDifference(@chord.rootPitch, @instrument.pitchAt(@positions[0]))
 
 findBarres = (instrument, positions) ->
   fret_rows = for fn in FretNumbers
@@ -66,7 +66,7 @@ collectBarreSets = (instrument, positions) ->
 fingerPositionsOnChord = (chord, instrument) ->
   positions = []
   instrument.eachPosition (pos) ->
-    intervalClass = intervalClassDifference chord.root, instrument.pitchAt(pos)
+    intervalClass = intervalClassDifference chord.rootPitch, instrument.pitchAt(pos)
     degreeIndex = chord.pitchClasses.indexOf intervalClass
     positions.push {string: pos.string, fret: pos.fret, intervalClass, degreeIndex} if degreeIndex >= 0
   positions
@@ -75,7 +75,7 @@ fingerPositionsOnChord = (chord, instrument) ->
 chordFingerings = (chord, instrument, options={}) ->
   options = _.extend {filter: true}, options
   warn = false
-  throw new Error "No root for #{util.inspect chord}" unless chord.root?
+  throw new Error "No root for #{util.inspect chord}" unless chord.rootPitch?
 
 
   #
