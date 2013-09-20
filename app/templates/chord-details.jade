@@ -4,8 +4,9 @@
     li {{chord.fullName}}
 
   .chord-diagram(ng:repeat="fingering in fingerings")
-    div {{$index + 1}}
+    //- div {{$index + 1}}
     chord(chord="chord", fingering="fingering")
     ul.nav.nav-pills.nav-stacked
-      li.active(ng:repeat="label in fingering.labels") {{label.name}}
+      li(ng:repeat="label in fingering.labels", ng:click="orderBy(label.name)", ng:class="{active: label.name == sortKey}")
+        | {{label.name}}
         .badge {{label.badge}}

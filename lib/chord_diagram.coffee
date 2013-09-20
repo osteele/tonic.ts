@@ -95,9 +95,9 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
 
   drawBarres = ->
     ctx.fillStyle = 'black'
-    for {fret, string, fret, string_count} in barres
+    for {fret, string, fret, stringCount} in barres
       {x: x1, y} = fingerCoordinates {string, fret}
-      {x: x2} = fingerCoordinates {string: string + string_count - 1, fret}
+      {x: x2} = fingerCoordinates {string: string + stringCount - 1, fret}
       w = x2 - x1
       ctx.save()
       ctx.translate (x1 + x2) / 2, y - style.fret_height * .25

@@ -33,14 +33,31 @@ app.controller 'ChordTableCtrl', ($scope) ->
     (scaleName, sevenths) ->
       cache[[scaleName, sevenths]] or= Scale.find(scaleName).chords(sevenths: sevenths)
 
+_.mixin reverse: (array) -> [].concat(array).reverse()
+
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chordName = $routeParams.chordName
   chordName = chordName.replace('&#9839;', '#')
   chord = Chord.find(chordName)
   instrument = Instruments.Default
+
   $scope.instrument = instrument
   $scope.chord = chord
   $scope.fingerings = chordFingerings(chord, instrument)
+
+  $scope.orderBy = (key) ->
+    $scope.sortKey = key
+    fingerings = $scope.fingerings
+    values = _.compact(fingerings.map (f) -> f.properties[key])
+    privative = values[0] == true or values[0] == false
+    fingerings = _.reverse(fingerings) if privative
+    fingerings = _.sortBy(fingerings, (f) -> f.properties[key] or 0)
+    fingerings = _.reverse(fingerings) if privative
+    for fingering in fingerings
+      labels = fingering.labels.filter (label) -> label.name == key
+      fingering.labels = labels.concat(_.difference(fingering.labels, labels)) if labels.length
+    $scope.fingerings = fingerings
+
   for fingering in $scope.fingerings
     labels = []
     for name, badge of fingering.properties

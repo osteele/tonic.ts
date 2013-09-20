@@ -50,8 +50,8 @@ findBarres = (instrument, positions) ->
     barres.push
       fret: fn
       string: m[0].length - m[1].length
-      string_count: m[1].length
-      subsumption_count: m[1].match(/x/g).length
+      stringCount: m[1].length
+      fingerCount: m[1].match(/x/g).length
   barres
 
 collectBarreSets = (instrument, positions) ->
@@ -120,7 +120,7 @@ chordFingerings = (chord, instrument, options={}) ->
 
   getFingerCount = (fingering) ->
     n = (pos for pos in fingering.positions when pos.fret > 0).length
-    n -= barre.subsumption_count for barre in fingering.barres
+    n -= barre.fingerCount - 1 for barre in fingering.barres
     n
 
   fourFingersOrFewer = (fingering) ->
@@ -196,6 +196,7 @@ chordFingerings = (chord, instrument, options={}) ->
     muting: /\dx/
     open: /0/
     triad: (f) -> fingering.positions.length == 3
+    position: (f) -> _.min(_.pluck(fingering.positions, 'fret'))
   }
   for name, fn of properties
     for fingering in fingerings

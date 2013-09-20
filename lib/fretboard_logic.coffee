@@ -50,7 +50,7 @@ findBarres = (instrument, positions) ->
     barres.push
       fret: fn
       string: m[0].length - m[1].length
-      string_count: m[1].length
+      stringCount: m[1].length
       subsumption_count: m[1].match(/x/g).length
   barres
 
