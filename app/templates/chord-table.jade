@@ -1,10 +1,12 @@
 .container.ng-cloak
   .checkbox
     input.inline(type="checkbox", ng-model="showSevenths")
-    label Sevenths
+    label Include sevenths
 
   table.table.table-responsive
-    thead: tr: th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
+    thead: tr
+      th
+      th(ng:repeat="numeral in ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']") {{numeral}}
     tbody(ng:repeat="tonic in tonics")
       tr(ng:repeat="sevenths in [false, true]", ng:hide="sevenths && !showSevenths")
         th: div(ng:hide="sevenths") {{tonic}} Major

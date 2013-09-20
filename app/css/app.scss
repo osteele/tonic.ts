@@ -1,1 +1,35 @@
-.chord-diagram { display: inline-block; margin: 10px; vertical-align: top; }
+.chord-diagram {
+  display: inline-block;
+  margin: 10px;
+  vertical-align: top;
+}
+
+tr {
+  &.ng-hide-add, &.ng-hide-remove {
+    -webkit-transition: 0.5s linear all;
+    -moz-transition: 0.5s linear all;
+    -o-transition: 0.5s linear all;
+    transition: 0.5s linear all;
+
+    tr, td, th {
+      -webkit-transition: 0.5s linear all;
+      -moz-transition: 0.5s linear all;
+      -o-transition: 0.5s linear all;
+      transition: 0.5s linear all;
+    }
+  }
+
+  &.ng-hide-add,
+  &.ng-hide-remove.ng-hide-remove-active {
+    opacity: 1;
+  }
+
+  &.ng-hide-add.ng-hide-add-active,
+  &.ng-hide-remove {
+    opacity: 0;
+  }
+
+  &.ng-hide-remove {
+    display: table-row!important;
+  }
+}
