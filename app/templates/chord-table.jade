@@ -10,5 +10,5 @@
         th: div(ng:hide="sevenths") {{tonic}} Major
         td(ng:repeat="chord in getScaleChords(tonic, sevenths)")
           a(ng:href="#/chord/{{chord.name}}")
-            h4(ng-bind-html-unsafe="chord.name | raiseAccidentals")
+            h4(ng-bind-html="chord.name | raiseAccidentals")
             chord(chord="chord")

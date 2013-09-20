@@ -16,7 +16,7 @@ FretboardModel = require('./fretboard_model')
 angular.element(document).ready ->
   angular.bootstrap(document, ['FretboardApp'])
 
-app = angular.module 'FretboardApp', []
+app = angular.module 'FretboardApp', ['ngRoute', 'ngSanitize']
 
 app.config ($locationProvider, $routeProvider) ->
   $routeProvider
