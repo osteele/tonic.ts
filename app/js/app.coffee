@@ -34,7 +34,9 @@ app.controller 'ChordTableCtrl', ($scope) ->
       cache[[scaleName, sevenths]] or= Scale.find(scaleName).chords(sevenths: sevenths)
 
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
-  chord = Chord.find($routeParams.chordName)
+  chordName = $routeParams.chordName
+  chordName = chordName.replace('&#9839;', '#')
+  chord = Chord.find(chordName)
   instrument = Instruments.Default
   $scope.instrument = instrument
   $scope.chord = chord

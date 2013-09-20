@@ -187,7 +187,7 @@ class Chord
     return this
 
   @find: (name) ->
-    match = name.match(/^([a-gA-G][♯♭]*)(.*)$/)
+    match = name.match(/^([a-gA-G][#b♯♭]*)(.*)$/)
     throw new Error("#{name} is not a chord name") unless match
     [noteName, chordName] = match[1...]
     throw new Error("#{name} is not a chord name") unless Chords[chordName]
