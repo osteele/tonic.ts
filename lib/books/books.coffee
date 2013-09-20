@@ -10,17 +10,17 @@ _ = require 'underscore'
   intervalClassDifference
 } = require('./theory')
 
-FretboardModel = require('./fretboard_model')
+Instruments = require('./instruments')
 {
   FretCount
   intervalPositionsFromRoot
-} = FretboardModel
+} = Instruments
 
 {
   best_fingering_for
   fingerings_for
   finger_positions_on_chord
-} = require('./fretboard_logic')
+} = require('./fingerings')
 
 ChordDiagram = require('./chord_diagram')
 FretboardDiagram = require('./fretboard_diagram')
@@ -63,7 +63,7 @@ draw_license_footer = (page) ->
 #
 
 interval_cards = ->
-  instrument = FretboardModel.DefaultInstrument
+  instrument = Instruments.Default
   instrument.eachPosition ({string, fret}) ->
     canvas = new Canvas FretboardDiagram.height, FretboardDiagram.width
     ctx = canvas.getContext('2d')
@@ -85,7 +85,7 @@ interval_cards = ->
       save_canvas_to_png canvas, filename
 
 intervals_from_position_page = (rootPosition) ->
-  instrument = FretboardModel.DefaultInstrument
+  instrument = Instruments.Default
   canvas_gutter = 20
   header_height = 20
   with_grid cols: 3, rows: 4
@@ -106,14 +106,14 @@ intervals_from_position_page = (rootPosition) ->
         FretboardDiagram.draw grid.context, positions
 
 draw_intervals_from = (rootPosition, semitones, color) ->
-  root_note_number = FretboardModel.DefaultInstrument.pitchAt(rootPosition)
+  root_note_number = Instruments.Default.pitchAt(rootPosition)
   draw_finger_position rootPosition, is_root: true #, color: color
   for position in intervals_from(rootPosition, semitones)
     continue if position.string == rootPosition.string and position.fret == rootPosition.fret
     draw_finger_position position, color: color
 
 intervals_from_note_sheets = ->
-  FretboardModel.DefaultInstrument.eachPosition ({string, fret}) ->
+  Instruments.Default.eachPosition ({string, fret}) ->
     intervals_from_note_sheet string, fret
 
 intervals_page = (instrument, semitones) ->
@@ -131,16 +131,16 @@ intervals_page = (instrument, semitones) ->
     , font: '25px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: canvas_gutter / 2, y: 30
 
-    FretboardModel.DefaultInstrument.eachPosition (finger_position) ->
+    Instruments.Default.eachPosition (finger_position) ->
       grid.add_cell ->
         FretboardDiagram.draw grid.context, intervals_from(finger_position, semitones)
 
 intervals_book = (options={}) ->
   {by_root, pages} = options
-  instrument = FretboardModel.DefaultInstrument
+  instrument = Instruments.Default
   if by_root
     with_book "Fretboard Intervals by Root", page_limit: pages, (book) ->
-      FretboardModel.DefaultInstrument.eachPosition (finger_position) ->
+      Instruments.Default.eachPosition (finger_position) ->
         intervals_from_position_page finger_position
   else
     with_book "Fretboard Intervals", page_limit: pages, (book) ->

@@ -1,16 +1,16 @@
 _ = require 'underscore'
 easings = require 'ease-component'
 
-FretboardLogic = require '../index'
+Fingerings = require '../index'
 
-{Chords, NoteNames} = FretboardLogic.theory
-{best_fingering_for, finger_positions_on_chord} = FretboardLogic.fretboard.logic
+{Chords, NoteNames} = Fingerings.theory
+{best_fingering_for, finger_positions_on_chord} = Fingerings.fretboard.logic
 
-Layout = FretboardLogic.utils.layout
+Layout = Fingerings.utils.layout
 {with_book, with_page, draw_text, with_graphics_context} = Layout
 
 PitchDiagram = require './pitch_diagram'
-ChordDiagram = FretboardLogic.drawing.chord_diagram
+ChordDiagram = Fingerings.drawing.chord_diagram
 {defaultStyle: ChordDiagramStyle} = ChordDiagram
 
 ease = (s, x0, x1, method=null) ->

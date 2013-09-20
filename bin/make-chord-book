@@ -3,9 +3,9 @@
 fs = require 'fs'
 program = require 'commander'
 
-FretboardLogic = require '../index'
-{Chords} = FretboardLogic.theory
-Layout = FretboardLogic.utils.layout
+Fingerings = require '../index'
+{Chords} = Fingerings.theory
+Layout = Fingerings.utils.layout
 
 books = require '../lib/books'
 books.chord_shape_flipbook = require '../lib/chord-shape-animation'

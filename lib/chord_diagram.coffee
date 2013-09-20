@@ -3,7 +3,7 @@ _ = require 'underscore'
 {
   FretCount
   FretNumbers
-} = require './fretboard_model'
+} = require './instruments'
 Layout = require './layout'
 
 #

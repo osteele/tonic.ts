@@ -1,7 +1,7 @@
 {
   FretCount
   FretNumbers
-} = require './fretboard_model'
+} = require './instruments'
 
 
 #

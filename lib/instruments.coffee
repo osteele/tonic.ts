@@ -29,7 +29,7 @@ intervalPositionsFromRoot = (instrument, rootPosition, semitones) ->
   return positions
 
 module.exports = {
-  DefaultInstrument: new Instrument
+  Default: new Instrument
   FretNumbers
   FretCount
   intervalPositionsFromRoot

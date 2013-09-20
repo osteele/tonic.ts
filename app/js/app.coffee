@@ -1,7 +1,7 @@
 ChordDiagram = require './chord_diagram'
 Layout = require './layout'
-FretboardModel = require('./fretboard_model')
-{chordFingerings} = require('./fretboard_logic')
+Instruments = require './instruments'
+{chordFingerings} = require './fingerings'
 
 
 {
@@ -35,7 +35,7 @@ app.controller 'ChordTableCtrl', ($scope) ->
 
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chord = Chord.find($routeParams.chordName)
-  instrument = FretboardModel.DefaultInstrument
+  instrument = Instruments.Default
   $scope.instrument = instrument
   $scope.chord = chord
   $scope.fingerings = chordFingerings(chord, instrument)
@@ -44,14 +44,14 @@ app.directive 'chord', ->
   restrict: 'CE'
   replace: true
   template: ->
-    instrument = FretboardModel.DefaultInstrument
+    instrument = Instruments.Default
     dimensions = {width: ChordDiagram.width(instrument), height: ChordDiagram.height(instrument)}
     "<canvas width='#{dimensions.width}' height='#{dimensions.height}'/>"
   scope: {chord: '=', fingering: '=?'}
   link: (scope, element, attrs) ->
     canvas = element[0]
     ctx = canvas.getContext('2d')
-    instrument = FretboardModel.DefaultInstrument
+    instrument = Instruments.Default
     render = ->
       {chord, fingering} = scope
       fingerings = chordFingerings(chord, instrument)

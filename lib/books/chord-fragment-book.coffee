@@ -1,7 +1,7 @@
 _ = require 'underscore'
 
 {Chords, NoteNames} = require './theory'
-{best_fingering_for, fingerings_for} = require './fretboard_logic'
+{best_fingering_for, fingerings_for} = require './fingerings'
 
 Layout = require('./layout')
 {
