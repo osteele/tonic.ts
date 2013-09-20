@@ -4,6 +4,10 @@
   vertical-align: top;
 }
 
+tr.sevenths {
+  td, th { border-top: none!important; }
+}
+
 tr {
   &.ng-hide-add, &.ng-hide-remove {
     -webkit-transition: 0.5s linear all;
