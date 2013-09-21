@@ -31,51 +31,62 @@ class Fingering
   @cached_getter 'inversion', ->
     @chord.pitchClasses.indexOf intervalClassDifference(@chord.rootPitch, @instrument.pitchAt(@positions[0]))
 
+
+#
+# Barres
+#
+
+powerset = (array) ->
+  return [[]] unless array.length
+  [x, xs...] = array
+  tail = powerset(xs)
+  return tail.concat([x].concat(ys) for ys in tail)
+
 # Returns an array of strings indexed by fret number. Each string
 # has a character at each string position:
-# 'x' = finger on this fret
-# '.' = finger on a higher fret
-# '-' = finger on a lower fret
-# ' ' = no finger on that string
-computeBarreArray = (instrument, positions) ->
+# '=' = fretted at this fret
+# '>' = fretted at a higher fret
+# '<' = fretted at a lower fret, or open
+# 'x' = muted
+computeCandidateStrings = (instrument, positions) ->
   stringFrets = (null for s in instrument.stringNumbers)
   stringFrets[string] = fret for {string, fret} in positions
-  barres = []
+  codes = []
   for {fret: reference} in positions
-    barres[reference] or= (for fret in stringFrets
+    codes[reference] or= (for fret in stringFrets
       if fret == null
-        ' '
-      else if reference < fret
-        '.'
+        'x'
       else if fret < reference
-        '-'
-      else if fret == reference
-        'x').join('')
-  barres
+        '<'
+      else if fret > reference
+        '>'
+      else
+        '=').join('')
+  return codes
 
 findBarres = (instrument, positions) ->
   barres = []
-  for pattern, fret in computeBarreArray(instrument, positions)
+  for codeString, fret in computeCandidateStrings(instrument, positions)
     continue if fret == 0
-    continue unless pattern
-    match = pattern.match(/^[^x]*(x[\.x]+x\.*)$/)
+    continue unless codeString
+    match = codeString.match(/(=[>=]*=)/)
     continue unless match
     run = match[1]
     barres.push
       fret: fret
-      string: pattern.length - run.length
+      firstString: match.index
       stringCount: run.length
-      fingerCount: run.match(/x/g).length
-  barres
+      fingerReplacementCount: run.match(/\=/g).length
+  return barres
 
 collectBarreSets = (instrument, positions) ->
-  powerset = (xs) ->
-    return [[]] unless xs.length
-    [x, xs...] = xs
-    tail = powerset xs
-    tail.concat([x].concat(ys) for ys in tail)
   barres = findBarres(instrument, positions)
   return powerset(barres)
+
+
+#
+# Fingerings
+#
 
 fingerPositionsOnChord = (chord, instrument) ->
   positions = []
@@ -85,7 +96,7 @@ fingerPositionsOnChord = (chord, instrument) ->
     positions.push {string: pos.string, fret: pos.fret, intervalClass, degreeIndex} if degreeIndex >= 0
   positions
 
-# TODO add options for strumming vs. fingerstyle; muting; span
+# TODO add options for strumming vs. fingerstyle; muting; stretch
 chordFingerings = (chord, instrument, options={}) ->
   options = _.extend {filter: true}, options
   warn = false
@@ -110,8 +121,8 @@ chordFingerings = (chord, instrument, options={}) ->
 
   generateFingerings = ->
     fingerings = []
-    for barres in collectBarreSets(instrument, positions)
-      for positions in collectFingeringPositions(fretsPerString)
+    for positions in collectFingeringPositions(fretsPerString)
+      for barres in collectBarreSets(instrument, positions)
         fingerings.push new Fingering {positions, chord, barres, instrument}
     fingerings
 
@@ -140,7 +151,7 @@ chordFingerings = (chord, instrument, options={}) ->
 
   getFingerCount = (fingering) ->
     n = (pos for pos in fingering.positions when pos.fret > 0).length
-    n -= barre.fingerCount - 1 for barre in fingering.barres
+    n -= barre.fingerReplacementCount - 1 for barre in fingering.barres
     n
 
   fourFingersOrFewer = (fingering) ->
