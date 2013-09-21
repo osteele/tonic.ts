@@ -24,7 +24,7 @@ class Fingering
 
   @cached_getter 'chordName', ->
     name = @chord.name
-    name += " / #{getPitchClassName(@instrument.pitchAt(@positions[0]))}" unless @inversion == 0
+    name += " / #{getPitchClassName(@instrument.pitchAt(@positions[0]))}" if @inversion > 0
     return name
 
   # @cached_getter 'pitches', ->
@@ -35,6 +35,10 @@ class Fingering
 
   @cached_getter 'inversion', ->
     @chord.pitchClasses.indexOf intervalClassDifference(@chord.rootPitch, @instrument.pitchAt(@positions[0]))
+
+  @cached_getter 'inversionLetter', ->
+    return unless @inversion > 0
+    return String.fromCharCode(96 + @inversion)
 
 
 #
@@ -227,7 +231,7 @@ chordFingerings = (chord, instrument, options={}) ->
     root: isRootPosition
     barres: (f) -> f.barres.length
     fingers: getFingerCount
-    inverted: (f) -> not isRootPosition(f)
+    inversion: (f) -> f.inversionLetter
     skipping: /\dx\d/
     muting: /\dx/
     open: /0/
