@@ -18,9 +18,9 @@ class Fingering
     @properties = {}
 
   @cached_getter 'fretstring', ->
-    fret_vector = (-1 for s in @instrument.stringNumbers)
-    fret_vector[string] = fret for {string, fret} in @positions
-    ((if x >= 0 then x else 'x') for x in fret_vector).join('')
+    fretArray = (-1 for s in @instrument.stringNumbers)
+    fretArray[string] = fret for {string, fret} in @positions
+    ((if x >= 0 then x else 'x') for x in fretArray).join('')
 
   # @cached_getter 'pitches', ->
   #   (@instrument.pitchAt(positions) for positions in @positions)
@@ -31,27 +31,41 @@ class Fingering
   @cached_getter 'inversion', ->
     @chord.pitchClasses.indexOf intervalClassDifference(@chord.rootPitch, @instrument.pitchAt(@positions[0]))
 
-findBarres = (instrument, positions) ->
-  fret_rows = for fn in FretNumbers
-    (for sn in instrument.stringNumbers
-      if _.find(positions, (pos)-> pos.string == sn and pos.fret > fn)
-        '.'
-      else if _.find(positions, (pos)-> pos.string == sn and pos.fret < fn)
-        '-'
-      else if _.find(positions, (pos) -> pos.string == sn and pos.fret == fn)
-        'x'
-      else
-        ' ').join('')
+# Returns an array of strings indexed by fret number. Each string
+# has a character at each string position:
+# 'x' = finger on this fret
+# '.' = finger on a higher fret
+# '-' = finger on a lower fret
+# ' ' = no finger on that string
+computeBarreArray = (instrument, positions) ->
+  stringFrets = (null for s in instrument.stringNumbers)
+  stringFrets[string] = fret for {string, fret} in positions
   barres = []
-  for fp, fn in fret_rows
-    continue if fn == 0
-    m = fp.match(/^[^x]*(x[\.x]+x\.*)$/)
-    continue unless m
+  for {fret: reference} in positions
+    barres[reference] or= (for fret in stringFrets
+      if fret == null
+        ' '
+      else if reference < fret
+        '.'
+      else if fret < reference
+        '-'
+      else if fret == reference
+        'x').join('')
+  barres
+
+findBarres = (instrument, positions) ->
+  barres = []
+  for pattern, fret in computeBarreArray(instrument, positions)
+    continue if fret == 0
+    continue unless pattern
+    match = pattern.match(/^[^x]*(x[\.x]+x\.*)$/)
+    continue unless match
+    run = match[1]
     barres.push
-      fret: fn
-      string: m[0].length - m[1].length
-      stringCount: m[1].length
-      fingerCount: m[1].match(/x/g).length
+      fret: fret
+      string: pattern.length - run.length
+      stringCount: run.length
+      fingerCount: run.match(/x/g).length
   barres
 
 collectBarreSets = (instrument, positions) ->
