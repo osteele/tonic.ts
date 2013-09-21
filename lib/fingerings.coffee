@@ -101,19 +101,21 @@ chordFingerings = (chord, instrument, options={}) ->
     strings[position.string].push position for position in positions
     strings
 
-  collectFingeringPositions = (string_frets) ->
-    return [[]] unless string_frets.length
-    frets = string_frets[0]
-    followingFingerPositions = collectFingeringPositions(string_frets[1..])
+  collectFingeringPositions = (stringFrets) ->
+    return [[]] unless stringFrets.length
+    frets = stringFrets[0]
+    followingFingerPositions = collectFingeringPositions(stringFrets[1..])
     return followingFingerPositions.concat(([n].concat(right) \
       for n in frets for right in followingFingerPositions)...)
 
   generateFingerings = ->
-    _.flatten(new Fingering {positions, chord, barres, instrument} \
-      for barres in collectBarreSets(instrument, positions) \
-      for positions in collectFingeringPositions(fretsPerString))
+    fingerings = []
+    for barres in collectBarreSets(instrument, positions)
+      for positions in collectFingeringPositions(fretsPerString)
+        fingerings.push new Fingering {positions, chord, barres, instrument}
+    fingerings
 
-  chord_note_count = chord.pitchClasses.length
+  chordNoteCount = chord.pitchClasses.length
 
 
   #
@@ -121,10 +123,14 @@ chordFingerings = (chord, instrument, options={}) ->
   #
 
   countDistinctNotes = (fingering) ->
-    _.chain(fingering.positions).pluck('intervalClass').uniq().value().length
+    # _.chain(fingering.positions).pluck('intervalClass').uniq().value().length
+    pitches = []
+    for {intervalClass} in fingering.positions
+      pitches.push intervalClass unless intervalClass in pitches
+    return pitches.length
 
   hasAllNotes = (fingering) ->
-    return countDistinctNotes(fingering) == chord_note_count
+    return countDistinctNotes(fingering) == chordNoteCount
 
   mutedMedialStrings = (fingering) ->
     return fingering.fretstring.match(/\dx+\d/)
