@@ -9,7 +9,7 @@ class Instrument
   stringNumbers: [0..5]
   stringPitches: 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
 
-  eachPosition: (fn) ->
+  eachFingerPosition: (fn) ->
     for string in @stringNumbers
       for fret in FretNumbers
         fn string: string, fret: fret

@@ -64,7 +64,7 @@ draw_license_footer = (page) ->
 
 interval_cards = ->
   instrument = Instruments.Default
-  instrument.eachPosition ({string, fret}) ->
+  instrument.eachFingerPosition ({string, fret}) ->
     canvas = new Canvas FretboardDiagram.height, FretboardDiagram.width
     ctx = canvas.getContext('2d')
     erase_background()
@@ -113,7 +113,7 @@ draw_intervals_from = (rootPosition, semitones, color) ->
     draw_finger_position position, color: color
 
 intervals_from_note_sheets = ->
-  Instruments.Default.eachPosition ({string, fret}) ->
+  Instruments.Default.eachFingerPosition ({string, fret}) ->
     intervals_from_note_sheet string, fret
 
 intervals_page = (instrument, semitones) ->
@@ -131,7 +131,7 @@ intervals_page = (instrument, semitones) ->
     , font: '25px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: canvas_gutter / 2, y: 30
 
-    Instruments.Default.eachPosition (finger_position) ->
+    Instruments.Default.eachFingerPosition (finger_position) ->
       grid.add_cell ->
         FretboardDiagram.draw grid.context, intervals_from(finger_position, semitones)
 
@@ -140,7 +140,7 @@ intervals_book = (options={}) ->
   instrument = Instruments.Default
   if by_root
     with_book "Fretboard Intervals by Root", page_limit: pages, (book) ->
-      Instruments.Default.eachPosition (finger_position) ->
+      Instruments.Default.eachFingerPosition (finger_position) ->
         intervals_from_position_page finger_position
   else
     with_book "Fretboard Intervals", page_limit: pages, (book) ->

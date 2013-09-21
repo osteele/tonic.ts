@@ -57,7 +57,7 @@ powerset = (array) ->
 # '>' = fretted at a higher fret
 # '<' = fretted at a lower fret, or open
 # 'x' = muted
-computeCandidateStrings = (instrument, positions) ->
+computeBarreCandidateStrings = (instrument, positions) ->
   stringFrets = (null for s in instrument.stringNumbers)
   stringFrets[string] = fret for {string, fret} in positions
   codes = []
@@ -75,7 +75,7 @@ computeCandidateStrings = (instrument, positions) ->
 
 findBarres = (instrument, positions) ->
   barres = []
-  for codeString, fret in computeCandidateStrings(instrument, positions)
+  for codeString, fret in computeBarreCandidateStrings(instrument, positions)
     continue if fret == 0
     continue unless codeString
     match = codeString.match(/(=[>=]*=)/)
@@ -99,7 +99,7 @@ collectBarreSets = (instrument, positions) ->
 
 fingerPositionsOnChord = (chord, instrument) ->
   positions = []
-  instrument.eachPosition (pos) ->
+  instrument.eachFingerPosition (pos) ->
     intervalClass = intervalClassDifference chord.rootPitch, instrument.pitchAt(pos)
     degreeIndex = chord.pitchClasses.indexOf intervalClass
     positions.push {string: pos.string, fret: pos.fret, intervalClass, degreeIndex} if degreeIndex >= 0
@@ -117,7 +117,7 @@ chordFingerings = (chord, instrument, options={}) ->
   #
   positions = fingerPositionsOnChord(chord, instrument)
 
-  fretsPerString = do (strings=([] for __ in instrument.stringPitches)) ->
+  positionsPerString = do (strings=([] for __ in instrument.stringPitches)) ->
     strings[position.string].push position for position in positions
     strings
 
@@ -128,9 +128,12 @@ chordFingerings = (chord, instrument, options={}) ->
     return followingFingerPositions.concat(([n].concat(right) \
       for n in frets for right in followingFingerPositions)...)
 
+  containsAllChordPitches = (positions) ->
+    return _.chain(positions).pluck('intervalClass').uniq().value().length == chord.pitchClasses.length
+
   generateFingerings = ->
     fingerings = []
-    for positions in collectFingeringPositions(fretsPerString)
+    for positions in collectFingeringPositions(positionsPerString).filter(containsAllChordPitches)
       for barres in collectBarreSets(instrument, positions)
         fingerings.push new Fingering {positions, chord, barres, instrument}
     fingerings
