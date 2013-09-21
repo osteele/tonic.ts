@@ -4,15 +4,15 @@
   vertical-align: top;
 
   li {
-    color: white;
-    background: lightBlue;
-    padding: 3px 8px;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
+    background: lighten(blue, 25%);
     border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    // font-variant: small-caps;
+    color: white;
     cursor: default;
     font-size: 80%;
-    // display: inline-block;
+    padding: 3px 8px;
 
     -webkit-transition: 0.5s background;
     -moz-transition: 0.5s background;

@@ -3,7 +3,6 @@ Layout = require './layout'
 Instruments = require './instruments'
 {chordFingerings} = require './fingerings'
 
-
 {
   Chord
   Chords
@@ -25,7 +24,7 @@ app.config ($locationProvider, $routeProvider) ->
     .otherwise(redirectTo: '/')
 
 app.controller 'ChordTableCtrl', ($scope) ->
-  $scope.tonics = ['E', 'F', 'G', 'A', 'B', 'C', 'D']
+  $scope.tonics = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 
   $scope.getScaleChords = do ->
     # The cache is necessary to prevent a digest iteration error
