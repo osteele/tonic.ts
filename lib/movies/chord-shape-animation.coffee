@@ -4,10 +4,10 @@ easings = require 'ease-component'
 Fingerings = require '../index'
 
 {Chords, NoteNames} = Fingerings.theory
-{best_fingering_for, finger_positions_on_chord} = Fingerings.fretboard.logic
+{bestFingeringFor, finger_positions_on_chord} = Fingerings.fretboard.logic
 
 Layout = Fingerings.utils.layout
-{with_book, with_page, draw_text, with_graphics_context} = Layout
+{withBook, withPage, drawText, withGraphicsContext} = Layout
 
 PitchDiagram = require './pitch_diagram'
 ChordDiagram = Fingerings.drawing.chord_diagram
@@ -50,17 +50,17 @@ write_animation_frames = (options) ->
   {step_size, sprites, end_padding} = _.extend defaults, options
   t_end = Math.max _.chain(sprites).pluck('t1').compact().value()...
   t_end += end_padding
-  with_book options.title, (book) ->
+  withBook options.title, (book) ->
     t = 0
     while t < t_end
-      book.with_page width: 640, height: 480, ->
+      book.withPage width: 640, height: 480, ->
         current_sprites = _.filter sprites, (sprite) ->
           (sprite.t0 or 0) <= t < (sprite.t1 or t_end) and sprite.visible != false
         for sprite in _.sortBy(current_sprites, (s) -> (s.z_index or 0))
           s = Math.min 1, (t - sprite.t0) / (sprite.t1 - sprite.t0)
           s = t - sprite.t0 unless sprite.t1
           {x, y} = sprite_position_at sprite, t
-          with_graphics_context (ctx) ->
+          withGraphicsContext (ctx) ->
             ctx.translate x, y
             sprite.draw ctx, s
       t += step_size
@@ -87,7 +87,7 @@ with_animation_context = (options, cb) ->
     end_padding: options.end_padding
 
 
-chord_shape_flipbook = (options={}) ->
+chordShapeFlipbook = (options={}) ->
   {quick, speed} = options
   speed ||= (if quick then 10 else 1)
   chord = Chords[0]
@@ -126,7 +126,7 @@ chord_shape_flipbook = (options={}) ->
     animation.make_sprite
       visible: not just_one
       draw: ->
-        draw_text title
+        drawText title
         , font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'
         , gravity: 'topLeft'
 
@@ -135,7 +135,7 @@ chord_shape_flipbook = (options={}) ->
       t0 = root = i
       rooted_chord = chord.at root
       name = "#{rooted_chord.name} Major"
-      fingering = best_fingering_for rooted_chord
+      fingering = bestFingeringFor rooted_chord
       pos = sprite_position_at master_diagram, t0
       [col, row] = [i % 4 , Math.floor(i / 4)]
 
@@ -143,7 +143,7 @@ chord_shape_flipbook = (options={}) ->
         name: name
         t0: t0
         draw: (ctx, dt) ->
-          draw_text name, font: '12pt Times', fillStyle: 'black', y: -3
+          drawText name, font: '12pt Times', fillStyle: 'black', y: -3
           ChordDiagram.draw ctx, fingering.positions, barres: fingering.barres
 
       , (sprite) ->
@@ -153,4 +153,4 @@ chord_shape_flipbook = (options={}) ->
         , {x: 50 + col * 130, y: pos.y + 100 + row * 115}
         , easings.inCube
 
-module.exports = chord_shape_flipbook
+module.exports = chordShapeFlipbook

@@ -23,7 +23,7 @@ measure_text = (text, {font}={}) ->
   ctx.font = font if font
   ctx.measureText text
 
-draw_text = (text, options={}) ->
+drawText = (text, options={}) ->
   ctx = Context.ctx
   options = text if _.isObject text
   {font, fillStyle, x, y, gravity, width} = options
@@ -44,7 +44,7 @@ draw_text = (text, options={}) ->
   y += m.emHeightAscent if gravity.match(/^(top|topLeft|topRight)$/i)
   ctx.fillText text, x, y
 
-with_canvas = (canvas, cb) ->
+withCanvas = (canvas, cb) ->
   savedCanvas = Context.canvas
   savedContext = Context.context
   try
@@ -55,7 +55,7 @@ with_canvas = (canvas, cb) ->
     Context.canvas = savedCanvas
     Context.context = savedContext
 
-with_graphics_context = (fn) ->
+withGraphicsContext = (fn) ->
   ctx = Context.ctx
   ctx.save()
   try
@@ -75,19 +75,19 @@ box = (params) ->
   box.descent ?= box.height - box.ascent
   box
 
-pad_box = (box, options) ->
+padBox = (box, options) ->
   box.height += options.bottom if options.bottom
   box.descent = ((box.descent ? 0) + options.bottom) if options.bottom
   box
 
-text_box = (text, options) ->
+textBox = (text, options) ->
   options = _.extend {}, options, gravity: false
   measure = measure_text text, options
   box
     width: measure.width
     height: measure.emHeightAscent + measure.emHeightDescent
     descent: measure.emHeightDescent
-    draw: -> draw_text text, options
+    draw: -> drawText text, options
 
 vbox = (boxes...) ->
   options = {}
@@ -106,7 +106,7 @@ vbox = (boxes...) ->
     draw: ->
       dy = -height
       boxes.forEach (b1) ->
-        with_graphics_context (ctx) ->
+        withGraphicsContext (ctx) ->
           dx = switch options.align
             when 'left' then 0
             when 'center' then Math.max 0, (width - b1.width) / 2
@@ -129,7 +129,7 @@ hbox = (b1, b2) ->
     draw: ->
       x = 0
       boxes.forEach (b) ->
-        with_graphics_context (ctx) ->
+        withGraphicsContext (ctx) ->
           ctx.translate x, 0
           b.draw?(ctx)
         if b.width == Infinity
@@ -143,7 +143,7 @@ overlay = (boxes...) ->
     height: Math.max _.pluck(boxes, 'height')...
     draw: ->
       for b in boxes
-        with_graphics_context (ctx) ->
+        withGraphicsContext (ctx) ->
           b.draw ctx
 
 labeled = (text, options, box) ->
@@ -152,9 +152,9 @@ labeled = (text, options, box) ->
     font: '12px Times'
     fillStyle: 'black'
   options = _.extend default_options, options
-  above text_box(text, options), box, options
+  above textBox(text, options), box, options
 
-with_grid_boxes = (options, generator) ->
+withGridBoxes = (options, generator) ->
   {max, floor} = Math
 
   options = _.extend {header_height: 0, gutter_width: 10, gutter_height: 10}, options
@@ -165,7 +165,7 @@ with_grid_boxes = (options, generator) ->
   cells = []
   generator
     header: (box) -> header = box
-    start_row: () -> cells.push line_break
+    startRow: () -> cells.push line_break
     cell: (box) -> cells.push box
     cells: (boxes) -> cells.push b for b in boxes
 
@@ -187,16 +187,16 @@ with_grid_boxes = (options, generator) ->
   max_descent = max _.pluck(cells, 'descent')...
   # console.info 'descent', max_descent, 'from', _.pluck(cells, 'descent')
 
-  with_grid options, (grid) ->
+  withGrid options, (grid) ->
     if header
-      with_graphics_context (ctx) ->
+      withGraphicsContext (ctx) ->
         ctx.translate 0, header.height - header.descent
         header?.draw ctx
     cells.forEach (cell) ->
-      grid.start_row() if cell.linebreak?
+      grid.startRow() if cell.linebreak?
       return if cell == line_break
       grid.add_cell ->
-        with_graphics_context (ctx) ->
+        withGraphicsContext (ctx) ->
           ctx.translate 0, cell_height - cell.descent
           cell.draw ctx
 
@@ -304,14 +304,14 @@ TDLRLayout = (boxes) ->
     dx = 0
     console.info 'draw', line.length
     for b in line
-      with_graphics_context (ctx) ->
+      withGraphicsContext (ctx) ->
         ctx.translate dx, dy + ascent
         console.info 'draw', dx, dy + ascent, b.draw
         b.draw ctx
       dx += b.width
     dy += ascent + descent
 
-with_page = (options, draw_page) ->
+withPage = (options, draw_page) ->
   throw new Error "Already inside a page" if CurrentPage
   defaults = {width: 100, height: 100, page_margin: 10}
   {width, height, page_margin} = _.extend defaults, options
@@ -342,7 +342,7 @@ with_page = (options, draw_page) ->
 
     erase_background()
 
-    with_graphics_context (ctx) ->
+    withGraphicsContext (ctx) ->
       ctx.translate left_margin, bottom_margin
       CurrentBook?.header? page
       CurrentBook?.footer? page
@@ -358,14 +358,14 @@ with_page = (options, draw_page) ->
   finally
     CurrentPage = null
 
-with_grid = (options, cb) ->
+withGrid = (options, cb) ->
   defaults = {gutter_width: 10, gutter_height: 10, header_height: 0}
   options = _.extend defaults, options
   {cols, rows, cell_width, cell_height, header_height, gutter_width, gutter_height} = options
   options.width ||= cols * cell_width + (cols - 1) * gutter_width
   options.height ||=  header_height + rows * cell_height + (rows - 1) * gutter_height
   overflow = []
-  with_page options, (page) ->
+  withPage options, (page) ->
     cb
       context: page.context
       rows: rows
@@ -377,25 +377,25 @@ with_grid = (options, cb) ->
         if row >= rows
           overflow.push {col, row, draw_fn}
         else
-          with_graphics_context (ctx) ->
+          withGraphicsContext (ctx) ->
             ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
             draw_fn()
         col += 1
         [col, row] = [0, row + 1] if col >= cols
         [@col, @row] = [col, row]
-      start_row: ->
+      startRow: ->
         [@col, @row] = [0, @row + 1] if @col > 0
   while overflow.length
     cell.row -= rows for cell in overflow
-    with_page options, (page) ->
+    withPage options, (page) ->
       for {col, row, draw_fn} in _.select(overflow, (cell) -> cell.row < rows)
-        with_graphics_context (ctx) ->
+        withGraphicsContext (ctx) ->
           ctx.translate col * (cell_width + gutter_width), header_height + row * (cell_height + gutter_height)
           draw_fn()
     overflow = (cell for cell in overflow when cell.row >= rows)
 
-with_book = (filename, options, cb) ->
-  throw new Error "with_book called recursively" if CurrentBook
+withBook = (filename, options, cb) ->
+  throw new Error "withBook called recursively" if CurrentBook
   [options, cb] = [{}, options] if _.isFunction(options)
   page_limit = options.page_limit
   page_count = 0
@@ -418,7 +418,7 @@ with_book = (filename, options, cb) ->
     cb
       page_header: (header) -> book.header = header
       page_footer: (footer) -> book.footer = footer
-      with_page: (options, draw_page) ->
+      withPage: (options, draw_page) ->
         [options, draw_page] = [{}, options] if _.isFunction(options)
         return if @done
         options = _.extend {}, book.page_options, options
@@ -426,7 +426,7 @@ with_book = (filename, options, cb) ->
         if CurrentPage
           draw_page CurrentPage
         else
-          with_page options, draw_page
+          withPage options, draw_page
         @done = true if page_limit and page_limit <= page_count
 
     if canvas
@@ -449,19 +449,19 @@ write_pdf = (canvas, pathname) ->
 module.exports = {
   PaperSizes
   above
-  with_book
-  with_grid
-  with_grid_boxes
-  with_page
-  draw_text
+  withBook
+  withGrid
+  withGridBoxes
+
+  drawText
   box
   hbox
-  pad_box
-  text_box
+
+  textBox
   labeled
   measure_text
   directory
   filename
-  with_graphics_context
-  withCanvas: with_canvas
+  withGraphicsContext
+  withCanvas
 }

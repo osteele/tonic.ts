@@ -6,12 +6,13 @@
 
 class Instrument
   strings: 6
+  fretCount: 4
   stringNumbers: [0..5]
   stringPitches: 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
 
   eachFingerPosition: (fn) ->
     for string in @stringNumbers
-      for fret in FretNumbers
+      for fret in [0..@fretCount]
         fn string: string, fret: fret
 
   pitchAt: ({string, fret}) ->

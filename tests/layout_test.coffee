@@ -5,8 +5,8 @@ Layout = require '../lib/layout'
 {
   PaperSizes
   box
-  with_book
-  with_graphics_context
+  withBook
+  withGraphicsContext
 } = Layout
 
 describe "box", ->
@@ -77,8 +77,8 @@ describe "hbox", ->
 # grid should work
 
 make_test_book = ->
-  with_book "Test", size: PaperSizes.letter, (book) ->
-    book.with_page {}, (page) ->
+  withBook "Test", size: PaperSizes.letter, (book) ->
+    book.withPage {}, (page) ->
       page.box
         width: 100
         height: 100

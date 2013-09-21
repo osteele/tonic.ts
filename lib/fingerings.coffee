@@ -131,9 +131,16 @@ chordFingerings = (chord, instrument, options={}) ->
   containsAllChordPitches = (positions) ->
     return _.chain(positions).pluck('intervalClass').uniq().value().length == chord.pitchClasses.length
 
+  maximumFretDistance = (positions) ->
+    frets = _.chain(positions).pluck('fret')
+    return frets.max().value() - frets.min().value() < 3
+
   generateFingerings = ->
     fingerings = []
-    for positions in collectFingeringPositions(positionsPerString).filter(containsAllChordPitches)
+    positionSets = collectFingeringPositions(positionsPerString)
+    positionSets = positionSets.filter(containsAllChordPitches)
+    # positionSets = positionSets.filter(maximumFretDistance)
+    for positions in positionSets
       for barres in collectBarreSets(instrument, positions)
         fingerings.push new Fingering {positions, chord, barres, instrument}
     fingerings

@@ -17,7 +17,7 @@ Instruments = require('./instruments')
 } = Instruments
 
 {
-  best_fingering_for
+  bestFingeringFor
   fingerings_for
   finger_positions_on_chord
 } = require('./fingerings')
@@ -29,14 +29,14 @@ Layout = require('./layout')
 {
   PaperSizes
   erase_background
-  draw_text
+  drawText
   labeled
-  text_block
+  textBlock
   pad_block
-  with_graphics_context
+  withGraphicsContext
   save_canvas_to_png
-  with_book
-  with_grid_blocks
+  withBook
+  withGridBlocks
   hbox
 } = Layout
 
@@ -44,13 +44,13 @@ draw_pitch_diagram = require('./pitch_diagram').draw
 pitch_diagram_block = require('./pitch_diagram').block
 draw_harmonic_table = require('./harmonic_table').draw
 harmonic_table_block = require('./harmonic_table').block
-{chord_shape_fragments} = require './chord-fragment-book'
+{chordShapeFragments} = require './chord-fragment-book'
 
 CC_LICENSE_TEXT = "This work is licensed under a Creative Commons Attribution 3.0 United States License."
 
-draw_license_footer = (page) ->
+drawLicenseFooter = (page) ->
   text = "©2013 by Oliver Steele. " + CC_LICENSE_TEXT
-  draw_text text
+  drawText text
   , font: '4pt Times'
   , fillStyle: 'black'
   , y: page.height - page.top_margin
@@ -88,7 +88,7 @@ intervals_from_position_page = (rootPosition) ->
   instrument = Instruments.Default
   canvas_gutter = 20
   header_height = 20
-  with_grid cols: 3, rows: 4
+  withGrid cols: 3, rows: 4
   , cell_width: FretboardDiagram.height + canvas_gutter
   , cell_height: FretboardDiagram.width + header_height
   , (grid) ->
@@ -96,7 +96,7 @@ intervals_from_position_page = (rootPosition) ->
       interval_name = IntervalNames[semitones]
       grid.add_cell ->
 
-        draw_text interval_name
+        drawText interval_name
         , font: '10px Times', fillStyle: 'rgb(10,20,30)'
         , x: 0, y: -3
 
@@ -122,12 +122,12 @@ intervals_page = (instrument, semitones) ->
   cols = FretCount + 1
   rows = instrument.strings
 
-  with_grid cols: cols, rows: rows
+  withGrid cols: cols, rows: rows
   , cell_width: FretboardDiagram.height + canvas_gutter
   , cell_height: FretboardDiagram.width + canvas_gutter
   , header_height: header_height
   , (grid) ->
-    draw_text "#{LongIntervalNames[semitones]} Intervals"
+    drawText "#{LongIntervalNames[semitones]} Intervals"
     , font: '25px Impact', fillStyle: 'rgb(128, 128, 128)'
     , x: canvas_gutter / 2, y: 30
 
@@ -135,15 +135,15 @@ intervals_page = (instrument, semitones) ->
       grid.add_cell ->
         FretboardDiagram.draw grid.context, intervals_from(finger_position, semitones)
 
-intervals_book = (options={}) ->
+intervalsBook = (options={}) ->
   {by_root, pages} = options
   instrument = Instruments.Default
   if by_root
-    with_book "Fretboard Intervals by Root", page_limit: pages, (book) ->
+    withBook "Fretboard Intervals by Root", page_limit: pages, (book) ->
       Instruments.Default.eachFingerPosition (finger_position) ->
         intervals_from_position_page finger_position
   else
-    with_book "Fretboard Intervals", page_limit: pages, (book) ->
+    withBook "Fretboard Intervals", page_limit: pages, (book) ->
       for semitones in [0..12]
         intervals_page instrument, semitones
 
@@ -152,11 +152,11 @@ intervals_book = (options={}) ->
 # Chord Lattice Diagrams
 #
 
-harmonic_table_chords = (options={}) ->
+harmonicTableChords = (options={}) ->
   options = _.extend {}, options, chords: true
   harmonic_table options
 
-harmonic_table_scales = (options={}) ->
+harmonicTableScales = (options={}) ->
   options = _.extend {}, options, scales: true, modes: true
   harmonic_table options
 
@@ -175,8 +175,8 @@ harmonic_table = (options={}) ->
       tones = tones.concat (i + 12 * octave for i in first_octave)
     tones
 
-  with_book title, size: PaperSizes.letter, (book) ->
-    with_grid_blocks gutter_height: 20, (grid) ->
+  withBook title, size: PaperSizes.letter, (book) ->
+    withGridBlocks gutter_height: 20, (grid) ->
 
       grid.header pad_block(harmonic_table_block([0...12], cell_radius: 30, label_cells: true), bottom: 20)
 
@@ -186,28 +186,28 @@ harmonic_table = (options={}) ->
         interval_sets.push (12 - interval for interval in intervals)
         interval_sets[1].push 6
         for intervals in interval_sets
-          grid.start_row()
+          grid.startRow()
           grid.cells _.without(intervals, 0).map (semitones) ->
             interval_name = IntervalNames[semitones]
             labeled interval_name
             , harmonic_table_block [semitones], radius: cell_radius, label_cells: true
 
       if options.scales
-        grid.start_row()
+        grid.startRow()
         grid.cells Scales.map ({name, tones}) ->
           tones = extend_octave tones, 2
           labeled name
           , harmonic_table_block tones, radius: cell_radius, fill_cells: true
 
       if options.modes
-        grid.start_row()
+        grid.startRow()
         grid.cells Modes.map ({name, tones}) ->
           tones = extend_octave tones, 2
           labeled name
           , harmonic_table_block tones, radius: cell_radius, fill_cells: true
 
       if options.chords
-        grid.start_row()
+        grid.startRow()
         grid.cells Chords.map (chord) ->
           labeled chord.name
           , harmonic_table_block chord.pitchClasses, radius: cell_radius, fill_cells: true
@@ -217,11 +217,11 @@ harmonic_table = (options={}) ->
 # Chord Fingerings
 #
 
-chord_fingerings_page = ({chord}) ->
+chordFingeringsPage = ({chord}) ->
   fingerings = fingerings_for chord
-  with_book "#{chord.name} Fingerings", size: PaperSizes.letter, (book) ->
-    with_grid_blocks {}, (grid) ->
-      grid.header text_block("#{chord.name} Fingerings", font: '25px Impact', fillStyle: 'black')
+  withBook "#{chord.name} Fingerings", size: PaperSizes.letter, (book) ->
+    withGridBlocks {}, (grid) ->
+      grid.header textBlock("#{chord.name} Fingerings", font: '25px Impact', fillStyle: 'black')
       grid.cells fingerings.map (fingering) ->
         ChordDiagram.block fingering.positions, barres: fingering.barres
 
@@ -230,12 +230,12 @@ chord_page = (chord, options={}) ->
   pitches = ((i * 5 + 3) % 12 for i in [0...12])
   pitches = [8...12].concat([0...8]) unless best_fingering
 
-  with_grid_blocks gutter_height: 20
+  withGridBlocks gutter_height: 20
   , (grid) ->
 
     grid.header(
       hbox(
-        text_block("#{chord.name} Chords", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'),
+        textBlock("#{chord.name} Chords", font: '20px Impact', fillStyle: 'rgb(128, 128, 128)'),
         # hspring,
         pitch_diagram_block chord.pitchClasses, 0.85
       )
@@ -245,15 +245,15 @@ chord_page = (chord, options={}) ->
       rooted_chord = chord.at pitch
       return if options.only unless rooted_chord.name == options.only
       fingering = {positions: finger_positions_on_chord rooted_chord}
-      fingering = best_fingering_for rooted_chord if best_fingering
+      fingering = bestFingeringFor rooted_chord if best_fingering
       grid.cell(
         labeled rooted_chord.name, font: '10pt Times', fillStyle: 'rgb(10,20,30)', align: 'left',
           ChordDiagram.block fingering.positions, barres: fingering.barres
         )
 
-chord_book = (options={}) ->
+chordBook = (options={}) ->
   title = if options.best_fingering then "Chord Diagrams" else "Combined Chord Diagrams"
-  with_book title, size: PaperSizes.letter, page_limit: options.pages, (book) ->
+  withBook title, size: PaperSizes.letter, page_limit: options.pages, (book) ->
     for chord in Chords
       chord_page chord, options
 
@@ -263,11 +263,11 @@ chord_book = (options={}) ->
 #
 
 module.exports = {
-  chord_book
-  chord_fingerings_page
-  harmonic_table_chords
-  harmonic_table_scales
-  chord_shape_fragments
-  draw_license_footer
-  intervals_book
+  chordBook
+  chordFingeringsPage
+  harmonicTableChords
+  harmonicTableScales
+  chordShapeFragments
+  drawLicenseFooter
+  intervalsBook
 }

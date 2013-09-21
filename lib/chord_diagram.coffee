@@ -52,7 +52,7 @@ drawChordDiagramStrings = (ctx, instrument, options={}) ->
     ctx.strokeStyle = (if options.dim_strings and string in options.dim_strings then 'rgba(0,0,0,0.2)' else 'black')
     ctx.stroke()
 
-drawChordDiagramFrets = (ctx, instrument, {nut}={nut: true}) ->
+drawChordDiagramFrets = (ctx, instrument, {drawNut}={drawNut: true}) ->
   style = DefaultStyle
   ctx.strokeStyle = 'black'
   for fret in FretNumbers
@@ -60,15 +60,15 @@ drawChordDiagramFrets = (ctx, instrument, {nut}={nut: true}) ->
     ctx.beginPath()
     ctx.moveTo style.v_gutter - 0.5, y
     ctx.lineTo style.v_gutter + 0.5 + (instrument.strings - 1) * style.string_spacing, y
-    ctx.lineWidth = 3 if fret == 0 and nut
+    ctx.lineWidth = 3 if fret == 0 and drawNut
     ctx.stroke()
     ctx.lineWidth = 1
 
 drawChordDiagram = (ctx, instrument, positions, options={}) ->
-  defaults = {drawClosedStrings: true, nut: true, dy: 0, style: DefaultStyle}
+  defaults = {drawClosedStrings: true, drawNut: true, dy: 0, style: DefaultStyle}
   options = _.extend defaults, options
   {barres, dy, drawClosedStrings, style} = options
-  if options.dim_unused_strings
+  if options.dimUnusedStrings
     used_strings = (string for {string} in positions)
     options.dim_strings = (string for string in instrument.stringNumbers when string not in used_strings)
 
@@ -145,7 +145,7 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
       ctx.stroke()
 
   drawChordDiagramStrings ctx, instrument, options
-  drawChordDiagramFrets ctx, instrument, nut: options.nut
+  drawChordDiagramFrets ctx, instrument, drawNut: options.drawNut
   drawBarres() if barres
   drawFingerPositions() if positions
   drawClosedStrings() if positions and options.drawClosedStrings
@@ -156,7 +156,7 @@ drawChordBlock = (instrument, positions, options) ->
     width: dimensions.width
     height: dimensions.height
     draw: () ->
-      Layout.with_graphics_context (ctx) ->
+      Layout.withGraphicsContext (ctx) ->
         ctx.translate 0, -dimensions.height
         drawChordDiagram ctx, instrument, positions, options
 
