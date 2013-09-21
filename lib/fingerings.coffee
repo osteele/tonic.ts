@@ -1,6 +1,6 @@
 util = require 'util'
 _ = require 'underscore'
-{intervalClassDifference} = require './theory'
+{getPitchClassName, intervalClassDifference} = require './theory'
 Instruments = require './instruments'
 
 {
@@ -21,6 +21,11 @@ class Fingering
     fretArray = (-1 for s in @instrument.stringNumbers)
     fretArray[string] = fret for {string, fret} in @positions
     ((if x >= 0 then x else 'x') for x in fretArray).join('')
+
+  @cached_getter 'chordName', ->
+    name = @chord.name
+    name += " / #{getPitchClassName(@instrument.pitchAt(@positions[0]))}" unless @inversion == 0
+    return name
 
   # @cached_getter 'pitches', ->
   #   (@instrument.pitchAt(positions) for positions in @positions)
