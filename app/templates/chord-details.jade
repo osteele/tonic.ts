@@ -4,7 +4,7 @@
     li: a(href='#') Chords
     li {{chord.fullName}}
 
-  isotope-container
+  isotope-container#voicings
     .chord-diagram(ng:repeat="fingering in fingerings", isotope-item)
       h4(ng-bind-html="fingering.chordName | raiseAccidentals")
       chord(chord="chord", fingering="fingering")
