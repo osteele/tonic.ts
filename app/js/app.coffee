@@ -61,7 +61,7 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chordName = $routeParams.chordName.replace('&#9839;', '#')
   $scope.chord = Chord.find(chordName)
   $scope.instrument = Instruments.Default
-  $scope.fingerings = chordFingerings($scope.chord, $scope.instrument)
+  $scope.fingerings = chordFingerings($scope.chord, $scope.instrument, allPositions: true)
 
   #
   # Labels
@@ -109,7 +109,7 @@ app.directive 'isotopeContainer', ->
       $(element).isotope
         animationEngineString: 'css'
         itemSelector: '[isotope-item]'
-        layoutMode: 'fitColumns'
+        layoutMode: 'fitRows'
         getSortData: sortData
 
 app.directive 'isotopeItem', ($timeout) ->
@@ -118,10 +118,8 @@ app.directive 'isotopeItem', ($timeout) ->
     return unless scope.$last
     $element = $(element)
     element.ready ->
-      $timeout ->
-        $container = $element.parent('.isotope')
-        $container.isotope('reloadItems').isotope(sortBy: 'barres') #original-order')
-      , 0
+      $container = $element.parent('.isotope')
+      $container.isotope('reloadItems').isotope(sortBy: 'barres').css('visibility', 'inherit')
 
 app.directive 'chord', ->
   restrict: 'CE'

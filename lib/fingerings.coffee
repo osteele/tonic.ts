@@ -108,7 +108,7 @@ fingerPositionsOnChord = (chord, instrument) ->
 
 # TODO add options for strumming vs. fingerstyle; muting; stretch
 chordFingerings = (chord, instrument, options={}) ->
-  options = _.extend {filter: true}, options
+  options = _.extend {filter: true, allPositions: false}, options
   warn = false
   throw new Error "No root for #{util.inspect chord}" unless chord.rootPitch?
 
@@ -119,8 +119,9 @@ chordFingerings = (chord, instrument, options={}) ->
 
   fretsPerString =  ->
     positions = fingerPositionsOnChord(chord, instrument)
+    positions = (pos for pos in positions when pos.fret <= 4) unless options.allPositions
     strings = ([null] for s in [0...instrument.stringCount])
-    strings[string].push fret for {string, fret} in positions when fret <= 4
+    strings[string].push fret for {string, fret} in positions
     strings
 
   collectFingeringPositions = (fretCandidatesPerString) ->
@@ -263,11 +264,13 @@ chordFingerings = (chord, instrument, options={}) ->
     barres: (f) -> f.barres.length
     fingers: getFingerCount
     inversion: (f) -> f.inversionLetter
-    skipping: /\dx\d/
+    # bass: /^\d{3}x*$/
+    # treble: /^x*\d{3}$/
+    skipping: /\dx+\d/
     muting: /\dx/
     open: /0/
     triad: ({positions}) -> positions.length == 3
-    position: ({positions}) -> _.min(_.pluck(positions, 'fret'))
+    position: ({positions}) -> Math.max(_.min(_.pluck(positions, 'fret')) - 1, 0)
     strings: ({positions}) -> positions.length
   }
   for name, fn of properties

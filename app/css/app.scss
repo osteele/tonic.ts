@@ -1,23 +1,27 @@
 @import "isotope";
 @import "gh-fork-ribbon";
 
+#voicings {
+  visibility: hidden;
+}
+
 .chord-diagram {
   margin: 10px;
 
   li {
     background: lighten(blue, 25%);
-    border-radius: 10px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    // font-variant: small-caps;
     color: white;
     cursor: default;
     font-size: 80%;
     padding: 3px 8px;
 
-    -webkit-transition: 0.5s background;
-    -moz-transition: 0.5s background;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+
     transition: 0.5s background;
+    -moz-transition: 0.5s background;
+    -webkit-transition: 0.5s background;
 
     &.active { background: blue; }
     &:hover { box-shadow: 0 0 3px #000; }
