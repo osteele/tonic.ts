@@ -57,25 +57,24 @@ powerset = (array) ->
 # '>' = fretted at a higher fret
 # '<' = fretted at a lower fret, or open
 # 'x' = muted
-computeBarreCandidateStrings = (instrument, positions) ->
-  stringFrets = (null for s in instrument.stringNumbers)
-  stringFrets[string] = fret for {string, fret} in positions
-  codes = []
-  for {fret: reference} in positions
-    codes[reference] or= (for fret in stringFrets
-      if fret == null
-        'x'
-      else if fret < reference
+computeBarreCandidateStrings = (instrument, fretArray) ->
+  codeStrings = []
+  for referenceFret in fretArray
+    continue unless typeof(referenceFret) == 'number'
+    codeStrings[referenceFret] or= (for fret in fretArray
+      if fret < referenceFret
         '<'
-      else if fret > reference
+      else if fret > referenceFret
         '>'
+      else if fret == referenceFret
+        '='
       else
-        '=').join('')
-  return codes
+        'x').join('')
+  return codeStrings
 
-findBarres = (instrument, positions) ->
+findBarres = (instrument, fretArray) ->
   barres = []
-  for codeString, fret in computeBarreCandidateStrings(instrument, positions)
+  for codeString, fret in computeBarreCandidateStrings(instrument, fretArray)
     continue if fret == 0
     continue unless codeString
     match = codeString.match(/(=[>=]+)/)
@@ -89,8 +88,8 @@ findBarres = (instrument, positions) ->
       fingerReplacementCount: run.match(/\=/g).length
   return barres
 
-collectBarreSets = (instrument, positions) ->
-  barres = findBarres(instrument, positions)
+collectBarreSets = (instrument, fretArray) ->
+  barres = findBarres(instrument, fretArray)
   return powerset(barres)
 
 
@@ -99,11 +98,12 @@ collectBarreSets = (instrument, positions) ->
 #
 
 fingerPositionsOnChord = (chord, instrument) ->
+  {rootPitch, pitchClasses} = chord
   positions = []
   instrument.eachFingerPosition (pos) ->
-    intervalClass = intervalClassDifference chord.rootPitch, instrument.pitchAt(pos)
-    degreeIndex = chord.pitchClasses.indexOf intervalClass
-    positions.push {string: pos.string, fret: pos.fret, intervalClass, degreeIndex} if degreeIndex >= 0
+    intervalClass = intervalClassDifference rootPitch, instrument.pitchAt(pos)
+    degreeIndex = pitchClasses.indexOf intervalClass
+    positions.push pos if degreeIndex >= 0
   positions
 
 # TODO add options for strumming vs. fingerstyle; muting; stretch
@@ -116,45 +116,53 @@ chordFingerings = (chord, instrument, options={}) ->
   #
   # Generate
   #
-  positions = fingerPositionsOnChord(chord, instrument)
 
-  positionsPerString =  ->
-    strings=([] for __ in instrument.stringPitches)
-    strings[position.string].push position for position in positions when position.fret <= 4
+  fretsPerString =  ->
+    positions = fingerPositionsOnChord(chord, instrument)
+    strings = ([null] for s in [0...instrument.stringCount])
+    strings[string].push fret for {string, fret} in positions when fret <= 4
     strings
 
-  collectFingeringPositions = (stringFrets) ->
-    return [[]] unless stringFrets.length
-    frets = stringFrets[0]
-    followingFingerPositions = collectFingeringPositions(stringFrets[1..])
-    return followingFingerPositions.concat(([n].concat(right) \
-      for n in frets for right in followingFingerPositions)...)
+  collectFingeringPositions = (fretCandidatesPerString) ->
+    stringCount = fretCandidatesPerString.length
+    positionSet = []
+    fretArray = []
+    fill = (s) ->
+      if s == stringCount
+        positionSet.push fretArray.slice()
+      else
+        for fret in fretCandidatesPerString[s]
+          fretArray[s] = fret
+          fill s + 1
+    fill 0
+    return positionSet
 
-  containsAllChordPitches = (positions) ->
-    # too slow:
-    #   _.chain(positions).pluck('intervalClass').uniq().value().length == chord.pitchClasses.length
+  containsAllChordPitches = (fretArray) ->
     pitches = []
-    for {intervalClass} in positions
-      pitches.push intervalClass unless pitches.indexOf(intervalClass) >= 0
+    for fret, string in fretArray
+      continue unless typeof(fret) is 'number'
+      pitchClass = (instrument.pitchAt {fret, string}) % 12
+      pitches.push pitchClass unless pitches.indexOf(pitchClass) >= 0
     return pitches.length == chord.pitchClasses.length
 
-  maximumFretDistance = (positions) ->
-    # too slow:
-    #   frets = frets.without(0)
-    #   frets = _.chain(positions).pluck('fret')
-    #   return frets.max().value() - frets.min().value() <= 4 - 1
-    frets = []
-    for {fret} in positions
-      frets.push fret #unless fret == 0
-    return Math.max(frets...) - Math.min(frets...) <= 4 - 1
+  maximumFretDistance = (fretArray) ->
+    frets = (fret for fret in fretArray when typeof(fret) is 'number')
+    # fretArray = (fret for fret in fretArray when fret > 0)
+    return Math.max(frets...) - Math.min(frets...) <= 3
 
   generateFingerings = ->
     fingerings = []
-    positionSets = collectFingeringPositions(positionsPerString())
-    positionSets = positionSets.filter(containsAllChordPitches)
-    positionSets = positionSets.filter(maximumFretDistance)
-    for positions in positionSets
-      for barres in collectBarreSets(instrument, positions)
+    fretArrays = collectFingeringPositions(fretsPerString())
+    fretArrays = fretArrays.filter(containsAllChordPitches)
+    fretArrays = fretArrays.filter(maximumFretDistance)
+    for fretArray in fretArrays
+      positions = ({fret, string} for fret, string in fretArray when typeof(fret) is 'number')
+      for pos in positions
+        pos.intervalClass = intervalClassDifference chord.rootPitch, instrument.pitchAt(pos)
+        pos.degreeIndex = chord.pitchClasses.indexOf pos.intervalClass
+      sets = [[]]
+      sets = collectBarreSets(instrument, fretArray) if positions.length > 4
+      for barres in sets
         fingerings.push new Fingering {positions, chord, barres, instrument}
     fingerings
 
@@ -193,7 +201,7 @@ chordFingerings = (chord, instrument, options={}) ->
   # Construct the filter set
 
   filters = []
-  filters.push name: 'has all chord notes', select: hasAllNotes
+  # filters.push name: 'has all chord notes', select: hasAllNotes
 
   if options.filter
     filters.push name: 'four fingers or fewer', select: fourFingersOrFewer

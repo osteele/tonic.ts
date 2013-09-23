@@ -5,6 +5,7 @@
 #
 
 class Instrument
+  stringCount: 6
   strings: 6
   fretCount: 12
   stringNumbers: [0..5]
