@@ -78,7 +78,7 @@ module.exports = (grunt) ->
         expand: true
         cwd: 'app'
         dest: '<%= directories.build %>'
-        src: ['css/**.scss']
+        src: ['css/**.scss', '!css/_*']
         ext: '.css'
         filter: 'isFile'
       options:
