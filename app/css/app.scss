@@ -21,6 +21,12 @@
     &.active { background: blue; }
     &:hover { box-shadow: 0 0 3px #000; }
   }
+
+  .fretNumber {
+    position: relative;
+    top: 10px;
+    vertical-align: top;
+  }
 }
 
 tr.sevenths {

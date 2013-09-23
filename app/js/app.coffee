@@ -70,10 +70,11 @@ app.directive 'chord', ->
   template: ->
     instrument = Instruments.Default
     dimensions = {width: ChordDiagram.width(instrument), height: ChordDiagram.height(instrument)}
-    "<canvas width='#{dimensions.width}' height='#{dimensions.height}'/>"
+    "<div><span class='fretNumber' ng:show='topFret'>{{topFret}}</span>" +
+      "<canvas width='#{dimensions.width}' height='#{dimensions.height}'/></div>"
   scope: {chord: '=', fingering: '=?'}
   link: (scope, element, attrs) ->
-    canvas = element[0]
+    canvas = element[0].querySelector('canvas')
     ctx = canvas.getContext('2d')
     instrument = Instruments.Default
     render = ->
@@ -82,7 +83,8 @@ app.directive 'chord', ->
       fingering or= fingerings[0]
       return unless fingering
       ctx.clearRect 0, 0, canvas.width, canvas.height
-      ChordDiagram.draw ctx, instrument, fingering.positions, barres: fingering.barres
+      {topFret} = ChordDiagram.draw ctx, instrument, fingering.positions, barres: fingering.barres
+      scope.topFret = topFret if topFret > 0
     render()
 
 app.filter 'raiseAccidentals', ->

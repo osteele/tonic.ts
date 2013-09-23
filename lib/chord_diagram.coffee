@@ -49,7 +49,7 @@ drawChordDiagramStrings = (ctx, instrument, options={}) ->
     ctx.beginPath()
     ctx.moveTo x, style.v_gutter + style.above_fretboard
     ctx.lineTo x, style.v_gutter + style.above_fretboard + FretCount * style.fret_height
-    ctx.strokeStyle = (if options.dim_strings and string in options.dim_strings then 'rgba(0,0,0,0.2)' else 'black')
+    ctx.strokeStyle = (if options.dimStrings and string in options.dimStrings then 'rgba(0,0,0,0.2)' else 'black')
     ctx.stroke()
 
 drawChordDiagramFrets = (ctx, instrument, {drawNut}={drawNut: true}) ->
@@ -67,30 +67,40 @@ drawChordDiagramFrets = (ctx, instrument, {drawNut}={drawNut: true}) ->
 drawChordDiagram = (ctx, instrument, positions, options={}) ->
   defaults = {drawClosedStrings: true, drawNut: true, dy: 0, style: DefaultStyle}
   options = _.extend defaults, options
-  {barres, dy, drawClosedStrings, style} = options
+  {barres, dy, drawClosedStrings, drawNut, style} = options
+
+  topFret = 0
+  frets = (fret for {fret} in positions when fret != 0)
+  lowestFret = Math.min(frets...)
+  highestFret = Math.max(frets...)
+  if highestFret > 4
+    topFret = lowestFret - 1
+    drawNut = false
+
   if options.dimUnusedStrings
-    used_strings = (string for {string} in positions)
-    options.dim_strings = (string for string in instrument.stringNumbers when string not in used_strings)
+    usedStrings = (string for {string} in positions)
+    options.dimStrings = (string for string in instrument.stringNumbers when string not in usedStrings)
 
   fingerCoordinates = ({string, fret}) ->
+    fret -= topFret if fret > 0
     return {
       x: style.h_gutter + string * style.string_spacing,
       y: style.v_gutter + style.above_fretboard + (fret - 0.5) * style.fret_height + dy
     }
 
   drawFingerPosition = (position, options={}) ->
-    {is_root, color} = options
-    {x, y} = fingerCoordinates position
-    ctx.fillStyle = color or (if is_root then 'red' else 'white')
-    ctx.strokeStyle = color or (if is_root then 'red' else 'black')
+    {isRoot, color} = options
+    {x, y} = fingerCoordinates(position)
+    ctx.fillStyle = color or (if isRoot then 'red' else 'white')
+    ctx.strokeStyle = color or (if isRoot then 'red' else 'black')
     ctx.lineWidth = 1
     ctx.beginPath()
-    if is_root and position.fret
+    if isRoot and position.fret
       do (r=style.note_radius) ->
         ctx.rect x - r, y - r, 2 * r, 2 * r
     else
       ctx.arc x, y, style.note_radius, 0, Math.PI * 2, false
-    ctx.fill() if position.fret > 0 or is_root
+    ctx.fill() if position.fret > 0 or isRoot
     ctx.stroke()
 
   drawBarres = ->
@@ -125,7 +135,7 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
     for position in positions
       default_options =
         color: style.intervalClass_colors[position.intervalClass]
-        is_root: (position.intervalClass == 0)
+        isRoot: (position.intervalClass == 0)
       drawFingerPosition position, _.extend(default_options, position)
 
   drawClosedStrings = ->
@@ -145,10 +155,11 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
       ctx.stroke()
 
   drawChordDiagramStrings ctx, instrument, options
-  drawChordDiagramFrets ctx, instrument, drawNut: options.drawNut
+  drawChordDiagramFrets ctx, instrument, drawNut: drawNut
   drawBarres() if barres
   drawFingerPositions() if positions
   drawClosedStrings() if positions and options.drawClosedStrings
+  return {topFret}
 
 drawChordBlock = (instrument, positions, options) ->
   dimensions = computeChordDiagramDimensions(instrument)

@@ -78,9 +78,10 @@ findBarres = (instrument, positions) ->
   for codeString, fret in computeBarreCandidateStrings(instrument, positions)
     continue if fret == 0
     continue unless codeString
-    match = codeString.match(/(=[>=]*=)/)
+    match = codeString.match(/(=[>=]+)/)
     continue unless match
     run = match[1]
+    continue unless run.match(/\=/g).length > 1
     barres.push
       fret: fret
       firstString: match.index
@@ -117,8 +118,9 @@ chordFingerings = (chord, instrument, options={}) ->
   #
   positions = fingerPositionsOnChord(chord, instrument)
 
-  positionsPerString = do (strings=([] for __ in instrument.stringPitches)) ->
-    strings[position.string].push position for position in positions
+  positionsPerString =  ->
+    strings=([] for __ in instrument.stringPitches)
+    strings[position.string].push position for position in positions when position.fret <= 4
     strings
 
   collectFingeringPositions = (stringFrets) ->
@@ -129,17 +131,28 @@ chordFingerings = (chord, instrument, options={}) ->
       for n in frets for right in followingFingerPositions)...)
 
   containsAllChordPitches = (positions) ->
-    return _.chain(positions).pluck('intervalClass').uniq().value().length == chord.pitchClasses.length
+    # too slow:
+    #   _.chain(positions).pluck('intervalClass').uniq().value().length == chord.pitchClasses.length
+    pitches = []
+    for {intervalClass} in positions
+      pitches.push intervalClass unless pitches.indexOf(intervalClass) >= 0
+    return pitches.length == chord.pitchClasses.length
 
   maximumFretDistance = (positions) ->
-    frets = _.chain(positions).pluck('fret')
-    return frets.max().value() - frets.min().value() < 3
+    # too slow:
+    #   frets = frets.without(0)
+    #   frets = _.chain(positions).pluck('fret')
+    #   return frets.max().value() - frets.min().value() <= 4 - 1
+    frets = []
+    for {fret} in positions
+      frets.push fret #unless fret == 0
+    return Math.max(frets...) - Math.min(frets...) <= 4 - 1
 
   generateFingerings = ->
     fingerings = []
-    positionSets = collectFingeringPositions(positionsPerString)
+    positionSets = collectFingeringPositions(positionsPerString())
     positionSets = positionSets.filter(containsAllChordPitches)
-    # positionSets = positionSets.filter(maximumFretDistance)
+    positionSets = positionSets.filter(maximumFretDistance)
     for positions in positionSets
       for barres in collectBarreSets(instrument, positions)
         fingerings.push new Fingering {positions, chord, barres, instrument}
@@ -245,8 +258,9 @@ chordFingerings = (chord, instrument, options={}) ->
     skipping: /\dx\d/
     muting: /\dx/
     open: /0/
-    triad: (f) -> fingering.positions.length == 3
-    position: (f) -> _.min(_.pluck(fingering.positions, 'fret'))
+    triad: ({positions}) -> positions.length == 3
+    position: ({positions}) -> _.min(_.pluck(positions, 'fret'))
+    strings: ({positions}) -> positions.length
   }
   for name, fn of properties
     for fingering in fingerings

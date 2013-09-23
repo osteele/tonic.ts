@@ -6,7 +6,7 @@
 
 class Instrument
   strings: 6
-  fretCount: 4
+  fretCount: 12
   stringNumbers: [0..5]
   stringPitches: 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
 

@@ -102,12 +102,12 @@ intervals_from_position_page = (rootPosition) ->
 
         positions = (pos for pos in intervalPositionsFromRoot(instrument, rootPosition, semitones) \
           when not (pos.string == rootPosition.string and pos.fret == rootPosition.fret))
-        positions.push string: rootPosition.string, fret: rootPosition.fret, is_root: true
+        positions.push string: rootPosition.string, fret: rootPosition.fret, isRoot: true
         FretboardDiagram.draw grid.context, positions
 
 draw_intervals_from = (rootPosition, semitones, color) ->
   root_note_number = Instruments.Default.pitchAt(rootPosition)
-  draw_finger_position rootPosition, is_root: true #, color: color
+  draw_finger_position rootPosition, isRoot: true #, color: color
   for position in intervals_from(rootPosition, semitones)
     continue if position.string == rootPosition.string and position.fret == rootPosition.fret
     draw_finger_position position, color: color

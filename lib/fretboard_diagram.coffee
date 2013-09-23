@@ -49,16 +49,16 @@ drawFretboardFrets = (ctx, instrument) ->
 
 drawFretboardFingerPosition = (ctx, instrument, position, options={}) ->
   {string, fret} = position
-  {is_root, color} = options
+  {isRoot, color} = options
   style = DefaultStyle
-  color ||= if is_root then 'red' else 'white'
+  color ||= if isRoot then 'red' else 'white'
   x = style.h_gutter + (fret - 0.5) * style.fret_width
   x = style.h_gutter if fret == 0
   y = style.v_gutter + (5 - string) * style.string_spacing
   ctx.beginPath()
   ctx.arc x, y, 7, 0, 2 * Math.PI, false
   ctx.fillStyle = color
-  ctx.lineWidth = 2 unless is_root
+  ctx.lineWidth = 2 unless isRoot
   ctx.fill()
   ctx.stroke()
   ctx.strokeStyle = 'black'

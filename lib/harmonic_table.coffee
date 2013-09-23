@@ -74,7 +74,7 @@ drawHarmonicTable = (intervalClasses, options={}) ->
     ctx.translate -bounds.left, -bounds.bottom
 
     for interval_klass in intervalClasses
-      is_root = interval_klass == 0
+      isRoot = interval_klass == 0
       color = colors[interval_klass % 12]
       color ||= colors[12 - interval_klass]
       ctx.beginPath()
@@ -90,13 +90,13 @@ drawHarmonicTable = (intervalClasses, options={}) ->
       ctx.stroke()
 
       # fill
-      if is_root or (options.fill_cells and interval_klass < 12)
+      if isRoot or (options.fill_cells and interval_klass < 12)
         ctx.fillStyle = color or 'rgba(255,0,0,0.15)'
-        ctx.globalAlpha = 0.3 unless is_root
+        ctx.globalAlpha = 0.3 unless isRoot
         ctx.fill()
         ctx.globalAlpha = 1
 
-      continue if is_root or options.fill_cells
+      continue if isRoot or options.fill_cells
 
       # fill
       ctx.globalAlpha = 0.3 if options.label_cells
