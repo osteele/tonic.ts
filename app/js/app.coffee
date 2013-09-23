@@ -1,3 +1,7 @@
+#
+# Imports
+#
+
 ChordDiagram = require './chord_diagram'
 Layout = require './layout'
 Instruments = require './instruments'
@@ -11,9 +15,20 @@ Instruments = require './instruments'
 } = require('./theory')
 
 
+#
+# Extensions
+#
+
 # requirejs necessitates this
 angular.element(document).ready ->
   angular.bootstrap(document, ['FretboardApp'])
+
+_.mixin reverse: (array) -> [].concat(array).reverse()
+
+
+#
+# Application
+#
 
 app = angular.module 'FretboardApp', ['ngAnimate', 'ngRoute', 'ngSanitize']
 
@@ -22,6 +37,11 @@ app.config ($locationProvider, $routeProvider) ->
     .when('/', controller: 'ChordTableCtrl', templateUrl: 'templates/chord-table.html')
     .when('/chord/:chordName', controller: 'ChordDetailsCtrl', templateUrl: 'templates/chord-details.html')
     .otherwise(redirectTo: '/')
+
+
+#
+# Chord Table
+#
 
 app.controller 'ChordTableCtrl', ($scope) ->
   $scope.tonics = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -32,7 +52,10 @@ app.controller 'ChordTableCtrl', ($scope) ->
     (scaleName, sevenths) ->
       cache[[scaleName, sevenths]] or= Scale.find(scaleName).chords(sevenths: sevenths)
 
-_.mixin reverse: (array) -> [].concat(array).reverse()
+
+#
+# Chord Details
+#
 
 app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   chordName = $routeParams.chordName
@@ -63,6 +86,33 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
       badge = null if badge == true
       labels.push {name, badge}
     fingering.labels = labels.sort()
+
+
+#
+# Directives
+#
+
+app.directive 'isotopeContainer', ->
+  restrict: 'CAE'
+  link:
+    post: (scope, element, attrs) ->
+      $(element).isotope
+        animationEngineString: 'css'
+        itemSelector: '[isotope-item]'
+        layoutMode: 'fitColumns'
+        # cellsByRow:
+        #   columnWidth: 220
+
+app.directive 'isotopeItem', ($timeout) ->
+  restrict: 'AE'
+  link: (scope, element, attrs) ->
+    return unless scope.$last
+    $element = $(element)
+    element.ready ->
+      $timeout ->
+        $container = $element.parent('.isotope')
+        $container.isotope('reloadItems').isotope(sortBy: 'original-order')
+      , 0
 
 app.directive 'chord', ->
   restrict: 'CE'

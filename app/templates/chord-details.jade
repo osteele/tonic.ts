@@ -4,11 +4,11 @@
     li: a(href='#') Chords
     li {{chord.fullName}}
 
-  .chord-diagram(ng:repeat="fingering in fingerings")
-    //- div {{$index + 1}}
-    h4(ng-bind-html="fingering.chordName | raiseAccidentals")
-    chord(chord="chord", fingering="fingering")
-    ul.nav.nav-pills.nav-stacked
-      li(ng:repeat="label in fingering.labels", ng:click="orderBy(label.name)", ng:class="{active: label.name == sortKey}")
-        | {{label.name}}
-        .badge {{label.badge}}
+  isotope-container
+    .chord-diagram(ng:repeat="fingering in fingerings", isotope-item)
+      h4(ng-bind-html="fingering.chordName | raiseAccidentals")
+      chord(chord="chord", fingering="fingering")
+      ul.nav.nav-pills.nav-stacked
+        li(ng:repeat="label in fingering.labels", ng:click="orderBy(label.name)", ng:class="{active: label.name == sortKey}")
+          | {{label.name}}
+          .badge {{label.badge}}
