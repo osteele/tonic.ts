@@ -4,7 +4,6 @@ _ = require 'underscore'
   FretCount
   FretNumbers
 } = require './instruments'
-Layout = require './layout'
 
 #
 # Style
@@ -161,19 +160,8 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
   drawClosedStrings() if positions and options.drawClosedStrings
   return {topFret}
 
-drawChordBlock = (instrument, positions, options) ->
-  dimensions = computeChordDiagramDimensions(instrument)
-  Layout.block
-    width: dimensions.width
-    height: dimensions.height
-    draw: () ->
-      Layout.withGraphicsContext (ctx) ->
-        ctx.translate 0, -dimensions.height
-        drawChordDiagram ctx, instrument, positions, options
-
 module.exports =
   defaultStyle: DefaultStyle
   width: (instrument) -> computeChordDiagramDimensions(instrument).width
   height: (instrument) -> computeChordDiagramDimensions(instrument).height
   draw: drawChordDiagram
-  block: drawChordBlock

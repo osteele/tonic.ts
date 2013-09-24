@@ -1,6 +1,5 @@
 {PI, cos, sin, min, max} = Math
 ChordDiagramStyle = require('./chord_diagram').defaultStyle
-{block, withGraphicsContext} = require './layout'
 
 draw_pitch_diagram = (ctx, pitchClasses, options={draw: true}) ->
   {pitch_colors, pitch_names} = options
@@ -55,17 +54,5 @@ draw_pitch_diagram = (ctx, pitchClasses, options={draw: true}) ->
 
   return bounds
 
-pitch_diagram_block = (pitchClasses, scale=1) ->
-  bounds = withGraphicsContext (ctx) -> draw_pitch_diagram ctx, pitchClasses, draw: false, measure: true
-  block
-    width: (bounds.right - bounds.left) * scale
-    height: (bounds.bottom - bounds.top) * scale
-    draw: ->
-      withGraphicsContext (ctx) ->
-        ctx.scale scale, scale
-        ctx.translate -bounds.left, -bounds.bottom
-        draw_pitch_diagram ctx, pitchClasses
-
 module.exports =
   draw: draw_pitch_diagram
-  block: pitch_diagram_block

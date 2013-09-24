@@ -1,6 +1,6 @@
 _ = require 'underscore'
 {IntervalNames} = require './theory'
-{block, drawText, withGraphicsContext, withAlignment} = require './layout'
+{drawText, withGraphicsContext} = require './layout'
 ChordDiagram = require './chord_diagram'
 
 DefaultStyle =
@@ -129,15 +129,6 @@ drawHarmonicTable = (intervalClasses, options={}) ->
         {x, y} = cell_center interval_klass
         drawText label, font: '10pt Times', fillStyle: 'black', x: x, y: y, gravity: 'center'
 
-harmonicTableBlock = (tones, options) ->
-  dimensions = drawHarmonicTable tones, _.extend({}, options, compute_bounds: true, draw: false)
-  block
-    width: dimensions.width
-    height: dimensions.height
-    draw: ->
-      drawHarmonicTable tones, options
-
 module.exports = {
   draw: drawHarmonicTable
-  block: harmonicTableBlock
 }

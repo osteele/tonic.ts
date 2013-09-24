@@ -13,16 +13,14 @@ module.exports = (grunt) ->
         files: [
           '<%= directories.build %>/js/app.js': [
             'app/**/*.coffee'
-            'lib/**/*.coffee', '!lib/books/**/*.coffee', '!lib/movies/**/*.coffee'
+            'lib/**/*.coffee'
           ]
         ]
         options:
           transform: ['coffeeify']
           debug: true
           fast: true
-          alias: [
-            'lib/browser/canvas.coffee:canvas'
-          ]
+          alias: []
           # aliasMappings: [
           #   # {'lib/browser/canvas.coffee': 'canvas'}
           #   {
@@ -87,15 +85,6 @@ module.exports = (grunt) ->
           sourcemap: false
           style: 'compressed'
 
-    shell:
-      makeBuildDir:
-        command: 'mkdir build'
-      runAll:
-        command: './bin/make-chord-book all'
-        options:
-          stdout: true
-          stderr: true
-
     watch:
       options:
         livereload: true
@@ -113,10 +102,11 @@ module.exports = (grunt) ->
         tasks: ['browserify']
 
   # TODO use grunt.file.expandMapping ?
+  # TODO maybe aliasMap is now sufficient?
   do ->
     path = require 'path'
     propertyName = 'browserify.app.options.alias'
-    files = grunt.file.expand('lib/*.coffee', '!lib/books', '!lib/movies')
+    files = grunt.file.expand('lib/*.coffee')
     aliases = ("#{name}:./#{path.basename name, '.coffee'}" for name in files)
     grunt.config.set propertyName, grunt.config.get(propertyName).concat(aliases)
 

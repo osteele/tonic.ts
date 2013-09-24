@@ -18,11 +18,8 @@
     "url": "http://github.com/osteele/fretboard/issues"
   },
   "dependencies": {
-    "canvas": "~1.0.2",
-    "commander": "~1.1.1",
     "coffee-script": "*",
-    "underscore": "~1.4.4",
-    "ease-component": "~1.0.0"
+    "underscore": "~1.4.4"
   },
   "devDependencies": {
     "coffeeify": "~0.5.x",
@@ -38,17 +35,8 @@
     "grunt-contrib-watch": "~0.4.x",
     "grunt-gh-pages": "~0.7.x",
     "grunt-notify": "~0.2.x",
-    "grunt-shell": "~0.2.2",
     "chai": "*",
     "mocha": "*",
     "load-grunt-tasks": "~0.1.x"
-  },
-  "main": "index.coffee",
-  "bin": {
-    "make-chord-book": "./bin/make-chord-book"
-  },
-  "scripts": {
-    "build": "coffee bin/make-chord-book all",
-    "test": "./node_modules/mocha/bin/mocha --compilers coffee:coffee-script tests/*test.coffee"
   }
 }
