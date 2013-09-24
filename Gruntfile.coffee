@@ -21,14 +21,8 @@ module.exports = (grunt) ->
           debug: true
           fast: true
           alias: []
-          # aliasMappings: [
-          #   # {'lib/browser/canvas.coffee': 'canvas'}
-          #   {
-          #     cwd: 'lib'
-          #     src: ['*.coffee', '!books', '!movies']
-          #     dst: '.'
-          #   }
-          # ]
+         ':release':
+           debug: false
 
     clean:
       dev: '<%= directories.dev %>'
