@@ -70,10 +70,12 @@ app.controller 'ChordDetailsCtrl', ($scope, $routeParams) ->
   for fingering in $scope.fingerings
     labels = []
     sortKeys = {}
-    for name, badge of fingering.properties
-      badge = null if badge == true
-      labels.push {name, badge}
-      sortKeys[name] = badge
+    for name, value of fingering.properties
+      sortKeys[name] = value
+      sortKeys[name] = !value if typeof value == 'boolean'
+      badge = value
+      badge = null if value == true
+      labels.push {name, badge} if value
     fingering.labels = labels.sort()
     fingering.sortKeys = sortKeys
 
@@ -105,7 +107,7 @@ app.directive 'isotopeContainer', ->
       sortData = {}
       scope.keys.map (key) ->
         sortData[key] = ($elem) ->
-            return angular.element($elem).scope().fingering.sortKeys[key] or 0
+          return angular.element($elem).scope().fingering.sortKeys[key]
       $(element).isotope
         animationEngineString: 'css'
         itemSelector: '[isotope-item]'

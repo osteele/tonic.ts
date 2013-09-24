@@ -263,7 +263,7 @@ chordFingerings = (chord, instrument, options={}) ->
     root: isRootPosition
     barres: (f) -> f.barres.length
     fingers: getFingerCount
-    inversion: (f) -> f.inversionLetter
+    inversion: (f) -> f.inversionLetter or ''
     # bass: /^\d{3}x*$/
     # treble: /^x*\d{3}$/
     skipping: /\dx+\d/
@@ -276,7 +276,7 @@ chordFingerings = (chord, instrument, options={}) ->
   for name, fn of properties
     for fingering in fingerings
       value = if fn instanceof RegExp then fn.test(fingering.fretstring) else fn(fingering)
-      fingering.properties[name] = value if value
+      fingering.properties[name] = value
 
 
   return fingerings
