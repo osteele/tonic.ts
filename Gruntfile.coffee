@@ -5,7 +5,7 @@ module.exports = (grunt) ->
       build: '<%= directories.dev %>'
       dev: 'build'
       release: 'release'
-      ':release':
+      _release:
         build: '<%= directories.release %>'
 
     browserify:
@@ -21,7 +21,7 @@ module.exports = (grunt) ->
           debug: true
           fast: true
           alias: []
-         ':release':
+         _release:
            debug: false
 
     clean:
@@ -62,7 +62,7 @@ module.exports = (grunt) ->
         ext: '.html'
       options:
         pretty: true
-        ':release':
+        _release:
           pretty: false
 
     sass:
@@ -75,7 +75,7 @@ module.exports = (grunt) ->
         filter: 'isFile'
       options:
         sourcemap: true
-        ':release':
+        _release:
           sourcemap: false
           style: 'compressed'
 
@@ -108,6 +108,6 @@ module.exports = (grunt) ->
   grunt.loadTasks 'tasks'
 
   grunt.registerTask 'build', ['clean:target', 'browserify', 'copy', 'jade', 'sass']
-  grunt.registerTask 'build:release', ['context:release', 'build']
+  grunt.registerTask 'build:release', ['contextualize:release', 'build']
   grunt.registerTask 'deploy', ['build:release', 'gh-pages']
   grunt.registerTask 'default', ['build', 'connect', 'watch']
