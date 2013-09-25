@@ -10,19 +10,19 @@ module.exports = (grunt) ->
 
     browserify:
       app:
-        files: [
+        files: {
           '<%= directories.build %>/js/app.js': [
             'app/**/*.coffee'
             'lib/**/*.coffee'
           ]
-        ]
+        }
         options:
           transform: ['coffeeify']
           debug: true
           fast: true
           alias: []
-         _release:
-           debug: false
+          _release:
+            debug: false
 
     clean:
       dev: '<%= directories.dev %>'
@@ -78,6 +78,10 @@ module.exports = (grunt) ->
         _release:
           sourcemap: false
           style: 'compressed'
+
+    update:
+      app:
+        tasks: ['browserify', 'jade', 'sass', 'copy']
 
     watch:
       options:
