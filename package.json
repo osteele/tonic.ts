@@ -26,7 +26,7 @@
     "grunt": "~0.4.x",
     "grunt-browserify": "~1.2.x",
     "grunt-coffeelint": "0.0.7",
-    "grunt-contextualize": ">=0.1.x",
+    "grunt-contextualize": ">=0.2.x",
     "grunt-contrib-clean": "~0.5.x",
     "grunt-contrib-coffee": "~0.7.x",
     "grunt-contrib-copy": "~0.4.x",

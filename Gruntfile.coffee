@@ -2,11 +2,10 @@ module.exports = (grunt) ->
   grunt.initConfig
 
     directories:
-      build: '<%= directories.dev %>'
       dev: 'build'
       release: 'release'
-      _release:
-        build: '<%= directories.release %>'
+      build: '<%= directories.dev %>'
+      build$release: '<%= directories.release %>'
 
     browserify:
       app:
@@ -19,10 +18,9 @@ module.exports = (grunt) ->
         options:
           transform: ['coffeeify']
           debug: true
+          debug$release: false
           fast: true
           alias: []
-          _release:
-            debug: false
 
     clean:
       dev: '<%= directories.dev %>'
@@ -62,8 +60,7 @@ module.exports = (grunt) ->
         ext: '.html'
       options:
         pretty: true
-        _release:
-          pretty: false
+        pretty$release: false
 
     sass:
       app:
