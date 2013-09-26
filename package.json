@@ -18,25 +18,25 @@
     "url": "http://github.com/osteele/fretboard/issues"
   },
   "dependencies": {
-    "coffee-script": "~1.6.x",
+    "coffee-script": "~1.6.3",
     "underscore": "~1.5.2"
   },
   "devDependencies": {
-    "coffeeify": "~0.5.x",
-    "grunt": "~0.4.x",
-    "grunt-browserify": "~1.2.x",
-    "grunt-coffeelint": "0.0.7",
-    "grunt-contextualize": ">=0.2.x",
-    "grunt-contrib-clean": "~0.5.x",
-    "grunt-contrib-coffee": "~0.7.x",
-    "grunt-contrib-copy": "~0.4.x",
-    "grunt-contrib-connect": "~0.5.x",
-    "grunt-contrib-jade": "~0.8.x",
-    "grunt-contrib-sass": "~0.5.x",
-    "grunt-contrib-watch": "~0.5.x",
-    "grunt-gh-pages": "~0.7.x",
-    "grunt-notify": "~0.2.x",
-    "grunt-update": ">=0.1.x",
-    "load-grunt-tasks": "~0.1.x"
+    "coffeeify": "~0.5.1",
+    "grunt": "~0.4",
+    "grunt-browserify": "~1.2.5",
+    "grunt-coffeelint": "~0.0.7",
+    "grunt-contextualize": "~0.2.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-connect": "~0.5.0",
+    "grunt-contrib-jade": "~0.8.0",
+    "grunt-contrib-sass": "~0.5.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-gh-pages": "~0.7.4",
+    "grunt-notify": "~0.2.13",
+    "grunt-update": "~0.2.1",
+    "load-grunt-tasks": "~0.1.0"
   }
 }
