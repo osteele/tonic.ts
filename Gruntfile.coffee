@@ -67,7 +67,7 @@ module.exports = (grunt) ->
         expand: true
         cwd: 'app'
         dest: '<%= directories.build %>'
-        src: ['css/**.scss', '!css/_*']
+        src: ['css/**/*.scss', '!**/_*']
         ext: '.css'
         filter: 'isFile'
       options:
@@ -77,8 +77,7 @@ module.exports = (grunt) ->
           style: 'compressed'
 
     update:
-      app:
-        tasks: ['browserify', 'jade', 'sass', 'copy']
+      tasks: ['browserify', 'copy', 'jade', 'sass']
 
     watch:
       options:
@@ -86,14 +85,10 @@ module.exports = (grunt) ->
       gruntfile:
         files: 'Gruntfile.coffee'
         tasks: ['coffeelint:gruntfile', 'build']
-      jade:
-        files: '<%= jade.app.src %>'
-        tasks: ['jade']
-      sass:
-        files: ['<%= sass.app.src %>']
-        tasks: ['sass']
+      jade: {}
+      sass: {}
       scripts:
-        files: '<%= browserify.app.src %> '
+        files: '<%= directories.build %>/js/app.js'
         tasks: ['browserify']
 
   # TODO use grunt.file.expandMapping ?
@@ -111,4 +106,4 @@ module.exports = (grunt) ->
   grunt.registerTask 'build', ['clean:target', 'browserify', 'copy', 'jade', 'sass']
   grunt.registerTask 'build:release', ['contextualize:release', 'build']
   grunt.registerTask 'deploy', ['build:release', 'gh-pages']
-  grunt.registerTask 'default', ['build', 'connect', 'watch']
+  grunt.registerTask 'default', ['update', 'connect', 'autowatch']

@@ -37,6 +37,7 @@
     "grunt-gh-pages": "~0.7.4",
     "grunt-notify": "~0.2.13",
     "grunt-update": "~0.2.1",
-    "load-grunt-tasks": "~0.1.0"
+    "load-grunt-tasks": "~0.1.0",
+    "grunt-autowatch": "~0.1.0"
   }
 }
