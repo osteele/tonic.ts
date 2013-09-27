@@ -88,7 +88,7 @@ module.exports = (grunt) ->
       jade: {}
       sass: {}
       scripts:
-        files: '<%= directories.build %>/js/app.js'
+        files: ['app/**/*.coffee', 'lib/**/*.coffee']
         tasks: ['browserify']
 
   # TODO use grunt.file.expandMapping ?
