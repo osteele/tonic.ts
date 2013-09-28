@@ -1,5 +1,1 @@
-build
 node_modules
-.sass-cache
-.grunt/grunt-gh-pages
-release

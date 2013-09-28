@@ -1,43 +1,37 @@
 {
-  "name": "fretboard",
-  "description": "Tools for generating guitar chord diagrams for study",
+  "name": "schoen",
+  "description": "Music theory and instrument models.",
   "version": "0.0.1",
   "author": "Oliver Steele <steele@osteele.com>",
   "license": "MIT",
   "keywords": [
     "music",
-    "chords",
-    "guitar",
-    "diagrams"
+    "music-theory",
+    "chord-diagrams"
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/osteele/fretboard.git"
+    "url": "http://github.com/osteele/schoen.git"
   },
   "bugs": {
-    "url": "http://github.com/osteele/fretboard/issues"
+    "url": "http://github.com/osteele/schoen/issues"
   },
   "dependencies": {
     "coffee-script": "~1.6.3",
     "underscore": "~1.5.2"
   },
   "devDependencies": {
-    "coffeeify": "~0.5.1",
     "grunt": "~0.4",
-    "grunt-browserify": "~1.2.5",
     "grunt-coffeelint": "~0.0.7",
-    "grunt-contextualize": "~0.2.1",
-    "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-coffee": "~0.7.0",
-    "grunt-contrib-copy": "~0.4.1",
-    "grunt-contrib-connect": "~0.5.0",
-    "grunt-contrib-jade": "~0.8.0",
-    "grunt-contrib-sass": "~0.5.0",
+    "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-watch": "~0.5.3",
-    "grunt-gh-pages": "~0.7.4",
     "grunt-notify": "~0.2.13",
     "grunt-update": "~0.2.1",
     "load-grunt-tasks": "~0.1.0",
     "grunt-autowatch": "~0.1.0"
+  },
+  "scripts": {
+    "install": "coffee install"
   }
 }
