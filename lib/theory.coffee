@@ -61,6 +61,17 @@ parsePitchClass = (name) ->
   pitch += AccidentalValues[c] for c in accidentals
   return pitch
 
+midi2name = (number) ->
+  "#{NoteNames[(number + 12) % 12]}#{Math.floor((number - 12) / 12)}"
+
+name2midi = (name) ->
+  throw new Error "#{name} is not a note name" unless m = name.toUpperCase().match(/^([A-G])([♯#♭b𝄪𝄫]*)(\d+)/)
+  [noteName, accidentals, octave] = m.slice(1)
+  pitch = NoteNames.indexOf(noteName)
+  pitch += AccidentalValues[c] for c in accidentals
+  pitch += 12 * Number(octave)
+  return pitch
+
 
 #
 # Scales
@@ -195,17 +206,21 @@ class Chord
     @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
-    if @rootPitch?
-      @rootName or= NoteNames[@rootPitch]
+
+    @rootName or= NoteNames[@rootPitch] if @rootPitch?
     if @rootName?
-      @rootPitch ?= parsePitchClass(@rootName)
+      @rootPitch ?=
+        if @rootName.match(/\d/) then pitchFromScientificNotation(@rootName) else parsePitchClass(@rootName)
+      @pitches = (pitch + @rootPitch for pitch in @pitchClasses)
       rootlessAbbr = @abbr
       rootlessFullName = @fullName
       Object.defineProperty this, 'name', get: -> "#{@rootName}#{rootlessAbbr}"
       Object.defineProperty this, 'fullName', get: -> "#{@rootName} #{rootlessFullName}"
+
     degrees = (1 + 2 * i for i in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
+
     @components = for pc, pci in @pitchClasses
       name = IntervalNames[pc]
       degree = degrees[pci]
@@ -242,11 +257,16 @@ class Chord
     return this
 
   @find: (name) ->
-    match = name.match(/^([a-gA-G][#b♯♭]*)(.*)$/)
+    chord = Chords[name]
+    return chord if chord
+    match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))?(.*)$/)
     throw new Error("#{name} is not a chord name") unless match
     [noteName, chordName] = match[1...]
-    throw new Error("#{name} is not a chord name") unless Chords[chordName]
-    return Chords[chordName].at(noteName)
+    chordName or= 'Major'
+    chord = Chords[chordName]
+    throw new Error("#{name} is not a chord name") unless chord
+    chord = chord.at(noteName) if noteName
+    return chord
 
   @fromPitches: (pitches) ->
     root = pitches[0]
@@ -258,8 +278,7 @@ class Chord
     throw new Error("Couldn''t find chord with pitch classes #{pitchClasses}") unless chord
     return chord
 
-
-ChordDefinitions = [
+Chords = [
   {name: 'Major', abbrs: ['', 'M'], pitchClasses: '047'},
   {name: 'Minor', abbr: 'm', pitchClasses: '037'},
   {name: 'Augmented', abbrs: ['+', 'aug'], pitchClasses: '048'},
@@ -278,21 +297,17 @@ ChordDefinitions = [
   {name: 'Minor-Major 7th', abbrs: ['min/maj7', 'min(maj7)'], pitchClasses: '037e'},
   {name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], pitchClasses: '0479'},
   {name: 'Minor 6th', abbrs: ['m6', 'min6'], pitchClasses: '0379'},
-]
-
-# Chords is an array of chord classes
-Chords = ChordDefinitions.map (spec) ->
-  spec.fullName = spec.name
-  spec.name = spec.name
+].map ({name, abbr, abbrs, pitchClasses}) ->
+  fullName = name
+  name = name
     .replace(/Major(?!$)/, 'Maj')
     .replace(/Minor(?!$)/, 'Min')
     .replace('Dominant', 'Dom')
     .replace('Diminished', 'Dim')
-  spec.abbrs or= [spec.abbr]
-  spec.abbrs = spec.abbrs.split(/s/) if typeof spec.abbrs == 'string'
-  spec.abbr or= spec.abbrs[0]
-  spec.pitchClasses = spec.pitchClasses.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
-  new Chord spec
+  abbrs ?= [abbr]
+  abbr ?= abbrs[0]
+  pitchClasses = pitchClasses.match(/./g).map (c) -> {'t':10, 'e':11}[c] ? Number(c)
+  new Chord {name, fullName, abbr, abbrs, pitchClasses}
 
 # `Chords` is also indexed by chord names and abbreviations, and by pitch classes
 do ->
@@ -300,6 +315,41 @@ do ->
     {name, fullName, abbrs} = chord
     Chords[key] = chord for key in [name, fullName].concat(abbrs)
     Chords[chord.pitchClasses] = chord
+
+
+#
+# Chord Progressions
+#
+
+Chord.progression = (tonic, chords) ->
+  scale = [0, 2, 4, 5, 7, 9, 11]
+  romanNumerals = 'I II III IV V VI VII'.split(/\s+/)
+  tonic = name2midi(tonic) if typeof tonic == 'string'
+  for name in chords.split(/[\s+\-]+/)
+    cr = name.replace(/[♭67°ø\+bcd]/g, '')
+    i = romanNumerals.indexOf(cr.toUpperCase())
+    if i >= 0
+      acc = 0
+      acc = -1 if name.match /♭/
+      chordRoot = midi2name(tonic + scale[i] + acc)
+      chordType = "Major"
+      chordType = "Minor" if cr == cr.toLowerCase()
+      chordType = "aug" if name.match /\+/
+      chordType = "dim" if name.match /°/
+      chordType = "maj6" if name.match /6/
+      chordType = "dom7" if name.match /7/
+      chordType = "+7" if name.match /\+7/
+      chordType = "°7" if name.match /°7/
+      chordType = "ø7" if name.match /ø7/
+      # TODO 9, 13, sharp, natural
+      chord = Chord.find(chordType).at(chordRoot)
+      chord.inversion = 1 if name.match /b/
+      chord.inversion = 2 if name.match /c/
+      chord.inversion = 3 if name.match /d/
+      chord.pitches = chord.pitches[chord.inversion...].concat chord.pitches[...chord.inversion] if chord.inversion?
+      chord
+    else
+      name
 
 
 #
@@ -318,9 +368,11 @@ module.exports = {
   ScaleDegreeNames
   Scales
   SharpNoteNames
-  getPitchName
   getPitchClassName
+  getPitchName
   intervalClassDifference
+  midi2name
+  name2midi
   normalizePitchClass
   pitchFromScientificNotation
   pitchNameToNumber: parsePitchClass
