@@ -32,6 +32,6 @@
     "grunt-autowatch": "~0.1.0"
   },
   "scripts": {
-    "install": "coffee install"
+    "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib"
   }
 }

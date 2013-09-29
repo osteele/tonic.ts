@@ -24,8 +24,8 @@ module.exports = (grunt) ->
       tasks: ['coffee']
 
     watch:
-      grunt:
-        tasks: ['gruntfile']
+      gruntfile:
+        tasks: ['coffeelint:gruntfile']
       scripts:
         tasks: ['coffeelint:lib', 'coffee']
 
