@@ -1,10 +1,14 @@
-var AccidentalValues, Chord, ChordDefinitions, Chords, FlatNoteNames, FunctionQualities, Functions, IntervalNames, LongIntervalNames, Modes, NoteNames, Scale, Scales, SharpNoteNames, getPitchClassName, getPitchName, intervalClassDifference, normalizePitchClass, parseChordNumeral, parsePitchClass, pitchFromScientificNotation;
+var AccidentalValues, Chord, ChordDefinitions, Chords, FlatNoteNames, FunctionQualities, Functions, IntervalNames, LongIntervalNames, NoteNames, Pitches, Scale, ScaleDegreeNames, Scales, SharpNoteNames, getPitchClassName, getPitchName, intervalClassDifference, normalizePitchClass, parseChordNumeral, parsePitchClass, pitchFromScientificNotation, pitchToPitchClass;
 
 SharpNoteNames = 'C C# D D# E F F# G G# A A# B'.replace(/#/g, '\u266F').split(/\s/);
 
 FlatNoteNames = 'C Db D Eb E F Gb G Ab A Bb B'.replace(/b/g, '\u266D').split(/\s/);
 
 NoteNames = SharpNoteNames;
+
+ScaleDegreeNames = '1 b2 2 b3 3 4 b5 5 b6 6 b7 7'.split(/\s/).map(function(d) {
+  return d.replace(/(\d)/, '$1\u0302').replace(/b/, '\u266D');
+});
 
 AccidentalValues = {
   '#': 1,
@@ -15,6 +19,8 @@ AccidentalValues = {
   '𝄫': -2
 };
 
+Pitches = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
 IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8'];
 
 LongIntervalNames = ['Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave'];
@@ -23,11 +29,22 @@ getPitchClassName = function(pitchClass) {
   return NoteNames[normalizePitchClass(pitchClass)];
 };
 
-getPitchName = function(pitch) {
+getPitchName = function(pitch, options) {
+  var flatName, name, pitchClass, sharpName;
+  if (options == null) {
+    options = {};
+  }
   if (typeof pitch === 'string') {
     return pitch;
   }
-  return getPitchClassName(pitch);
+  pitchClass = pitchToPitchClass(pitch);
+  flatName = FlatNoteNames[pitchClass];
+  sharpName = SharpNoteNames[pitchClass];
+  name = options.sharp ? sharpName : flatName;
+  if (options.flat && options.sharp && flatName !== sharpName) {
+    name = "" + flatName + "/\n" + sharpName;
+  }
+  return name;
 };
 
 intervalClassDifference = function(pca, pcb) {
@@ -37,6 +54,8 @@ intervalClassDifference = function(pca, pcb) {
 normalizePitchClass = function(pitchClass) {
   return ((pitchClass % 12) + 12) % 12;
 };
+
+pitchToPitchClass = normalizePitchClass;
 
 pitchFromScientificNotation = function(name) {
   var accidentals, c, match, naturalName, octave, pitch, _i, _len, _ref;
@@ -70,7 +89,7 @@ parsePitchClass = function(name) {
 
 Scale = (function() {
   function Scale(_arg) {
-    this.name = _arg.name, this.pitches = _arg.pitches, this.tonicName = _arg.tonicName;
+    this.name = _arg.name, this.pitches = _arg.pitches, this.parentName = _arg.parentName, this.modeNames = _arg.modeNames, this.tonicName = _arg.tonicName;
     if (this.tonicName) {
       this.tonicPitch || (this.tonicPitch = parsePitchClass(this.tonicName));
     }
@@ -130,26 +149,49 @@ Scale = (function() {
 
 })();
 
-Scales = (function() {
-  var name, pitches, scale_specs, spec, _i, _len, _ref, _results;
-  scale_specs = ['Diatonic Major: 024579e', 'Natural Minor: 023578t', 'Melodic Minor: 023579e', 'Harmonic Minor: 023578e', 'Pentatonic Major: 02479', 'Pentatonic Minor: 0357t', 'Blues: 03567t', 'Freygish: 014578t', 'Whole Tone: 02468t', 'Octatonic: 0235689e'];
-  _results = [];
-  for (_i = 0, _len = scale_specs.length; _i < _len; _i++) {
-    spec = scale_specs[_i];
-    _ref = spec.split(/:\s*/, 2), name = _ref[0], pitches = _ref[1];
-    pitches = pitches.match(/./g).map(function(c) {
-      return {
-        't': 10,
-        'e': 11
-      }[c] || Number(c);
-    });
-    _results.push(new Scale({
-      name: name,
-      pitches: pitches
-    }));
+Scales = [
+  {
+    name: 'Diatonic Major',
+    pitchClasses: [0, 2, 4, 5, 7, 9, 11],
+    modeNames: 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
+  }, {
+    name: 'Natural Minor',
+    pitchClasses: [0, 2, 3, 5, 7, 8, 10],
+    parentName: 'Diatonic Major'
+  }, {
+    name: 'Major Pentatonic',
+    pitchClasses: [0, 2, 4, 7, 9],
+    modeNames: ['Major Pentatonic', 'Suspended Pentatonic', 'Man Gong', 'Ritusen', 'Minor Pentatonic']
+  }, {
+    name: 'Minor Pentatonic',
+    pitchClasses: [0, 3, 5, 7, 10],
+    parentName: 'Major Pentatonic'
+  }, {
+    name: 'Melodic Minor',
+    pitchClasses: [0, 2, 3, 5, 7, 9, 11],
+    modeNames: ['Jazz Minor', 'Dorian b2', 'Lydian Augmented', 'Lydian Dominant', 'Mixolydian b6', 'Semilocrian', 'Superlocrian']
+  }, {
+    name: 'Harmonic Minor',
+    pitchClasses: [0, 2, 3, 5, 7, 8, 11],
+    modeNames: ['Harmonic Minor', 'Locrian #6', 'Ionian Augmented', 'Romanian', 'Phrygian Dominant', 'Lydian #2', 'Ultralocrian']
+  }, {
+    name: 'Blues',
+    pitchClasses: [0, 3, 5, 6, 7, 10]
+  }, {
+    name: 'Freygish',
+    pitchClasses: [0, 1, 4, 5, 7, 8, 10]
+  }, {
+    name: 'Whole Tone',
+    pitchClasses: [0, 2, 4, 6, 8, 10]
+  }, {
+    name: 'Octatonic',
+    pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11]
   }
-  return _results;
-})();
+].map(function(attrs) {
+  var modeNames, name, parentName, pitchClasses;
+  new Scale(attrs);
+  return name = attrs.name, pitchClasses = attrs.pitchClasses, parentName = attrs.parentName, modeNames = attrs.modeNames, attrs;
+});
 
 (function() {
   var scale, _i, _len, _results;
@@ -161,38 +203,42 @@ Scales = (function() {
   return _results;
 })();
 
-Modes = (function() {
-  var d, delta, i, modeNames, name, pitches, rootTones, _i, _len, _results;
-  rootTones = Scales['Diatonic Major'].pitches;
-  modeNames = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/);
-  _results = [];
-  for (i = _i = 0, _len = rootTones.length; _i < _len; i = ++_i) {
-    delta = rootTones[i];
-    name = modeNames[i];
-    pitches = (function() {
-      var _j, _len1, _ref, _results1;
-      _ref = rootTones.slice(i).concat(rootTones.slice(0, i));
-      _results1 = [];
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        d = _ref[_j];
-        _results1.push((d - delta + 12) % 12);
-      }
-      return _results1;
-    })();
-    _results.push(new Scale({
-      name: name,
-      pitches: pitches
-    }));
-  }
-  return _results;
-})();
-
 (function() {
-  var mode, _i, _len, _results;
+  var modeNames, name, parent, parentName, pitchClasses, rotate, scale, _i, _j, _len, _ref, _results, _results1;
+  rotate = function(pitchClasses, i) {
+    i %= pitchClasses.length;
+    pitchClasses = pitchClasses.slice(i).concat(pitchClasses.slice(0, i));
+    return pitchClasses.map(function(pc) {
+      return normalizePitchClass(pc - pitchClasses[0]);
+    });
+  };
   _results = [];
-  for (_i = 0, _len = Modes.length; _i < _len; _i++) {
-    mode = Modes[_i];
-    _results.push(Modes[mode.name] = mode);
+  for (_i = 0, _len = Scales.length; _i < _len; _i++) {
+    scale = Scales[_i];
+    name = scale.name, modeNames = scale.modeNames, parentName = scale.parentName, pitchClasses = scale.pitchClasses;
+    parent = scale.parent = Scales[parentName];
+    modeNames || (modeNames = parent != null ? parent.modeNames : void 0);
+    if (modeNames != null) {
+      scale.modeIndex = 0;
+      if (parent != null) {
+        scale.modeIndex = (function() {
+          _results1 = [];
+          for (var _j = 0, _ref = pitchClasses.length; 0 <= _ref ? _j < _ref : _j > _ref; 0 <= _ref ? _j++ : _j--){ _results1.push(_j); }
+          return _results1;
+        }).apply(this).filter(function(i) {
+          return rotate(parent.pitchClasses, i).join(',') === pitchClasses.join(',');
+        })[0];
+      }
+      _results.push(scale.modes = modeNames.map(function(name, i) {
+        return {
+          name: name.replace(/#/, '\u266F').replace(/\bb(\d)/, '\u266D$1'),
+          pitchClasses: rotate((parent != null ? parent.pitchClasses : void 0) || pitchClasses, i),
+          parent: scale
+        };
+      }));
+    } else {
+      _results.push(void 0);
+    }
   }
   return _results;
 })();
@@ -484,15 +530,23 @@ Chords = ChordDefinitions.map(function(spec) {
 module.exports = {
   Chord: Chord,
   Chords: Chords,
+  FlatNoteNames: FlatNoteNames,
   IntervalNames: IntervalNames,
   LongIntervalNames: LongIntervalNames,
-  Modes: Modes,
   NoteNames: NoteNames,
+  Pitches: Pitches,
   Scale: Scale,
+  ScaleDegreeNames: ScaleDegreeNames,
   Scales: Scales,
+  SharpNoteNames: SharpNoteNames,
+  getPitchName: getPitchName,
   getPitchClassName: getPitchClassName,
   intervalClassDifference: intervalClassDifference,
-  pitchFromScientificNotation: pitchFromScientificNotation
+  normalizePitchClass: normalizePitchClass,
+  pitchFromScientificNotation: pitchFromScientificNotation,
+  pitchNameToNumber: parsePitchClass,
+  pitchNumberToName: getPitchName,
+  pitchToPitchClass: pitchToPitchClass
 };
 
 /*

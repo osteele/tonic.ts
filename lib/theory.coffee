@@ -5,6 +5,8 @@
 SharpNoteNames = 'C C# D D# E F F# G G# A A# B'.replace(/#/g, '\u266F').split(/\s/)
 FlatNoteNames = 'C Db D Eb E F Gb G Ab A Bb B'.replace(/b/g, '\u266D').split(/\s/)
 NoteNames = SharpNoteNames
+ScaleDegreeNames = '1 b2 2 b3 3 4 b5 5 b6 6 b7 7'.split(/\s/)
+  .map (d) -> d.replace(/(\d)/, '$1\u0302').replace(/b/, '\u266D')
 
 AccidentalValues =
   '#': 1
@@ -14,6 +16,7 @@ AccidentalValues =
   '𝄪': 2
   '𝄫': -2
 
+Pitches = [0 ... 12]
 IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8']
 
 LongIntervalNames = [
@@ -23,9 +26,15 @@ LongIntervalNames = [
 getPitchClassName = (pitchClass) ->
   NoteNames[normalizePitchClass(pitchClass)]
 
-getPitchName = (pitch) ->
+getPitchName = (pitch, options={}) ->
   return pitch if typeof pitch == 'string'
-  getPitchClassName(pitch)
+  pitchClass = pitchToPitchClass(pitch)
+  flatName = FlatNoteNames[pitchClass]
+  sharpName = SharpNoteNames[pitchClass]
+  name = if options.sharp then sharpName else flatName
+  if options.flat and options.sharp and flatName != sharpName
+    name = "#{flatName}/\n#{sharpName}"
+  return name
 
 # The interval class (integer in [0...12]) between two pitch class numbers
 intervalClassDifference = (pca, pcb) ->
@@ -33,6 +42,8 @@ intervalClassDifference = (pca, pcb) ->
 
 normalizePitchClass = (pitchClass) ->
   ((pitchClass % 12) + 12) % 12
+
+pitchToPitchClass = normalizePitchClass
 
 pitchFromScientificNotation = (name) ->
   match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i)
@@ -56,7 +67,7 @@ parsePitchClass = (name) ->
 #
 
 class Scale
-  constructor: ({@name, @pitches, @tonicName}) ->
+  constructor: ({@name, @pitches, @parentName, @modeNames, @tonicName}) ->
     @tonicPitch or= parsePitchClass(@tonicName) if @tonicName
 
   at: (tonicName) ->
@@ -80,38 +91,82 @@ class Scale
     scaleName = 'Diatonic Major'
     Scales[scaleName].at(tonicName)
 
-Scales = do ->
-  scale_specs = [
-    'Diatonic Major: 024579e'
-    'Natural Minor: 023578t'
-    'Melodic Minor: 023579e'
-    'Harmonic Minor: 023578e'
-    'Pentatonic Major: 02479'
-    'Pentatonic Minor: 0357t'
-    'Blues: 03567t'
-    'Freygish: 014578t'
-    'Whole Tone: 02468t'
+Scales = [
+  {
+    name: 'Diatonic Major'
+    pitchClasses: [0, 2, 4, 5, 7, 9, 11]
+    modeNames: 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
+  }
+  {
+    name: 'Natural Minor'
+    pitchClasses: [0, 2, 3, 5, 7, 8, 10]
+    parentName: 'Diatonic Major'
+  }
+  {
+    name: 'Major Pentatonic'
+    pitchClasses: [0, 2, 4, 7, 9]
+    modeNames: ['Major Pentatonic', 'Suspended Pentatonic', 'Man Gong', 'Ritusen', 'Minor Pentatonic']
+  }
+  {
+    name: 'Minor Pentatonic'
+    pitchClasses: [0, 3, 5, 7, 10]
+    parentName: 'Major Pentatonic'
+  }
+  {
+    name: 'Melodic Minor'
+    pitchClasses: [0, 2, 3, 5, 7, 9, 11]
+    modeNames:
+      ['Jazz Minor', 'Dorian b2', 'Lydian Augmented', 'Lydian Dominant', 'Mixolydian b6', 'Semilocrian', 'Superlocrian']
+  }
+  {
+    name: 'Harmonic Minor'
+    pitchClasses: [0, 2, 3, 5, 7, 8, 11]
+    modeNames:
+      ['Harmonic Minor', 'Locrian #6', 'Ionian Augmented', 'Romanian', 'Phrygian Dominant', 'Lydian #2', 'Ultralocrian']
+  }
+  {
+    name: 'Blues'
+    pitchClasses: [0, 3, 5, 6, 7, 10]
+  }
+  {
+    name: 'Freygish'
+    pitchClasses: [0, 1, 4, 5, 7, 8, 10]
+  }
+  {
+    name: 'Whole Tone'
+    pitchClasses: [0, 2, 4, 6, 8, 10]
+  }
+  {
     # 'Octatonic' is the classical name. It's the jazz 'Diminished' scale.
-    'Octatonic: 0235689e'
-  ]
-  for spec in scale_specs
-    [name, pitches] = spec.split(/:\s*/, 2)
-    pitches = pitches.match(/./g).map (c) -> {'t':10, 'e':11}[c] or Number(c)
-    new Scale {name, pitches}
+    name: 'Octatonic'
+    pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11]
+  }
+].map (attrs) ->
+  new Scale(attrs)
+  {name, pitchClasses, parentName, modeNames} = attrs
 
 do ->
   Scales[scale.name] = scale for scale in Scales
 
-Modes = do ->
-  rootTones = Scales['Diatonic Major'].pitches
-  modeNames = 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(/\s/)
-  for delta, i in rootTones
-    name = modeNames[i]
-    pitches = ((d - delta + 12) % 12 for d in rootTones[i...].concat rootTones[...i])
-    new Scale {name, pitches}
-
 do ->
-  Modes[mode.name] = mode for mode in Modes
+  rotate = (pitchClasses, i) ->
+    i %= pitchClasses.length
+    pitchClasses = pitchClasses.slice(i).concat pitchClasses[0 ... i]
+    pitchClasses.map (pc) -> normalizePitchClass(pc - pitchClasses[0])
+  for scale in Scales
+    {name, modeNames, parentName, pitchClasses} = scale
+    parent = scale.parent = Scales[parentName]
+    modeNames or= parent?.modeNames
+    if modeNames?
+      scale.modeIndex = 0
+      if parent?
+        [scale.modeIndex] = [0 ... pitchClasses.length]
+          .filter (i) -> rotate(parent.pitchClasses, i).join(',') == pitchClasses.join(',')
+      scale.modes = modeNames.map (name, i) -> {
+        name: name.replace(/#/, '\u266F').replace(/\bb(\d)/, '\u266D$1')
+        pitchClasses: rotate(parent?.pitchClasses or pitchClasses, i)
+        parent: scale
+      }
 
 # Indexed by scale degree
 Functions = 'Tonic Supertonic Mediant Subdominant Dominant Submediant Subtonic Leading'.split(/\s/)
@@ -254,13 +309,21 @@ do ->
 module.exports = {
   Chord
   Chords
+  FlatNoteNames
   IntervalNames
   LongIntervalNames
-  Modes
   NoteNames
+  Pitches
   Scale
+  ScaleDegreeNames
   Scales
+  SharpNoteNames
+  getPitchName
   getPitchClassName
   intervalClassDifference
+  normalizePitchClass
   pitchFromScientificNotation
+  pitchNameToNumber: parsePitchClass
+  pitchNumberToName: getPitchName
+  pitchToPitchClass
 }
