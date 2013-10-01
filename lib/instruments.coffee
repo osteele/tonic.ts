@@ -1,4 +1,4 @@
-{intervalClassDifference, pitchFromScientificNotation} = require('./theory')
+{intervalClassDifference, pitchFromScientificNotation} = require('./pitches')
 
 #
 # Fretboard

@@ -1,6 +1,6 @@
 util = require 'util'
 _ = require 'underscore'
-{getPitchClassName, intervalClassDifference} = require './theory'
+{getPitchClassName, intervalClassDifference} = require './pitches'
 Instruments = require './instruments'
 
 {

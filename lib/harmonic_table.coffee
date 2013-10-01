@@ -1,5 +1,5 @@
 _ = require 'underscore'
-{IntervalNames} = require './theory'
+{IntervalNames} = require './pitches'
 {drawText, withGraphicsContext} = require './layout'
 ChordDiagram = require './chord_diagram'
 
