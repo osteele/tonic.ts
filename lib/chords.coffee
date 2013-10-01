@@ -1,4 +1,4 @@
-{IntervalNames, NoteNames, pitchFromScientificNotation, parsePitchClass} = require './pitches'
+{IntervalNames, getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation} = require './pitches'
 
 #
 # Chords
@@ -10,7 +10,7 @@ class Chord
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
 
-    @rootName or= NoteNames[@rootPitch] if @rootPitch?
+    @rootName or= getPitchName(@rootPitch) if @rootPitch?
     if @rootName?
       @rootPitch ?=
         if @rootName.match(/\d/) then pitchFromScientificNotation(@rootName) else parsePitchClass(@rootName)
@@ -56,7 +56,7 @@ class Chord
 
   enharmonicizeTo: (pitchNameArray) ->
     for pitchName, pitchClass in pitchNameArray
-      @rootName = pitchName if @rootPitch == pitchClass
+      @rootName = pitchName if normalizePitchClass(@rootPitch) == pitchClass
     return this
 
   @find: (name) ->
@@ -73,11 +73,10 @@ class Chord
 
   @fromPitches: (pitches) ->
     root = pitches[0]
-    Chord.fromPitchClasses(pitch - root for pitch in pitches).at(root)
+    Chord.fromPitchClasses(normalizePitchClass(pitch - root) for pitch in pitches).at(root)
 
   @fromPitchClasses: (pitchClasses) ->
-    pitchClasses = ((n + 12) % 12 for n in pitchClasses).sort((a, b) -> a > b)
-    chord = Chords[pitchClasses]
+    chord = Chords[pitchClasses.sort((a, b) -> a > b)]
     throw new Error("Couldn''t find chord with pitch classes #{pitchClasses}") unless chord
     return chord
 

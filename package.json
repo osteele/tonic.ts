@@ -29,9 +29,12 @@
     "grunt-notify": "~0.2.13",
     "grunt-update": "~0.2.1",
     "load-grunt-tasks": "~0.1.0",
-    "grunt-autowatch": "~0.1.0"
+    "grunt-autowatch": "~0.1.0",
+    "grunt-mocha-test": "~0.7.0",
+    "should": "~1.3.0"
   },
   "scripts": {
-    "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib"
+    "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib",
+    "test": ".grunt test"
   }
 }

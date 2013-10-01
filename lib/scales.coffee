@@ -19,13 +19,13 @@ class Scale
   chords: (options={}) ->
     throw new Error("only implemented for scales with tonics") unless @tonicPitch?
     noteNames = SharpNoteNames
-    noteNames = FlatNoteNames if noteNames.indexOf(@tonicName) < 0 or @tonicName == 'F'
+    noteNames = FlatNoteNames if @tonicName not in noteNames or @tonicName == 'F'
     degrees = [0, 2, 4]
     degrees.push 6 if options.sevenths
-    for i in [0...@pitches.length]
-      pitches = @pitches[i..].concat(@pitches[...i])
-      pitches = (pitches[degree] for degree in degrees).map (n) => (n + @tonicPitch) % 12
-      Chord.fromPitches(pitches).enharmonicizeTo(noteNames)
+    for rootPitch in [0 ... @pitches.length]
+      modePitches = @pitches[rootPitch..].concat(@pitches[...rootPitch])
+      chordPitches = (modePitches[degree] for degree in degrees)
+      Chord.fromPitches(chordPitches).enharmonicizeTo(noteNames)
 
   @find: (tonicName) ->
     scaleName = 'Diatonic Major'

@@ -57,7 +57,7 @@ parsePitchClass = (name) ->
   [naturalName, accidentals] = match[1...]
   pitch = SharpNoteNames.indexOf(naturalName.toUpperCase())
   pitch += AccidentalValues[c] for c in accidentals
-  return pitch
+  return normalizePitchClass(pitch)
 
 midi2name = (number) ->
   "#{NoteNames[(number + 12) % 12]}#{Math.floor((number - 12) / 12)}"
