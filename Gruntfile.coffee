@@ -34,10 +34,10 @@ module.exports = (grunt) ->
     watch:
       gruntfile:
         tasks: ['coffeelint:gruntfile']
-      mochaTest:
-        files: ['{lib,test}/**/*.{js,coffee}']
+      # mochaTest:
+        # files: ['{lib,test}/**/*.{js,coffee}']
       scripts:
-        tasks: ['coffeelint:lib', 'coffee']
+        tasks: ['coffeelint:lib', 'mochaTest', 'coffee']
 
   require('load-grunt-tasks')(grunt)
 

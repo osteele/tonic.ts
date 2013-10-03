@@ -1,17 +1,15 @@
-{intervalClassDifference, pitchFromScientificNotation} = require('./pitches')
+{Pitch, intervalClassDifference, pitchFromScientificNotation} = require('./pitches')
 
 #
 # Fretboard
 #
 
 class Instrument
-  stringCount: 6
-  strings: 6
-  fretCount: 12
-  stringNumbers: [0..5]
-  stringPitches: 'E4 B3 G3 D3 A2 E2'.split(/\s/).reverse().map pitchFromScientificNotation
-
-  constructor: ({@name, @fretted}) ->
+  constructor: ({@name, @fretted, @stringPitches, @fretCount}) ->
+    @stringPitches = @stringPitches.split(/\s/) if typeof @stringPitches == 'string'
+    @stringPitches = (Pitch.fromString(name) for name in @stringPitches) if typeof @stringPitches[0] == 'string'
+    @strings = @stringCount = @stringPitches.length
+    @stringNumbers = [0 ... @strings]
 
   eachFingerPosition: (fn) ->
     for string in @stringNumbers
@@ -19,24 +17,27 @@ class Instrument
         fn string: string, fret: fret
 
   pitchAt: ({string, fret}) ->
-    @stringPitches[string] + fret
+    Pitch.fromMidiNumber(@stringPitches[string].midiNumber + fret)
+
 
 Instruments = [
   {
     name: 'Guitar'
+    stringPitches: 'E2 A2 D3 G3 B3 E4'
     fretted: true
+    fretCount: 12
   }
   {
     name: 'Violin'
-    stringPitches: [7, 14, 21, 28]
+    stringPitches: 'G D A E'
   }
   {
     name: 'Viola'
-    stringPitches: [0, 7, 14, 21]
+    stringPitches: 'C G D A'
   }
   {
     name: 'Cello'
-    stringPitches: [0, 7, 14, 21]
+    stringPitches: 'C G D A'
   }
 ].map (attrs) -> new Instrument(attrs)
 
@@ -58,6 +59,7 @@ module.exports = {
   Default: Instruments.Guitar
   FretNumbers
   FretCount
+  Instrument
   Instruments
   intervalPositionsFromRoot
 }

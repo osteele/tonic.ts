@@ -17,6 +17,18 @@ describe 'Chords', ->
     should.exist Chords['°']
 
   it 'should find chords by pitch sequence'
+  it 'should find chords by interval sequence'
+
+describe 'Chord', ->
+  describe 'fromString', ->
+    it 'should parse unrooted chord names', ->
+      Chord.fromString('Major').should.be.an.instanceOf Chord
+
+    it 'should rooted chord names', ->
+      Chord.fromString('E').should.be.an.instanceOf Chord
+      Chord.fromString('EMajor').should.be.an.instanceOf Chord
+      Chord.fromString('E Major').should.be.an.instanceOf Chord
+
 
 describe 'Major Chord', ->
   chord = Chords['Major']
@@ -42,38 +54,43 @@ describe 'Major Chord', ->
   it 'should have three pitch classes', ->
     chord.pitchClasses.should.eql [0, 4, 7]
 
+  it 'should have three intervals', ->
+    chord.intervals.should.have.length 3
+
+
   describe 'at E', ->
-    rooted = chord.at('E')
+    EMajorChord = chord.at('E')
 
-    it 'should have a root pitch', ->
-      rooted.rootPitch.should.equal 4
-
-    it 'should have a root name', ->
-      rooted.rootName.should.equal 'E'
+    it 'should have a root', ->
+      EMajorChord.root.toString().should.equal 'E'
 
     it 'should have a name', ->
-      rooted.name.should.equal 'E'
+      EMajorChord.name.should.equal 'E Major'
 
     it 'should have a fullName', ->
-      rooted.fullName.should.equal 'E Major'
+      EMajorChord.fullName.should.equal 'E Major'
+
+    it 'should have an abbreviated name', ->
+      EMajorChord.abbr.should.equal 'E'
+
 
   describe 'at C', ->
-    rooted = chord.at('C')
+    CMajorChord = chord.at('C')
 
     it 'should have a name', ->
-      rooted.name.should.equal 'C'
+      CMajorChord.name.should.equal 'C Major'
 
     it 'should have a fullName', ->
-      rooted.fullName.should.equal 'C Major'
+      CMajorChord.fullName.should.equal 'C Major'
 
-describe 'Major Chord', ->
-  chord = Chords['Minor']
+describe 'Minor Chord', ->
+  minorChord = Chords['Minor']
 
   describe 'at C', ->
-    rooted = chord.at('C')
+    CMinorChord = minorChord.at('C')
 
     it 'should have a name', ->
-      rooted.name.should.equal 'Cm'
+      CMinorChord.name.should.equal 'C Minor'
 
     it 'should have a fullName', ->
-      rooted.fullName.should.equal 'C Minor'
+      CMinorChord.fullName.should.equal 'C Minor'

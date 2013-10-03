@@ -1,4 +1,5 @@
-{FlatNoteNames, NoteNames, SharpNoteNames, normalizePitchClass, parsePitchClass} = require './pitches'
+{FlatNoteNames, Interval, NoteNames, PitchClass, SharpNoteNames, normalizePitchClass, parsePitchClass} =
+  require './pitches'
 {Chord} = require './chords'
 
 #
@@ -6,30 +7,40 @@
 #
 
 class Scale
-  constructor: ({@name, @pitchClasses, @parentName, @modeNames, @tonicName}) ->
-    @tonicPitch or= parsePitchClass(@tonicName) if @tonicName
-    @pitches = (pitch + @tonicPitch for pitch in @pitchClasses) if @tonicPitch?
+  constructor: ({@name, @pitchClasses, @parent, @modeNames, @tonic}) ->
+    @tonic = PitchClass.fromString(@tonic) if typeof @tonic == 'string'
+    @intervals = (new Interval(semitones) for semitones in @pitchClasses)
+    @pitches = (@tonic.add(interval) for interval in @intervals) if @tonic?
 
-  at: (tonicName) ->
+  at: (tonic) ->
     new Scale
       name: @name
       pitchClasses: @pitchClasses
-      tonicName: tonicName
+      tonic: tonic
 
   chords: (options={}) ->
-    throw new Error("only implemented for scales with tonics") unless @tonicPitch?
-    noteNames = SharpNoteNames
-    noteNames = FlatNoteNames if @tonicName not in noteNames or @tonicName == 'F'
+    throw new Error("only implemented for scales with tonics") unless @tonic?
     degrees = [0, 2, 4]
     degrees.push 6 if options.sevenths
-    for rootPitch in [0 ... @pitches.length]
-      modePitches = @pitches[rootPitch..].concat(@pitches[...rootPitch])
+    for i in [0 ... @pitches.length]
+      modePitches = @pitches[i..].concat(@pitches[...i])
       chordPitches = (modePitches[degree] for degree in degrees)
-      Chord.fromPitches(chordPitches).enharmonicizeTo(noteNames)
+      Chord.fromPitches(chordPitches).enharmonicizeTo(this)
 
-  @find: (tonicName) ->
-    scaleName = 'Diatonic Major'
-    Scales[scaleName].at(tonicName)
+  noteNames: ->
+    noteNames = SharpNoteNames
+    noteNames = FlatNoteNames if @tonicName not in noteNames or @tonicName == 'F'
+    return noteNames
+
+  @fromString: (name) ->
+    tonicName = null
+    scaleName = null
+    [tonicName, scaleName] = match[1...] if match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/)
+    scaleName or= 'Diatonic Major'
+    throw new Error("No scale named #{scaleName}") unless scale = Scales[scaleName]
+    scale = scale.at(tonicName) if tonicName
+    return scale
+
 
 Scales = [
   {
@@ -40,7 +51,7 @@ Scales = [
   {
     name: 'Natural Minor'
     pitchClasses: [0, 2, 3, 5, 7, 8, 10]
-    parentName: 'Diatonic Major'
+    parent: 'Diatonic Major'
   }
   {
     name: 'Major Pentatonic'
@@ -50,7 +61,7 @@ Scales = [
   {
     name: 'Minor Pentatonic'
     pitchClasses: [0, 3, 5, 7, 10]
-    parentName: 'Major Pentatonic'
+    parent: 'Major Pentatonic'
   }
   {
     name: 'Melodic Minor'
@@ -89,24 +100,37 @@ do ->
 
 # Find the modes
 do ->
-  rotateArray = (pitchClasses, i) ->
+  rotatePitchClasses = (pitchClasses, i) ->
     i %= pitchClasses.length
     pitchClasses = pitchClasses.slice(i).concat pitchClasses[0 ... i]
     pitchClasses.map (pc) -> normalizePitchClass(pc - pitchClasses[0])
-  for scale in Scales
-    {name, modeNames, parentName, pitchClasses} = scale
-    parent = scale.parent = Scales[parentName]
-    modeNames or= parent?.modeNames
-    if modeNames?
-      scale.modeIndex = 0
-      if parent?
-        [scale.modeIndex] = [0 ... pitchClasses.length]
-          .filter (i) -> rotateArray(parent.pitchClasses, i).join(',') == pitchClasses.join(',')
-      scale.modes = modeNames.map (name, i) -> {
-        name: name.replace(/#/, '\u266F').replace(/\bb(\d)/, '\u266D$1')
-        pitchClasses: rotateArray((parent?.pitchClasses or pitchClasses), i)
-        parent: scale
-      }
+
+  for scale in Scales.filter((scale) -> typeof scale.parent == 'string')
+    console.log 'set', scale, 'parent', Scales[scale.parent]
+    scale.parent ?= Scales[scale.parent]
+
+  for scale in Scales.filter((scale) -> scale.modeNames?)
+    scale.modes ?= scale.modeNames.map (name, i) -> new Scale {
+      name: name.replace(/#/, '\u266F').replace(/\bb(\d)/, '\u266D$1')
+      parent: scale
+      pitchClasses: rotatePitchClasses(scale.pitchClasses, i)
+    }
+    scale.modeIndex ?= 0
+
+  # for scale in Scales.filter((scale) -> scale.parent?)
+    # scale.modes ?= rotateArray(scale.parent?.modes, findArrayRotation()
+
+  # for scale in Scales.filter((scale) -> scale.modes?)
+    # modes = scale.modes ? scale.parent?.modes
+    # continue unless modes
+    # continue if
+    # parent = scale.parent
+    # modeNames or= parent?.modeNames
+    # if modeNames?
+    #   scale.modeIndex = 0
+    #   if parent?
+    #     [scale.modeIndex] = [0 ... pitchClasses.length]
+    #       .filter (i) -> rotateArray(parent.pitchClasses, i).join(',') == pitchClasses.join(',')
 
 # Indexed by scale degree
 Functions = 'Tonic Supertonic Mediant Subdominant Dominant Submediant Subtonic Leading'.split(/\s/)

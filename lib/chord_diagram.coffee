@@ -1,9 +1,5 @@
 _ = require 'underscore'
-
-{
-  FretCount
-  FretNumbers
-} = require './instruments'
+{FretCount, FretNumbers} = require './instruments'
 
 #
 # Style
@@ -133,7 +129,7 @@ drawChordDiagram = (ctx, instrument, positions, options={}) ->
   drawFingerPositions = ->
     for position in positions
       default_options =
-        color: style.intervalClass_colors[position.intervalClass]
+        color: style.intervalClass_colors[position.intervalClass.semitones]
         isRoot: (position.intervalClass == 0)
       drawFingerPosition position, _.extend(default_options, position)
 

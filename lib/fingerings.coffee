@@ -1,17 +1,9 @@
-util = require 'util'
 _ = require 'underscore'
-{getPitchClassName, intervalClassDifference} = require './pitches'
-Instruments = require './instruments'
-
-{
-  FretNumbers
-  fretboardPositionsEach
-  pitchNumberForPosition
-} = Instruments
-
+util = require 'util'
 require './utils'
+{Interval, Pitch, PitchClass} = require './pitches'
 
-# These are "fingerings", not "voicings", because they also include barre information.
+# These are "fingerings" and not "voicings" because they also include barre information.
 class Fingering
   constructor: ({@positions, @chord, @barres, @instrument}) ->
     @positions.sort (a, b) -> a.string - b.string
@@ -24,7 +16,7 @@ class Fingering
 
   @cached_getter 'chordName', ->
     name = @chord.name
-    name += " / #{getPitchClassName(@instrument.pitchAt(@positions[0]))}" if @inversion > 0
+    name += " / #{@instrument.pitchAt(@positions[0]).toString()}" if @inversion > 0
     return name
 
   # @cached_getter 'pitches', ->
@@ -34,7 +26,7 @@ class Fingering
   #   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
 
   @cached_getter 'inversion', ->
-    @chord.pitchClasses.indexOf intervalClassDifference(@chord.rootPitch, @instrument.pitchAt(@positions[0]))
+    @chord.pitchClasses.indexOf Interval.between(@chord.root, @instrument.pitchAt(@positions[0]))
 
   @cached_getter 'inversionLetter', ->
     return unless @inversion > 0
@@ -98,20 +90,19 @@ collectBarreSets = (instrument, fretArray) ->
 #
 
 fingerPositionsOnChord = (chord, instrument) ->
-  {rootPitch, pitchClasses} = chord
+  {root, intervals} = chord
   positions = []
   instrument.eachFingerPosition (pos) ->
-    intervalClass = intervalClassDifference rootPitch, instrument.pitchAt(pos)
-    degreeIndex = pitchClasses.indexOf intervalClass
-    positions.push pos if degreeIndex >= 0
+    interval = Interval.between(root, instrument.pitchAt(pos))
+    positions.push pos if interval in intervals
   positions
 
 # TODO add options for strumming vs. fingerstyle; muting; stretch
 chordFingerings = (chord, instrument, options={}) ->
   options = _.extend {filter: true, allPositions: false}, options
   warn = false
-  throw new Error "No root for #{util.inspect chord}" unless chord.rootPitch?
-
+  throw new Error "No root for #{util.inspect chord}" unless chord.root?
+  chord = chord.at(chord.root.toPitch()) if chord.root instanceof PitchClass
 
   #
   # Generate
@@ -120,7 +111,7 @@ chordFingerings = (chord, instrument, options={}) ->
   fretsPerString =  ->
     positions = fingerPositionsOnChord(chord, instrument)
     positions = (pos for pos in positions when pos.fret <= 4) unless options.allPositions
-    strings = ([null] for s in [0...instrument.stringCount])
+    strings = ([null] for s in [0 ... instrument.stringCount])
     strings[string].push fret for {string, fret} in positions
     strings
 
@@ -138,13 +129,15 @@ chordFingerings = (chord, instrument, options={}) ->
     fill 0
     return positionSet
 
+  # actually tests pitch classes, not pitches
   containsAllChordPitches = (fretArray) ->
-    pitches = []
+    trace = fretArray.join('') == '022100'
+    pitchClasses = []
     for fret, string in fretArray
       continue unless typeof(fret) is 'number'
-      pitchClass = (instrument.pitchAt {fret, string}) % 12
-      pitches.push pitchClass unless pitches.indexOf(pitchClass) >= 0
-    return pitches.length == chord.pitchClasses.length
+      pitchClass = instrument.pitchAt({fret, string}).toPitchClass().semitones
+      pitchClasses.push pitchClass unless pitchClass in pitchClasses
+    return pitchClasses.length == chord.pitchClasses.length
 
   maximumFretDistance = (fretArray) ->
     frets = (fret for fret in fretArray when typeof(fret) is 'number')
@@ -159,8 +152,8 @@ chordFingerings = (chord, instrument, options={}) ->
     for fretArray in fretArrays
       positions = ({fret, string} for fret, string in fretArray when typeof(fret) is 'number')
       for pos in positions
-        pos.intervalClass = intervalClassDifference chord.rootPitch, instrument.pitchAt(pos)
-        pos.degreeIndex = chord.pitchClasses.indexOf pos.intervalClass
+        pos.intervalClass = Interval.between(chord.root, instrument.pitchAt(pos))
+        pos.degreeIndex = chord.intervals.indexOf(pos.intervalClass)
       sets = [[]]
       sets = collectBarreSets(instrument, fretArray) if positions.length > 4
       for barres in sets
@@ -174,12 +167,13 @@ chordFingerings = (chord, instrument, options={}) ->
   # Filters
   #
 
+  # really counts distinct pitch classes, not distinct pitches
   countDistinctNotes = (fingering) ->
     # _.chain(fingering.positions).pluck('intervalClass').uniq().value().length
-    pitches = []
+    intervalClasses = []
     for {intervalClass} in fingering.positions
-      pitches.push intervalClass unless intervalClass in pitches
-    return pitches.length
+      intervalClasses.push intervalClass unless intervalClass in intervalClasses
+    return intervalClasses.length
 
   hasAllNotes = (fingering) ->
     return countDistinctNotes(fingering) == chordNoteCount
@@ -218,7 +212,7 @@ chordFingerings = (chord, instrument, options={}) ->
       select = ((x) -> not reject(x)) if reject
       filtered = filtered.filter(select) if select
       unless filtered.length
-        console.warn "#{chord_name}: no fingerings pass filter \"#{name}\"" if warn
+        console.warn "#{chord.name}: no fingerings pass filter \"#{name}\"" if warn
         filtered = fingerings
       fingerings = filtered
     return fingerings
@@ -277,7 +271,6 @@ chordFingerings = (chord, instrument, options={}) ->
     for fingering in fingerings
       value = if fn instanceof RegExp then fn.test(fingering.fretstring) else fn(fingering)
       fingering.properties[name] = value
-
 
   return fingerings
 

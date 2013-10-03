@@ -1,14 +1,20 @@
 chords = require('./dist/chords');
+pitches = require('./dist/pitches');
 scales = require('./dist/scales');
 
 module.exports = {
-  pitches: require('./dist/pitches'),
   fingerings: require('./dist/fingerings'),
   instruments: require('./dist/instruments'),
   layout: require('./dist/layout'),
+  pitches: pitches,
+  scales: scales,
 
   Instruments: require('./dist/instruments').Instruments,
-  Pitches: require('./dist/pitches').Pitches,
+  Interval: pitches.Interval,
+  Intervals: pitches.Intervals,
+  Pitch: pitches.Pitch,
+  Pitches: pitches.Pitches,
+  PitchClasses: pitches.PitchClasses,
   Chord: chords.Chord,
   Chords: chords.Chords,
   Scale: scales.Scale,

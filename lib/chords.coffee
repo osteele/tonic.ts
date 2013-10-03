@@ -1,83 +1,77 @@
-{IntervalNames, getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation} = require './pitches'
+{Interval, IntervalNames, Pitch, PitchClass,
+    getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation} =
+  require './pitches'
 
 #
 # Chords
 #
 
 class Chord
-  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @rootName, @rootPitch}) ->
+  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @root}) ->
+    @root = PitchClass.fromString(@root) if typeof @root == 'string'
     @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
 
-    @rootName or= getPitchName(@rootPitch) if @rootPitch?
-    if @rootName?
-      @rootPitch ?=
-        if @rootName.match(/\d/) then pitchFromScientificNotation(@rootName) else parsePitchClass(@rootName)
-      @pitches = (pitch + @rootPitch for pitch in @pitchClasses)
-      rootlessAbbr = @abbr
-      rootlessFullName = @fullName
-      Object.defineProperty this, 'name', get: -> "#{@rootName}#{rootlessAbbr}"
-      Object.defineProperty this, 'fullName', get: -> "#{@rootName} #{rootlessFullName}"
+    if @root?
+      @pitches = (@root.toPitch().transposeBy(pitchClass) for pitchClass in @pitchClasses)
+      @name = "#{@root.toString()} #{@name}"
+      @fullName = "#{@root.toString()} #{@fullName}"
+      @abbr = "#{@root.toString()} #{@abbr}".replace(/\s+$/, '')
+      @abbrs = ("#{@root.toString()} #{abbr}".replace(/\s+$/, '') for abbr in @abbrs)
 
-    degrees = (1 + 2 * i for i in [0..@pitchClasses.length])
+    degrees = (1 + 2 * pitchClass.semitones for pitchClass in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
 
-    @components = for pc, pci in @pitchClasses
-      name = IntervalNames[pc]
-      degree = degrees[pci]
-      if pc == 0
-        name = 'R'
-      else unless Number(name.match(/\d+/)?[0]) == degree
-        name = "A#{degree}" if Number(IntervalNames[pc - 1].match(/\d+/)?[0]) == degree
-        name = "d#{degree}" if Number(IntervalNames[pc + 1].match(/\d+/)?[0]) == degree
-      name
+    @intervals = (Interval.fromSemitones(semitones) for semitones in @pitchClasses)
 
-  at: (rootNameOrPitch) ->
-    [rootName, rootPitch] = switch typeof rootNameOrPitch
-      when 'string'
-        [rootNameOrPitch, null]
-      when 'number'
-        [null, rootNameOrPitch]
-      else
-        throw new Error("#rootNameOrPitch} must be a pitch name or number")
+    # @components = for interval, index in intervals
+    #   semitones = interval.semitones
+    #   name = IntervalNames[semitones]
+    #   degree = degrees[index]
+    #   if semitones == 0
+    #     name = 'R'
+    #   else unless Number(name.match(/\d+/)?[0]) == degree
+    #     name = "A#{degree}" if Number(IntervalNames[semitones - 1].match(/\d+/)?[0]) == degree
+    #     name = "d#{degree}" if Number(IntervalNames[semitones + 1].match(/\d+/)?[0]) == degree
+    #   name
 
+  at: (root) ->
     new Chord
       name: @name
       abbrs: @abbrs
       fullName: @fullName
       pitchClasses: @pitchClasses
-      rootName: rootName
-      rootPitch: rootPitch
+      root: root
 
-  degreeName: (degreeIndex) ->
-    @components[degreeIndex]
+  # degreeName: (degreeIndex) ->
+  #   @components[degreeIndex]
 
-  enharmonicizeTo: (pitchNameArray) ->
-    for pitchName, pitchClass in pitchNameArray
-      @rootName = pitchName if normalizePitchClass(@rootPitch) == pitchClass
+  enharmonicizeTo: (scale) ->
+    @root = @root.enharmonicizeTo(scale)
     return this
 
-  @find: (name) ->
-    chord
+  @fromString: (name) ->
+    chord = Chords[name]
     return chord if chord
-    match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))?(.*)$/)
-    throw new Error("#{name} is not a chord name") unless match
-    [noteName, chordName] = match[1...]
+    rootName = null
+    [rootName, chordName] = match[1...] if match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/)
     chordName or= 'Major'
     chord = Chords[chordName]
     throw new Error("#{name} is not a chord name") unless chord
-    chord = chord.at(noteName) if noteName
+    chord = chord.at(Pitch.fromString(rootName)) if rootName
     return chord
 
   @fromPitches: (pitches) ->
     root = pitches[0]
-    Chord.fromPitchClasses(normalizePitchClass(pitch - root) for pitch in pitches).at(root)
+    intervals = (Interval.between(root, pitch) for pitch in pitches)
+    Chord.fromIntervals(intervals).at(root)
 
-  @fromPitchClasses: (pitchClasses) ->
-    chord = Chords[pitchClasses.sort((a, b) -> a > b)]
-    throw new Error("Couldn''t find chord with pitch classes #{pitchClasses}") unless chord
+  @fromIntervals: (intervals) ->
+    semitones = (interval.semitones for interval in intervals)
+    chord = Chords[semitones.sort((a, b) -> a > b)]
+    throw new Error("Couldn't find chord with intervals #{semitones}") unless chord
     return chord
 
 Chords = [
@@ -162,4 +156,3 @@ module.exports = {
   Chord
   Chords
 }
-
