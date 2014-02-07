@@ -1,4 +1,5 @@
 should = require 'should'
+{Pitch} = require '../lib/pitches'
 {Chord, Chords} = require '../lib/chords'
 
 describe 'Chords', ->
@@ -19,15 +20,27 @@ describe 'Chords', ->
   it 'should find chords by pitch sequence'
   it 'should find chords by interval sequence'
 
+
 describe 'Chord', ->
   describe 'fromString', ->
     it 'should parse unrooted chord names', ->
       Chord.fromString('Major').should.be.an.instanceOf Chord
 
-    it 'should rooted chord names', ->
+    it 'should parse pitch class chord names', ->
       Chord.fromString('E').should.be.an.instanceOf Chord
       Chord.fromString('EMajor').should.be.an.instanceOf Chord
       Chord.fromString('E Major').should.be.an.instanceOf Chord
+      Chord.fromString('E Minor').should.be.an.instanceOf Chord
+
+    it 'should parse scientific pitch chord names', ->
+      Chord.fromString('E4').should.be.an.instanceOf Chord
+      Chord.fromString('E4Major').should.be.an.instanceOf Chord
+      Chord.fromString('E4 Major').should.be.an.instanceOf Chord
+
+    it 'should parse Helmoltz pitch chord names', ->
+      Chord.fromString("E'").should.be.an.instanceOf Chord
+      Chord.fromString("E' Major").should.be.an.instanceOf Chord
+      Chord.fromString("E'  Major").should.be.an.instanceOf Chord
 
 
 describe 'Major Chord', ->
@@ -82,6 +95,19 @@ describe 'Major Chord', ->
 
     it 'should have a fullName', ->
       CMajorChord.fullName.should.equal 'C Major'
+
+
+  describe 'at E4', ->
+    E4MajorChord = chord.at('E4')
+
+    it 'should have a name', ->
+      E4MajorChord.name.should.equal 'E4 Major'
+
+    it 'should have an array of pitches', ->
+      E4MajorChord.pitches.should.be.an.String
+      E4MajorChord.pitches.should.have.length 3
+      E4MajorChord.pitches.should.eql ['E4', 'G♯4', 'B4'].map(Pitch.fromString)
+
 
 describe 'Minor Chord', ->
   minorChord = Chords['Minor']

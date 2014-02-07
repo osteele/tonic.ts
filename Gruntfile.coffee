@@ -25,8 +25,13 @@ module.exports = (grunt) ->
 
     mochaTest:
       test:
-        # src: ['test/test_scales.{js,coffee}']
-        src: ['test/**/*.{js,coffee}']
+        src: [
+          'test/test_pitches.{js,coffee}'
+          # 'test/test_chords.{js,coffee}'
+          # 'test/test_scales.{js,coffee}'
+          # 'test/test_instruments.{js,coffee}'
+          # 'test/test_fingerings.{js,coffee}'
+        ]
         options:
           bail: true
           reporter: 'min'
@@ -37,7 +42,7 @@ module.exports = (grunt) ->
       # mochaTest:
         # files: ['{lib,test}/**/*.{js,coffee}']
       scripts:
-        tasks: ['coffeelint:lib', 'mochaTest', 'coffee']
+        tasks: ['coffeelint:lib', 'mochaTest']
 
   require('load-grunt-tasks')(grunt)
 

@@ -60,7 +60,9 @@ describe 'Diatonic Major Scale', ->
       chords.should.have.length 7
       chords[0].should.be.an.instanceOf Chord
 
-    it 'should have the right mix of major, minor, dominant and diminished chords', ->
+    it 'should have the correct chord sequence', ->
+      chords.should.eql ''
+      # console.log chords.map (c) -> c.name
       chords[0].name.should.equal 'E Major'
       chords[1].name.should.equal 'F♯ Minor'
       chords[2].name.should.equal 'G♯ Minor'
@@ -73,3 +75,35 @@ describe 'ScaleDegreeNames', ->
   it 'is an array of strings', ->
     ScaleDegreeNames.should.be.an.Array
     ScaleDegreeNames[0].should.be.a.String
+
+describe 'Scale.fromRomanNumeral', ->
+  scale = Scales.DiatonicMajor.at('E4')
+
+  it 'should parse major chords', ->
+    Chord.fromRomanNumeral('I', scale).should.eql Chord.fromString('E4 Major'), 'I'
+    Chord.fromRomanNumeral('II', scale).should.eql Chord.fromString('F♯4 Major'), 'II'
+    Chord.fromRomanNumeral('IV', scale).should.eql Chord.fromString('A4 Major'), 'IV'
+    Chord.fromRomanNumeral('V', scale).should.eql Chord.fromString('B4 Major'), 'V'
+    Chord.fromRomanNumeral('VI', scale).should.eql Chord.fromString('C♯5 Major'), 'VI'
+
+  it 'should parse minor chords', ->
+    Chord.fromRomanNumeral('i', scale).should.eql Chord.fromString('E4 Minor'), 'i'
+    Chord.fromRomanNumeral('ii', scale).should.eql Chord.fromString('F♯4 Minor'), 'ii'
+    Chord.fromRomanNumeral('vi', scale).should.eql Chord.fromString('C♯5 Minor'), 'vi'
+
+  it 'should parse diminished chords', ->
+    Chord.fromRomanNumeral('vii°', scale).should.eql Chord.fromString('D♯5°'), 'vi°'
+    Chord.fromRomanNumeral('iv°', scale).should.eql Chord.fromString('A4°'), 'iv°'
+
+  it 'should parse inversions', ->
+    Chord.fromRomanNumeral('ib', scale).should.eql Chord.fromString('E4 Minor'), 'i'
+    Chord.fromRomanNumeral('ic', scale).should.eql Chord.fromString('F♯4 Minor'), 'ii'
+    Chord.fromRomanNumeral('id', scale).should.eql Chord.fromString('C♯5 Minor'), 'vi'
+
+
+describe 'Chord.progression', ->
+  it 'should do its stuff', ->
+    chords = Chord.progression('I ii iii IV', Scales.DiatonicMajor.at('E4'))
+    chords.should.be.an.Array
+    chords.should.have.length 4
+    # chords.should.eql 'E4 F♯4m G4m A'.split(/\s/).map(Chord.fromString)

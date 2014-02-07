@@ -35,6 +35,6 @@
   },
   "scripts": {
     "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib",
-    "test": ".grunt test"
+    "test": "grunt test"
   }
 }

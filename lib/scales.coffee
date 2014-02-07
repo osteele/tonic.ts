@@ -1,14 +1,18 @@
-{FlatNoteNames, Interval, NoteNames, PitchClass, SharpNoteNames, normalizePitchClass, parsePitchClass} =
+{FlatNoteNames, Interval, Pitch, PitchClass, SharpNoteNames, normalizePitchClass} =
   require './pitches'
 {Chord} = require './chords'
 
-#
-# Scales
-#
+toPitchOrPitchClass = (pitch) ->
+  return pitch unless typeof pitch == 'string'
+  try
+    PitchClass.fromString(pitch)
+  catch error
+    Pitch.fromString(pitch)
 
+# A scale is a named collection, either of intervals or notes.
 class Scale
   constructor: ({@name, @pitchClasses, @parent, @modeNames, @tonic}) ->
-    @tonic = PitchClass.fromString(@tonic) if typeof @tonic == 'string'
+    @tonic = toPitchOrPitchClass(@tonic)
     @intervals = (new Interval(semitones) for semitones in @pitchClasses)
     @pitches = (@tonic.add(interval) for interval in @intervals) if @tonic?
 
@@ -97,6 +101,7 @@ Scales = [
 
 do ->
   Scales[scale.name] = scale for scale in Scales
+  Scales[scale.name.replace(/\s/g, '')] = scale for scale in Scales
 
 # Find the modes
 do ->
@@ -106,7 +111,6 @@ do ->
     pitchClasses.map (pc) -> normalizePitchClass(pc - pitchClasses[0])
 
   for scale in Scales.filter((scale) -> typeof scale.parent == 'string')
-    console.log 'set', scale, 'parent', Scales[scale.parent]
     scale.parent ?= Scales[scale.parent]
 
   for scale in Scales.filter((scale) -> scale.modeNames?)
@@ -145,12 +149,22 @@ parseChordNumeral = (name) ->
   }
   return chord
 
-FunctionQualities =
-  major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
-  minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
+# FunctionQualities =
+#   major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
+#   minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
 
 ScaleDegreeNames = '1 b2 2 b3 3 4 b5 5 b6 6 b7 7'.split(/\s/)
   .map (d) -> d.replace(/(\d)/, '$1\u0302').replace(/b/, '\u266D')
+
+
+#
+# Chord Progressions
+#
+
+Chord.progression = (string, scale) ->
+  scale ?= Scales.DiatonicMajor
+  (Chord.fromRomanNumeral(name, scale) for name in string.split(/[\s+\-]+/))
+
 
 
 #

@@ -1,30 +1,40 @@
-{Interval, IntervalNames, Pitch, PitchClass,
-    getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation} =
-  require './pitches'
+{Interval, IntervalNames, Pitch, PitchClass} = require './pitches'
 
 #
 # Chords
 #
 
+ChordNameRE = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/
+InversionNames = 'acd'.split(/./)
+
+# A chord may be:
+# - a torsor (e.g. Major)
+# - a scale degree (e.g. I)
+# - a tonicized scale (e.g. C Major)
 class Chord
-  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @root}) ->
-    @root = PitchClass.fromString(@root) if typeof @root == 'string'
+  constructor: ({@name, @fullName, @abbr, @abbrs, @pitchClasses, @root, @inversion}) ->
+    @root = Pitch.fromString(@root) if typeof @root == 'string'
     @abbrs ?= [@abbr]
     @abbrs = @abbrs.split(/s/) if typeof @abbrs == 'string'
     @abbr ?= @abbrs[0]
 
+    @intervals = (Interval.fromSemitones(semitones) for semitones in @pitchClasses)
+
     if @root?
-      @pitches = (@root.toPitch().transposeBy(pitchClass) for pitchClass in @pitchClasses)
       @name = "#{@root.toString()} #{@name}"
       @fullName = "#{@root.toString()} #{@fullName}"
       @abbr = "#{@root.toString()} #{@abbr}".replace(/\s+$/, '')
       @abbrs = ("#{@root.toString()} #{abbr}".replace(/\s+$/, '') for abbr in @abbrs)
+      @pitches = (@root.toPitch().transposeBy(interval) for interval in @intervals)
 
     degrees = (1 + 2 * pitchClass.semitones for pitchClass in [0..@pitchClasses.length])
     degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
     degrees[3] = 6 if @name.match /6/
 
-    @intervals = (Interval.fromSemitones(semitones) for semitones in @pitchClasses)
+    if @inversion
+      @intervals = rotateArray(@intervals, @inversion)
+      @pitches = rotateArray(@pitches, @inversion)
+      @pitchClasses = rotateArray(@pitchClasses, @inversion)
 
     # @components = for interval, index in intervals
     #   semitones = interval.semitones
@@ -37,29 +47,41 @@ class Chord
     #     name = "d#{degree}" if Number(IntervalNames[semitones + 1].match(/\d+/)?[0]) == degree
     #   name
 
-  at: (root) ->
-    new Chord
+  _clone: (extend) ->
+    attrs =
       name: @name
       abbrs: @abbrs
       fullName: @fullName
+      inversion: @inversion
       pitchClasses: @pitchClasses
-      root: root
+      root: @root
+    attrs[key] = value for key, value of extend
+    new Chord(attrs)
+
+  at: (root) ->
+    @_clone root: root
 
   # degreeName: (degreeIndex) ->
   #   @components[degreeIndex]
 
   enharmonicizeTo: (scale) ->
-    @root = @root.enharmonicizeTo(scale)
-    return this
+    @_clone root: @root.enharmonicizeTo(scale)
+
+  invert: (inversion) ->
+    unless typeof inverson == 'number'
+      throw new Error("Unknown inversion “#{inversion}”") unless inversion in InversionNames
+      inversion = 1 + 'acd'.indexOf(inversion)
+    @_clone inversion: inversion
+
+  @fromRomanNumeral: (name, scale) ->
+    chordFromRomanNumeral(name, scale)
 
   @fromString: (name) ->
-    chord = Chords[name]
-    return chord if chord
+    return chord if chord = Chords[name]
     rootName = null
-    [rootName, chordName] = match[1...] if match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/)
-    chordName or= 'Major'
-    chord = Chords[chordName]
-    throw new Error("#{name} is not a chord name") unless chord
+    [rootName, chordName] = match[1...] if match = name.match(ChordNameRE)
+    chordName or= 'Major' if match
+    throw new Error("“#{name}” is not a chord name") unless chord = Chords[chordName]
     chord = chord.at(Pitch.fromString(rootName)) if rootName
     return chord
 
@@ -117,35 +139,43 @@ do ->
 # Chord Progressions
 #
 
-Chord.progression = (tonic, chords) ->
-  scale = [0, 2, 4, 5, 7, 9, 11]
-  romanNumerals = 'I II III IV V VI VII'.split(/\s+/)
-  tonic = name2midi(tonic) if typeof tonic == 'string'
-  for name in chords.split(/[\s+\-]+/)
-    cr = name.replace(/[♭67°ø\+bcd]/g, '')
-    i = romanNumerals.indexOf(cr.toUpperCase())
-    if i >= 0
-      acc = 0
-      acc = -1 if name.match /♭/
-      chordRoot = midi2name(tonic + scale[i] + acc)
-      chordType = "Major"
-      chordType = "Minor" if cr == cr.toLowerCase()
-      chordType = "aug" if name.match /\+/
-      chordType = "dim" if name.match /°/
-      chordType = "maj6" if name.match /6/
-      chordType = "dom7" if name.match /7/
-      chordType = "+7" if name.match /\+7/
-      chordType = "°7" if name.match /°7/
-      chordType = "ø7" if name.match /ø7/
-      # TODO 9, 13, sharp, natural
-      chord = Chord.find(chordType).at(chordRoot)
-      chord.inversion = 1 if name.match /b/
-      chord.inversion = 2 if name.match /c/
-      chord.inversion = 3 if name.match /d/
-      chord.pitches = chord.pitches[chord.inversion...].concat chord.pitches[...chord.inversion] if chord.inversion?
-      chord
+ChordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/)
+
+rotateArray = (array, n) ->
+  array[n...].concat array[...n]
+
+RomanNumeralModifiers =
+  '+': 'aug'
+  '°': 'dim'
+  '6': 'maj6'
+  '7': 'dom7'
+  '+7': '+7'
+  '°7': '°7'
+  'ø7': 'ø7'
+
+chordFromRomanNumeral = (name, scale) ->
+  console.log 'from', name, scale
+  throw new Error("“#{name}” is not a chord roman numeral") unless match = name.match(/^(♭?)(i+v?|vi*)(.*?)([acd]?)$/i)
+  throw new Error("requires a scale with a tonic") unless scale.tonic?
+  [accidental, romanNumeral, modifiers, inversion] = match[1..]
+  degree = ChordRomanNumerals.indexOf(romanNumeral.toUpperCase())
+  throw new Error("Not a chord name") unless degree >= 0
+  chordType = switch
+    when romanNumeral == romanNumeral.toUpperCase()
+      'Major'
+    when romanNumeral == romanNumeral.toLowerCase()
+      'Minor'
     else
-      name
+      throw new Error("Roman numeral chords can't be mixed case in “#{romanNumeral}”")
+  if modifiers
+    # throw new Error("Unimplemented: mixing minor chords with chord modifiers") unless chordType == 'Major'
+    chordType = RomanNumeralModifiers[modifiers]
+    throw new Error("unknown chord modifier “#{modifiers}”") unless chordType
+  # TODO 9, 13, sharp, natural
+  chord = Chord.fromString(chordType).at(scale.pitches[degree])
+  chord = chord.invert(inversion) if inversion
+  return chord
+
 
 
 #

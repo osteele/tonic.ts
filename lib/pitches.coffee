@@ -1,5 +1,5 @@
 #
-# Notes and Pitches
+# Pitches
 #
 
 SharpNoteNames = 'C C# D D# E F F# G G# A A# B'.replace(/#/g, '\u266F').split(/\s/)
@@ -20,9 +20,19 @@ LongIntervalNames = [
   'Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
   'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave']
 
-getPitchClassName = (pitchClass) ->
-  NoteNames[normalizePitchClass(pitchClass)]
+semitonesToAccidentalString = (n) ->
+  return '' unless n
+  return AccidentalValues[n] if n of AccidentalValues # fast path
+  [single, double] = ['♯', '𝄪']
+  [n, single, double] = [-n, '♭', '𝄫'] if n < 0
+  s = new Array(Math.floor((n + 2) / 2)).join(double)
+  s = single + s if n % 2
+  return s
 
+getPitchClassName = (pitchClass) ->
+  NoteNames[(pitchClass)]
+
+# really returns the name of a pitch *class*
 getPitchName = (pitch, options={}) ->
   return pitch if typeof pitch == 'string'
   pitchClass = pitchToPitchClass(pitch)
@@ -44,7 +54,7 @@ pitchToPitchClass = normalizePitchClass
 
 pitchFromScientificNotation = (name) ->
   match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i)
-  throw new Error("#{name} is not in scientific notation") unless match
+  throw new Error("“#{name}” is not in scientific notation") unless match
   [naturalName, accidentals, octave] = match[1...]
   pitch = SharpNoteNames.indexOf(naturalName.toUpperCase()) + 12 * (1 + Number(octave))
   pitch += AccidentalValues[c] for c in accidentals
@@ -52,7 +62,7 @@ pitchFromScientificNotation = (name) ->
 
 pitchFromHelmholtzNotation = (name) ->
   match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i)
-  throw new Error("#{name} is not in scientific notation") unless match
+  throw new Error("“#{name}” is not in Helmholtz notation") unless match
   [pitchClassName, commas, apostrophes] = match[1...]
   pitchClassNumber = parsePitchClass(pitchClassName, false)
   octave = 4 - Number(pitchClassName == pitchClassName.toUpperCase()) - commas.length + apostrophes.length
@@ -64,7 +74,7 @@ toScientificNotation = (midiNumber) ->
 
 parsePitchClass = (name, normal=true) ->
   match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i)
-  throw new Error("#{name} is not a pitch class name") unless match
+  throw new Error("“#{name}” is not a pitch class name") unless match
   [naturalName, accidentals] = match[1...]
   pitch = SharpNoteNames.indexOf(naturalName.toUpperCase())
   pitch += AccidentalValues[c] for c in accidentals
@@ -75,24 +85,29 @@ midi2name = (number) ->
   "#{NoteNames[(number + 12) % 12]}#{Math.floor((number - 12) / 12)}"
 
 name2midi = (name) ->
-  throw new Error "#{name} is not a note name" unless m = name.toUpperCase().match(/^([A-G])([♯#♭b𝄪𝄫]*)(\d+)/)
+  throw new Error "“#{name}” is not a note name" unless m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/)
   [noteName, accidentals, octave] = m.slice(1)
   pitch = NoteNames.indexOf(noteName)
   pitch += AccidentalValues[c] for c in accidentals
-  pitch += 12 * Number(octave)
+  pitch += 12 * (1 + Number(octave))
   return pitch
 
 
-#
-# Classes
-#
-
+# An Interval is the signed distance between two notes.
+# Intervals that represent the same semitone span *and* accidental are interned.
+# Thus, two instance of M3 are ===, but sharp P4 and flat P5 are distinct from
+# each other and from TT.
 class Interval
-  constructor: (@semitones) ->
-    return Intervals[@semitones] if Intervals[@semitones]
-    Intervals[@semitones] = this
+  constructor: (@semitones, @accidentals=0) ->
+    @accidentals ||= 0
+    dict = Intervals[@semitones] ||= {}
+    return dict[@accidentals] if dict[@accidentals]
+    dict[@accidentals] = this
 
-  toString: -> IntervalNames[@semitones]
+  toString: ->
+    s = IntervalNames[@semitones]
+    s = semitonesToAccidentalString(@accidentals) + s if @accidentals
+    return s
 
   add: (other) ->
     throw new Error("Can''t add #{self} and #{other}") unless other.semitones?
@@ -119,7 +134,13 @@ class Interval
       # throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
     return Interval.fromSemitones(semitones)
 
-Intervals = []
+# new Interval interns into this
+Intervals = {}
+
+
+#
+# Pitch
+#
 
 class Pitch
   constructor: ({@name, @midiNumber}) ->
@@ -141,12 +162,13 @@ class Pitch
   @fromMidiNumber: (midiNumber) -> new Pitch {midiNumber}
 
   @fromString: (name) ->
-    midiNumber = if name.match(/\d/)
-      pitchFromScientificNotation(name)
-    else
-      pitchFromHelmholtzNotation(name)
+    midiNumber = (if name.match(/\d/) then pitchFromScientificNotation else pitchFromHelmholtzNotation)(name)
     new Pitch {midiNumber, name}
 
+
+#
+# Pitch Class
+#
 
 class PitchClass
   constructor: ({@semitones, @name}) ->
@@ -182,15 +204,15 @@ Pitches = [0 ... 12].map (pitch) -> new Pitch(pitch)
 #
 
 module.exports = {
+  # Constants
+  NoteNames
   FlatNoteNames
-  Interval
+  SharpNoteNames
   IntervalNames
   LongIntervalNames
-  NoteNames
-  Pitch
-  PitchClass
-  Pitches
-  SharpNoteNames
+
+  # Function interface
+  semitonesToAccidentalString
   getPitchClassName
   getPitchName
   intervalClassDifference
@@ -202,4 +224,10 @@ module.exports = {
   pitchNameToNumber: parsePitchClass
   pitchNumberToName: getPitchName
   pitchToPitchClass
+
+  # OO interface
+  Interval
+  Pitch
+  PitchClass
+  Pitches
 }
