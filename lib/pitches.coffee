@@ -14,7 +14,7 @@ AccidentalValues =
   '𝄪': 2
   '𝄫': -2
 
-IntervalNames = ['P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7', 'P8']
+IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(/\s/)
 
 LongIntervalNames = [
   'Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th',
@@ -97,10 +97,12 @@ name2midi = (name) ->
 # Intervals that represent the same semitone span *and* accidental are interned.
 # Thus, two instance of M3 are ===, but sharp P4 and flat P5 are distinct from
 # each other and from TT.
+#
+# FIXME these are interval classes, not intervals
 class Interval
   constructor: (@semitones, @accidentals=0) ->
     @accidentals ||= 0
-    dict = Intervals[@semitones] ||= {}
+    dict = IntervalBySemitone[@semitones] ||= {}
     return dict[@accidentals] if dict[@accidentals]
     dict[@accidentals] = this
 
@@ -135,8 +137,13 @@ class Interval
     return Interval.fromSemitones(semitones)
 
 # new Interval interns into this
-Intervals = {}
+IntervalBySemitone = {}
 
+Intervals = do ->
+  array = {}
+  for name, semitones in IntervalNames
+    array[name] = new Interval(semitones)
+  return array
 
 #
 # Pitch
@@ -227,6 +234,7 @@ module.exports = {
 
   # OO interface
   Interval
+  Intervals
   Pitch
   PitchClass
   Pitches

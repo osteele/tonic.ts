@@ -260,6 +260,9 @@ describe 'Interval', ->
     it 'should use modular arithmetic', ->
       Interval.between(Pitch.fromString('F4'), Pitch.fromString('C4')).toString().should.equal 'P5'
 
+describe 'Intervals', ->
+  it 'should be an array of Interval'
+
 describe 'Pitch', ->
   it 'should parse scientific notation', ->
     Pitch.fromString('C4').midiNumber.should.equal 60
