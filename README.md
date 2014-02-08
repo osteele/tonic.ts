@@ -1,4 +1,7 @@
-# Overview
+# Schoen
+
+[![Build Status](https://api.travis-ci.org/osteele/schoen.png?branch-master)](https://api.travis-ci.org/osteele/schoen.png?branch-master)
+[![Build Status](https://david-dm.org/osteele/schoen.png)](https://david-dm.org/osteele/schoen.png)
 
 This is a side project to generate various fretboard and fretboard diagrams that I'm using to learn guitar.
 
