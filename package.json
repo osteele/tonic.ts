@@ -18,11 +18,12 @@
   },
   "dependencies": {
     "coffee-script": "~1.6.3",
-    "underscore": "~1.5.2",
-    "coffee-errors": "~0.8.6"
+    "underscore": "~1.5.2"
   },
   "devDependencies": {
+    "coffee-errors": "~0.8.6",
     "grunt": "~0.4",
+    "grunt-cli": "~0.1.13",
     "grunt-coffeelint": "~0.0.7",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-clean": "~0.5.0",
