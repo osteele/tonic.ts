@@ -187,10 +187,10 @@ class PitchClass
     throw new Error("Can''t add #{self} and #{other}") unless other.semitones?
     return PitchClass.fromSemitones(@semitones + other.semitones)
 
-  enharmonicizeTo: (scale) ->
-    for name, semitones in scale.noteNames()
-      return new PitchClass {name, semitones} if semitones == @semitones
-    return this
+  # enharmonicizeTo: (scale) ->
+  #   for name, semitones in scale.noteNames()
+  #     return new PitchClass {name, semitones} if semitones == @semitones
+  #   return this
 
   toPitch: (octave=0) -> Pitch.fromMidiNumber(@semitones + 12 * octave)
 

@@ -3,8 +3,9 @@ should = require 'should'
 {Scale, Scales, ScaleDegreeNames} = require '../lib/scales'
 
 describe 'Scales', ->
-  it 'should be an array', ->
-    Scales.should.be.an.instanceOf Array
+  it 'should be an array of Scale', ->
+    Scales.should.be.an.Array
+    Scales[0].should.be.an.instanceOf Scale
 
   it 'should contains various blues and diatonic scales', ->
     should.exist Scales['Diatonic Major']
@@ -20,7 +21,7 @@ describe 'Scales', ->
     should.exist Scales['Octatonic']
 
 describe 'Scale', ->
-  it 'fromString'
+  it '#fromString should return a scale'
 
 describe 'Diatonic Major Scale', ->
   scale = Scales['Diatonic Major']
@@ -61,8 +62,6 @@ describe 'Diatonic Major Scale', ->
       chords[0].should.be.an.instanceOf Chord
 
     it 'should have the correct chord sequence', ->
-      chords.should.eql ''
-      # console.log chords.map (c) -> c.name
       chords[0].name.should.equal 'E Major'
       chords[1].name.should.equal 'F♯ Minor'
       chords[2].name.should.equal 'G♯ Minor'
@@ -79,26 +78,27 @@ describe 'ScaleDegreeNames', ->
 describe 'Scale.fromRomanNumeral', ->
   scale = Scales.DiatonicMajor.at('E4')
 
-  it 'should parse major chords', ->
+  it 'should create major chords', ->
+    # Chord.fromRomanNumeral('I', scale)
     Chord.fromRomanNumeral('I', scale).should.eql Chord.fromString('E4 Major'), 'I'
     Chord.fromRomanNumeral('II', scale).should.eql Chord.fromString('F♯4 Major'), 'II'
     Chord.fromRomanNumeral('IV', scale).should.eql Chord.fromString('A4 Major'), 'IV'
     Chord.fromRomanNumeral('V', scale).should.eql Chord.fromString('B4 Major'), 'V'
     Chord.fromRomanNumeral('VI', scale).should.eql Chord.fromString('C♯5 Major'), 'VI'
 
-  it 'should parse minor chords', ->
+  it 'should create minor chords', ->
     Chord.fromRomanNumeral('i', scale).should.eql Chord.fromString('E4 Minor'), 'i'
     Chord.fromRomanNumeral('ii', scale).should.eql Chord.fromString('F♯4 Minor'), 'ii'
     Chord.fromRomanNumeral('vi', scale).should.eql Chord.fromString('C♯5 Minor'), 'vi'
 
-  it 'should parse diminished chords', ->
+  it 'should create diminished chords', ->
     Chord.fromRomanNumeral('vii°', scale).should.eql Chord.fromString('D♯5°'), 'vi°'
     Chord.fromRomanNumeral('iv°', scale).should.eql Chord.fromString('A4°'), 'iv°'
 
-  it 'should parse inversions', ->
-    Chord.fromRomanNumeral('ib', scale).should.eql Chord.fromString('E4 Minor'), 'i'
-    Chord.fromRomanNumeral('ic', scale).should.eql Chord.fromString('F♯4 Minor'), 'ii'
-    Chord.fromRomanNumeral('id', scale).should.eql Chord.fromString('C♯5 Minor'), 'vi'
+  it 'should create inversions'
+    # Chord.fromRomanNumeral('ib', scale).should.eql Chord.fromString('E4 Minor'), 'i'
+    # Chord.fromRomanNumeral('ic', scale).should.eql Chord.fromString('F♯4 Minor'), 'ii'
+    # Chord.fromRomanNumeral('id', scale).should.eql Chord.fromString('C♯5 Minor'), 'vi'
 
 
 describe 'Chord.progression', ->

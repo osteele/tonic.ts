@@ -28,7 +28,7 @@ module.exports = (grunt) ->
         src: [
           'test/test_pitches.coffee'
           'test/test_chords.coffee'
-          # 'test/test_scales.coffee'
+          'test/test_scales.coffee'
           # 'test/test_instruments.coffee'
           # 'test/test_fingerings.coffee'
         ]

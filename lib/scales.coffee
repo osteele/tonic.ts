@@ -29,7 +29,7 @@ class Scale
     for i in [0 ... @pitches.length]
       modePitches = @pitches[i..].concat(@pitches[...i])
       chordPitches = (modePitches[degree] for degree in degrees)
-      Chord.fromPitches(chordPitches).enharmonicizeTo(this)
+      Chord.fromPitches(chordPitches)
 
   noteNames: ->
     noteNames = SharpNoteNames

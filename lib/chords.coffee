@@ -159,7 +159,6 @@ RomanNumeralModifiers =
   'ø7': 'ø7'
 
 chordFromRomanNumeral = (name, scale) ->
-  console.log 'from', name, scale
   throw new Error("“#{name}” is not a chord roman numeral") unless match = name.match(/^(♭?)(i+v?|vi*)(.*?)([acd]?)$/i)
   throw new Error("requires a scale with a tonic") unless scale.tonic?
   [accidental, romanNumeral, modifiers, inversion] = match[1..]
@@ -177,7 +176,7 @@ chordFromRomanNumeral = (name, scale) ->
     chordType = RomanNumeralModifiers[modifiers]
     throw new Error("unknown chord modifier “#{modifiers}”") unless chordType
   # TODO 9, 13, sharp, natural
-  chord = Chord.fromString(chordType).at(scale.pitches[degree])
+  chord = ChordClass.fromString(chordType).at(scale.pitches[degree])
   chord = chord.invert(inversion) if inversion
   return chord
 
