@@ -87,11 +87,11 @@ describe 'Major Chord Class', ->
     chordClass.should.be.an.instanceOf ChordClass
 
   it 'should have a name', ->
-    chordClass.abbrs.should.be.a.String
+    chordClass.name.should.be.a.String
     chordClass.name.should.equal 'Major'
 
   it 'should have a fullName', ->
-    chordClass.abbrs.should.be.a.String
+    chordClass.fullName.should.be.a.String
     chordClass.fullName.should.equal 'Major'
 
   it 'should have a list of abbreviations', ->
@@ -99,7 +99,7 @@ describe 'Major Chord Class', ->
     chordClass.abbrs.should.eql ['', 'M']
 
   it 'should have a default abbreviation', ->
-    chordClass.abbrs.should.be.a.String
+    chordClass.abbr.should.be.a.String
     chordClass.abbr.should.equal ''
 
   it 'should contain three intervals', ->
