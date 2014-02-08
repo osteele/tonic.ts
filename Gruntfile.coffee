@@ -29,8 +29,8 @@ module.exports = (grunt) ->
           'test/test_pitches.coffee'
           'test/test_chords.coffee'
           'test/test_scales.coffee'
-          # 'test/test_instruments.coffee'
-          # 'test/test_fingerings.coffee'
+          'test/test_instruments.coffee'
+          'test/test_fingerings.coffee'
         ]
         options:
           bail: true
@@ -39,13 +39,15 @@ module.exports = (grunt) ->
     watch:
       gruntfile:
         tasks: ['coffeelint:gruntfile']
-      mochaTest:
+      tests:
         files: ['{lib,test}/**/*.{js,coffee}']
+        tasks: ['mochaTest']
       scripts:
-        tasks: ['coffeelint:lib']
+        files: ['{lib,test}/**/*.{js,coffee}']
+        tasks: ['coffeelint:lib', 'mochaTest']
 
   require('load-grunt-tasks')(grunt)
 
   grunt.registerTask 'build', ['clean', 'coffee']
   grunt.registerTask 'test', ['mochaTest']
-  grunt.registerTask 'default', ['test', 'update', 'autowatch']
+  grunt.registerTask 'default', ['test', 'update']

@@ -26,7 +26,7 @@ class Fingering
   #   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
 
   @cached_getter 'inversion', ->
-    @chord.pitchClasses.indexOf Interval.between(@chord.root, @instrument.pitchAt(@positions[0]))
+    @chord.pitches.indexOf Interval.between(@chord.root, @instrument.pitchAt(@positions[0]))
 
   @cached_getter 'inversionLetter', ->
     return unless @inversion > 0
@@ -137,7 +137,7 @@ chordFingerings = (chord, instrument, options={}) ->
       continue unless typeof(fret) is 'number'
       pitchClass = instrument.pitchAt({fret, string}).toPitchClass().semitones
       pitchClasses.push pitchClass unless pitchClass in pitchClasses
-    return pitchClasses.length == chord.pitchClasses.length
+    return pitchClasses.length == chord.pitches.length
 
   maximumFretDistance = (fretArray) ->
     frets = (fret for fret in fretArray when typeof(fret) is 'number')
@@ -160,7 +160,7 @@ chordFingerings = (chord, instrument, options={}) ->
         fingerings.push new Fingering {positions, chord, barres, instrument}
     fingerings
 
-  chordNoteCount = chord.pitchClasses.length
+  chordNoteCount = chord.pitches.length
 
 
   #
