@@ -1,3 +1,4 @@
+require 'coffee-errors'
 should = require 'should'
 {Pitch} = require '../lib/pitches'
 {Chord, ChordClass, ChordClasses} = require '../lib/chords'

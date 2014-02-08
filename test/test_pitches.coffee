@@ -1,3 +1,4 @@
+require 'coffee-errors'
 should = require 'should'
 _ = require 'underscore'
 _(global).extend require('../lib/pitches')

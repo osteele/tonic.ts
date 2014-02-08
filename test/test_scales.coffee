@@ -1,3 +1,4 @@
+require 'coffee-errors'
 should = require 'should'
 {Chord} = require '../lib/chords'
 {Scale, Scales, ScaleDegreeNames} = require '../lib/scales'

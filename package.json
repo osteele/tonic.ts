@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "coffee-script": "~1.6.3",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "coffee-errors": "~0.8.6"
   },
   "devDependencies": {
     "grunt": "~0.4",
