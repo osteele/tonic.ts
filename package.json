@@ -1,7 +1,7 @@
 {
   "name": "schoen",
   "description": "Music theory and instrument models.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Oliver Steele <steele@osteele.com>",
   "license": "MIT",
   "keywords": [
@@ -17,26 +17,11 @@
     "url": "http://github.com/osteele/schoen/issues"
   },
   "dependencies": {
-    "coffee-script": "~1.7.1",
+    "typescript": "^3.0.1",
     "underscore": "~1.5.2"
   },
   "devDependencies": {
-    "coffee-errors": "~0.8.6",
-    "grunt": "~0.4",
-    "grunt-cli": "~0.1.13",
-    "grunt-coffeelint": "~0.0.8",
-    "grunt-contrib-coffee": "~0.10.0",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt-notify": "~0.2.17",
-    "grunt-update": "~0.2.3",
-    "load-grunt-tasks": "~0.3.0",
-    "grunt-autowatch": "~0.1.4",
-    "grunt-mocha-test": "~0.9.0",
     "should": "~3.1.2"
   },
-  "scripts": {
-    "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib",
-    "test": "grunt test"
-  }
+  "scripts": {}
 }
