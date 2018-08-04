@@ -21,7 +21,11 @@
     "underscore": "~1.5.2"
   },
   "devDependencies": {
-    "should": "~3.1.2"
+    "@types/jest": "^23.3.1",
+    "jest": "^23.4.2",
+    "ts-jest": "^23.1.2"
   },
-  "scripts": {}
+  "scripts": {
+    "test": "jest"
+  }
 }
