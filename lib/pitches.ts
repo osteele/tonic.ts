@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 //
 // Pitches
 //
@@ -240,7 +234,7 @@ class Interval {
 const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
 type IntervalMap = { [_: string]: Interval };
-const Intervals = IntervalNames.reduce((acc: IntervalMap, name, semitones) => {
+export const Intervals = IntervalNames.reduce((acc: IntervalMap, name, semitones) => {
   acc[name] = new Interval(semitones);
   return acc;
 }, {});
