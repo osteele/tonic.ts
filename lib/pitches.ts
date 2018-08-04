@@ -1,7 +1,5 @@
 /*
  * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
  * DS205: Consider reworking code to avoid use of IIFEs
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
@@ -9,6 +7,10 @@
 //
 // Pitches
 //
+
+type MidiNumber = number;
+type PitchClassName = string;
+type PitchClassNumber = number;
 
 const SharpNoteNames = 'C C# D D# E F F# G G# A A# B'
   .replace(/#/g, '\u266F')
@@ -18,7 +20,7 @@ const FlatNoteNames = 'C Db D Eb E F Gb G Ab A Bb B'
   .split(/\s/);
 const NoteNames = SharpNoteNames;
 
-const AccidentalValues = {
+const AccidentalValues: { [_: string]: number } = {
   '#': 1,
   '♯': 1,
   b: -1,
@@ -26,6 +28,7 @@ const AccidentalValues = {
   '𝄪': 2,
   '𝄫': -2
 };
+const AccidentalNames = ['𝄫', '♭', '', '♯', '𝄪'];
 
 const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(/\s/);
 
@@ -45,72 +48,74 @@ const LongIntervalNames = [
   'Octave'
 ];
 
-const semitonesToAccidentalString = function(n) {
-  if (!n) {
-    return '';
+function semitonesToAccidentalString(n: number): string {
+  // fast path:
+  if (-2 <= n && n <= 2) {
+    return AccidentalNames[n + 2];
   }
-  if (n in AccidentalValues) {
-    return AccidentalValues[n];
-  } // fast path
-  let [single, double] = Array.from(['♯', '𝄪']);
+  let [single, double] = ['♯', '𝄪'];
   if (n < 0) {
-    [n, single, double] = Array.from([-n, '♭', '𝄫']);
+    [n, single, double] = [-n, '♭', '𝄫'];
   }
   let s = new Array(Math.floor((n + 2) / 2)).join(double);
   if (n % 2) {
     s = single + s;
   }
   return s;
-};
+}
 
-const getPitchClassName = pitchClass => NoteNames[pitchClass];
+function getPitchClassName(pitchClass: PitchClassNumber) {
+  return NoteNames[pitchClass];
+}
 
 // really returns the name of a pitch *class*
-const getPitchName = function(pitch, options) {
-  if (options == null) {
-    options = {};
-  }
+function getPitchName(
+  pitch: PitchClassName | PitchClassNumber,
+  { sharp, flat }: { sharp?: boolean; flat?: boolean } = {}
+): string {
   if (typeof pitch === 'string') {
     return pitch;
   }
   const pitchClass = pitchToPitchClass(pitch);
   const flatName = FlatNoteNames[pitchClass];
   const sharpName = SharpNoteNames[pitchClass];
-  let name = options.sharp ? sharpName : flatName;
-  if (options.flat && options.sharp && flatName !== sharpName) {
+  let name = sharp ? sharpName : flatName;
+  if (flat && sharp && flatName !== sharpName) {
     name = `${flatName}/\n${sharpName}`;
   }
   return name;
-};
+}
 
 // The interval class (integer in [0...12]) between two pitch class numbers
-const intervalClassDifference = (pca, pcb) => normalizePitchClass(pcb - pca);
+const intervalClassDifference = (a: PitchClassNumber, b: PitchClassNumber) =>
+  normalizePitchClass(b - a);
 
-const normalizePitchClass = pitchClass => ((pitchClass % 12) + 12) % 12;
+const normalizePitchClass = (pitchClass: PitchClassNumber) =>
+  ((pitchClass % 12) + 12) % 12;
 
 var pitchToPitchClass = normalizePitchClass;
 
-const pitchFromScientificNotation = function(name) {
+function pitchFromScientificNotation(name: string): PitchClassNumber {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
   }
-  const [naturalName, accidentals, octave] = Array.from(match.slice(1));
+  const [naturalName, accidentals, octave] = match.slice(1);
   let pitch =
     SharpNoteNames.indexOf(naturalName.toUpperCase()) +
     12 * (1 + Number(octave));
-  for (let c of Array.from(accidentals)) {
+  for (let c of accidentals) {
     pitch += AccidentalValues[c];
   }
   return pitch;
-};
+}
 
-const pitchFromHelmholtzNotation = function(name) {
+function pitchFromHelmholtzNotation(name: string): PitchClassNumber {
   const match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in Helmholtz notation`);
   }
-  const [pitchClassName, commas, apostrophes] = Array.from(match.slice(1));
+  const [pitchClassName, commas, apostrophes] = match.slice(1);
   const pitchClassNumber = parsePitchClass(pitchClassName, false);
   const octave =
     4 -
@@ -118,48 +123,48 @@ const pitchFromHelmholtzNotation = function(name) {
     commas.length +
     apostrophes.length;
   return 12 * octave + pitchClassNumber;
-};
+}
 
-const toScientificNotation = function(midiNumber) {
+function toScientificNotation(midiNumber: number): string {
   const octave = Math.floor(midiNumber / 12) - 1;
   return getPitchClassName(normalizePitchClass(midiNumber)) + octave;
-};
+}
 
-var parsePitchClass = function(name, normal) {
-  if (normal == null) {
-    normal = true;
-  }
+function parsePitchClass(
+  name: PitchClassName,
+  normal = true
+): PitchClassNumber {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
   if (!match) {
     throw new Error(`“${name}” is not a pitch class name`);
   }
-  const [naturalName, accidentals] = Array.from(match.slice(1));
+  const [naturalName, accidentals] = match.slice(1);
   let pitch = SharpNoteNames.indexOf(naturalName.toUpperCase());
-  for (let c of Array.from(accidentals)) {
+  for (let c of accidentals) {
     pitch += AccidentalValues[c];
   }
   if (normal) {
     pitch = normalizePitchClass(pitch);
   }
   return pitch;
-};
+}
 
-const midi2name = number =>
-  `${NoteNames[(number + 12) % 12]}${Math.floor((number - 12) / 12)}`;
+const midi2name = (n: MidiNumber) =>
+  `${NoteNames[(n + 12) % 12]}${Math.floor((n - 12) / 12)}`;
 
-const name2midi = function(name) {
-  let m;
-  if (!(m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/))) {
+function name2midi(name: string): MidiNumber {
+  const m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/);
+  if (!m) {
     throw new Error(`“${name}” is not a note name`);
   }
-  const [noteName, accidentals, octave] = Array.from(m.slice(1));
+  const [noteName, accidentals, octave] = m.slice(1);
   let pitch = NoteNames.indexOf(noteName);
-  for (let c of Array.from(accidentals)) {
+  for (let c of accidentals) {
     pitch += AccidentalValues[c];
   }
   pitch += 12 * (1 + Number(octave));
   return pitch;
-};
+}
 
 // An Interval is the signed distance between two notes.
 // Intervals that represent the same semitone span *and* accidental are interned.
@@ -168,25 +173,23 @@ const name2midi = function(name) {
 //
 // FIXME these are interval classes, not intervals
 class Interval {
-  constructor(semitones, accidentals) {
+  semitones: number;
+  accidentals: number;
+  constructor(semitones: number, accidentals = 0) {
     this.semitones = semitones;
-    if (accidentals == null) {
-      accidentals = 0;
-    }
     this.accidentals = accidentals;
-    if (!this.accidentals) {
-      this.accidentals = 0;
-    }
     const dict =
       IntervalBySemitone[this.semitones] ||
       (IntervalBySemitone[this.semitones] = {});
     if (dict[this.accidentals]) {
+      // FIXME: can ts intern this way?
       return dict[this.accidentals];
     }
     dict[this.accidentals] = this;
   }
 
-  toString() {
+  // TODO: what is the ts equivalent of toString?
+  toString(): string {
     let s = IntervalNames[this.semitones];
     if (this.accidentals) {
       s = semitonesToAccidentalString(this.accidentals) + s;
@@ -194,27 +197,25 @@ class Interval {
     return s;
   }
 
-  add(other) {
-    if (other.semitones == null) {
-      throw new Error(`Can''t add ${self} and ${other}`);
-    }
+  add(other: Interval): Interval {
     return new Interval(this.semitones + other.semitones);
   }
 
-  static fromSemitones(semitones) {
+  static fromSemitones(semitones: number): Interval {
     return new Interval(semitones);
   }
 
-  static fromString(string) {
-    const semitones = IntervalNames.indexOf(string);
+  static fromString(name: string): Interval {
+    const semitones = IntervalNames.indexOf(name);
     if (!(semitones >= 0)) {
-      throw new Error(`No interval named ${string}`);
+      throw new Error(`No interval named ${name}`);
     }
     return new Interval(semitones);
   }
 
   // pitch1 and pitch2 can both be pitches, or pitch classes
-  static between(pitch1, pitch2) {
+  // FIXME:
+  static between(pitch1: Pitch | PitchClass, pitch2: Pitch | PitchClass) {
     let semitones = (() => {
       switch (false) {
         case !(pitch1 instanceof Pitch) || !(pitch2 instanceof Pitch):
@@ -236,16 +237,13 @@ class Interval {
 }
 
 // new Interval interns into this
-var IntervalBySemitone = {};
+const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
-const Intervals = (function() {
-  const array = {};
-  for (let semitones = 0; semitones < IntervalNames.length; semitones++) {
-    const name = IntervalNames[semitones];
-    array[name] = new Interval(semitones);
-  }
-  return array;
-})();
+type IntervalMap = { [_: string]: Interval };
+const Intervals = IntervalNames.reduce((acc: IntervalMap, name, semitones) => {
+  acc[name] = new Interval(semitones);
+  return acc;
+}, {});
 
 //
 // Pitch
@@ -254,42 +252,36 @@ const Intervals = (function() {
 class Pitch {
   name: string;
   midiNumber: number;
-  constructor({ name, midiNumber }) {
-    this.name = name;
+  constructor({ name, midiNumber }: { name?: string; midiNumber: number }) {
+    this.name = name || toScientificNotation(midiNumber);
     this.midiNumber = midiNumber;
-    if (this.name == null) {
-      this.name = toScientificNotation(this.midiNumber);
-    }
   }
 
-  toString() {
+  toString(): string {
     return this.name;
   }
 
-  add(other) {
-    if (other.semitones == null) {
-      throw new Error(`Can't add ${self} and ${other}`);
-    }
+  add(other: Interval): Pitch {
     return new Pitch({ midiNumber: this.midiNumber + other.semitones });
   }
 
-  toPitch() {
+  toPitch(): Pitch {
     return this;
   }
 
-  toPitchClass() {
+  toPitchClass(): PitchClass {
     return PitchClass.fromSemitones(pitchToPitchClass(this.midiNumber));
   }
 
-  transposeBy(interval) {
+  transposeBy(interval: Interval): Pitch {
     return new Pitch({ midiNumber: this.midiNumber + interval.semitones });
   }
 
-  static fromMidiNumber(midiNumber) {
+  static fromMidiNumber(midiNumber: number): Pitch {
     return new Pitch({ midiNumber });
   }
 
-  static fromString(name) {
+  static fromString(name: string): Pitch {
     const midiNumber = (name.match(/\d/)
       ? pitchFromScientificNotation
       : pitchFromHelmholtzNotation)(name);
@@ -302,22 +294,18 @@ class Pitch {
 //
 
 class PitchClass {
-  constructor({ semitones, name }) {
+  name: string;
+  semitones: number;
+  constructor({ semitones, name }: { name?: string; semitones: number }) {
     this.semitones = semitones;
-    this.name = name;
-    if (!this.name) {
-      this.name = NoteNames[this.semitones];
-    }
+    this.name = name || NoteNames[semitones];
   }
 
-  toString() {
+  toString(): string {
     return this.name;
   }
 
-  add(other) {
-    if (other.semitones == null) {
-      throw new Error(`Can''t add ${self} and ${other}`);
-    }
+  add(other: Interval): PitchClass {
     return PitchClass.fromSemitones(this.semitones + other.semitones);
   }
 
@@ -326,10 +314,7 @@ class PitchClass {
   //     return new PitchClass {name, semitones} if semitones == @semitones
   //   return this
 
-  toPitch(octave) {
-    if (octave == null) {
-      octave = 0;
-    }
+  toPitch(octave = 0): Pitch {
     return Pitch.fromMidiNumber(this.semitones + 12 * octave);
   }
 
@@ -337,18 +322,18 @@ class PitchClass {
     return this;
   }
 
-  static fromSemitones(semitones) {
+  static fromSemitones(semitones: number): PitchClass {
     semitones = normalizePitchClass(semitones);
     return new PitchClass({ semitones });
   }
 
-  static fromString(string) {
-    return PitchClass.fromSemitones(parsePitchClass(string));
+  static fromString(name: string): PitchClass {
+    return PitchClass.fromSemitones(parsePitchClass(name));
   }
 }
 
 const Pitches = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
-  pitch => new Pitch(pitch)
+  pitch => new Pitch({ midiNumber: pitch })
 );
 
 //

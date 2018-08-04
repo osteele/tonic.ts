@@ -1,69 +1,61 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-require('coffee-errors');
-const should = require('should');
-const _ = require('underscore');
-_(global).extend(require('../lib/pitches'));
+import { FlatNoteNames, getPitchClassName, getPitchName, Interval, intervalClassDifference, IntervalNames, LongIntervalNames, midi2name, name2midi, normalizePitchClass, NoteNames, parsePitchClass, Pitch, PitchClass, Pitches, pitchFromScientificNotation, pitchToPitchClass, semitonesToAccidentalString, SharpNoteNames } from '../lib/pitches';
 
 //
 // Constants
 //
 
-describe('FlatNoteNames', function() {
-  it('should have 12 notes', function() {
-    FlatNoteNames.should.be.an.Array;
-    return FlatNoteNames.should.have.length(12);
+describe('FlatNoteNames', () => {
+  it('should have 12 notes', () => {
+    expect(FlatNoteNames).toBeInstanceOf(Array);
+    expect(FlatNoteNames).toHaveLength(12);
   });
-  it('should start with C', () => FlatNoteNames[0].should.equal('C'));
-  return it('should have five flats', function() {
-    FlatNoteNames[1].should.equal('D♭');
-    FlatNoteNames[3].should.equal('E♭');
-    FlatNoteNames[6].should.equal('G♭');
-    FlatNoteNames[8].should.equal('A♭');
-    return FlatNoteNames[10].should.equal('B♭');
+  it('should start with C', () => expect(FlatNoteNames[0]).toBe('C'));
+  it('should have five flats', () => {
+    expect(FlatNoteNames[1]).toBe('D♭');
+    expect(FlatNoteNames[3]).toBe('E♭');
+    expect(FlatNoteNames[6]).toBe('G♭');
+    expect(FlatNoteNames[8]).toBe('A♭');
+    expect(FlatNoteNames[10]).toBe('B♭');
   });
 });
 
-describe('SharpNoteNames', function() {
-  it('should have 12 notes', function() {
-    SharpNoteNames.should.be.an.Array;
-    return SharpNoteNames.should.have.length(12);
+describe('SharpNoteNames', () => {
+  it('should have 12 notes', () => {
+    expect(SharpNoteNames).toBeInstanceOf(Array);
+    expect(SharpNoteNames).toHaveLength(12);
   });
-  it('should start with C', () => SharpNoteNames[0].should.equal('C'));
-  return it('should have five flats', function() {
-    SharpNoteNames[1].should.equal('C♯');
-    SharpNoteNames[3].should.equal('D♯');
-    SharpNoteNames[6].should.equal('F♯');
-    SharpNoteNames[8].should.equal('G♯');
-    return SharpNoteNames[10].should.equal('A♯');
+  it('should start with C', () => expect(SharpNoteNames[0]).toBe('C'));
+  it('should have five flats', () => {
+    expect(SharpNoteNames[1]).toBe('C♯');
+    expect(SharpNoteNames[3]).toBe('D♯');
+    expect(SharpNoteNames[6]).toBe('F♯');
+    expect(SharpNoteNames[8]).toBe('G♯');
+    expect(SharpNoteNames[10]).toBe('A♯');
   });
 });
 
 describe('NoteNames', () =>
   it('should equal SharpNoteNames', () =>
-    NoteNames.should.equal(SharpNoteNames)));
+    expect(NoteNames).toEqual(SharpNoteNames)));
 
-describe('IntervalNames', function() {
-  it('should have 13 intervals', function() {
-    IntervalNames.should.be.an.Array;
-    return IntervalNames.should.have.length(13);
+describe('IntervalNames', () => {
+  it('should have 13 intervals', () => {
+    expect(IntervalNames).toBeInstanceOf(Array);
+    expect(IntervalNames).toHaveLength(13);
   });
-  it('should start with P1', () => IntervalNames[0].should.equal('P1'));
-  return it('should end with P8', () => IntervalNames[12].should.equal('P8'));
+  it('should start with P1', () => expect(IntervalNames[0]).toBe('P1'));
+  it('should end with P8', () => expect(IntervalNames[12]).toBe('P8'));
 });
 
-describe('LongIntervalNames', function() {
-  it('should have 13 intervals', function() {
-    LongIntervalNames.should.be.an.Array;
-    return LongIntervalNames.should.have.length(13);
+describe('LongIntervalNames', () => {
+  it('should have 13 intervals', () => {
+    expect(LongIntervalNames).toBeInstanceOf(Array);
+    expect(LongIntervalNames).toHaveLength(13);
   });
   it('should start with Unison', () =>
-    LongIntervalNames[0].should.equal('Unison'));
-  return it('should end with Octave', () =>
-    LongIntervalNames[12].should.equal('Octave'));
+    expect(LongIntervalNames[0]).toBe('Unison'));
+  it('should end with Octave', () =>
+    expect(LongIntervalNames[12]).toBe('Octave'));
 });
 
 //
@@ -71,360 +63,354 @@ describe('LongIntervalNames', function() {
 //
 
 describe('semitonesToAccidentalString', () =>
-  it('should turn semitones into strings', function() {
-    semitonesToAccidentalString(0).should.equal('');
-    semitonesToAccidentalString(-1).should.equal('♭');
-    semitonesToAccidentalString(-2).should.equal('𝄫');
-    semitonesToAccidentalString(-3).should.equal('♭𝄫');
-    semitonesToAccidentalString(-4).should.equal('𝄫𝄫');
-    semitonesToAccidentalString(-5).should.equal('♭𝄫𝄫');
-    semitonesToAccidentalString(1).should.equal('♯');
-    semitonesToAccidentalString(2).should.equal('𝄪');
-    semitonesToAccidentalString(3).should.equal('♯𝄪');
-    semitonesToAccidentalString(4).should.equal('𝄪𝄪');
-    return semitonesToAccidentalString(5).should.equal('♯𝄪𝄪');
+  it('should turn semitones into strings', () => {
+    expect(semitonesToAccidentalString(0)).toBe('');
+    expect(semitonesToAccidentalString(-1)).toBe('♭');
+    expect(semitonesToAccidentalString(-2)).toBe('𝄫');
+    expect(semitonesToAccidentalString(-3)).toBe('♭𝄫');
+    expect(semitonesToAccidentalString(-4)).toBe('𝄫𝄫');
+    expect(semitonesToAccidentalString(-5)).toBe('♭𝄫𝄫');
+    expect(semitonesToAccidentalString(1)).toBe('♯');
+    expect(semitonesToAccidentalString(2)).toBe('𝄪');
+    expect(semitonesToAccidentalString(3)).toBe('♯𝄪');
+    expect(semitonesToAccidentalString(4)).toBe('𝄪𝄪');
+    expect(semitonesToAccidentalString(5)).toBe('♯𝄪𝄪');
   }));
 
-describe('getPitchClassName', function() {
-  it('should return natural names', function() {
-    getPitchClassName(0).should.equal('C');
-    getPitchClassName(2).should.equal('D');
-    getPitchClassName(4).should.equal('E');
-    getPitchClassName(5).should.equal('F');
-    getPitchClassName(7).should.equal('G');
-    getPitchClassName(9).should.equal('A');
-    return getPitchClassName(11).should.equal('B');
+describe('getPitchClassName', () => {
+  it('should return natural names', () => {
+    expect(getPitchClassName(0)).toBe('C');
+    expect(getPitchClassName(2)).toBe('D');
+    expect(getPitchClassName(4)).toBe('E');
+    expect(getPitchClassName(5)).toBe('F');
+    expect(getPitchClassName(7)).toBe('G');
+    expect(getPitchClassName(9)).toBe('A');
+    expect(getPitchClassName(11)).toBe('B');
   });
 
-  return it('should return sharp names', function() {
-    getPitchClassName(1).should.equal('C♯');
-    getPitchClassName(3).should.equal('D♯');
-    getPitchClassName(6).should.equal('F♯');
-    getPitchClassName(8).should.equal('G♯');
-    return getPitchClassName(10).should.equal('A♯');
+  it('should return sharp names', () => {
+    expect(getPitchClassName(1)).toBe('C♯');
+    expect(getPitchClassName(3)).toBe('D♯');
+    expect(getPitchClassName(6)).toBe('F♯');
+    expect(getPitchClassName(8)).toBe('G♯');
+    expect(getPitchClassName(10)).toBe('A♯');
   });
 });
 
 // aka pitchNumberToName
-describe('getPitchName', function() {
-  it('should return natural names', function() {
-    getPitchName(0).should.equal('C');
-    getPitchName(2).should.equal('D');
-    getPitchName(4).should.equal('E');
-    getPitchName(5).should.equal('F');
-    getPitchName(7).should.equal('G');
-    getPitchName(9).should.equal('A');
-    return getPitchName(11).should.equal('B');
+describe('getPitchName', () => {
+  it('should return natural names', () => {
+    expect(getPitchName(0)).toBe('C');
+    expect(getPitchName(2)).toBe('D');
+    expect(getPitchName(4)).toBe('E');
+    expect(getPitchName(5)).toBe('F');
+    expect(getPitchName(7)).toBe('G');
+    expect(getPitchName(9)).toBe('A');
+    expect(getPitchName(11)).toBe('B');
   });
 
-  it('should return flat names by default', function() {
-    getPitchName(1).should.equal('D♭');
-    getPitchName(3).should.equal('E♭');
-    getPitchName(6).should.equal('G♭');
-    getPitchName(8).should.equal('A♭');
-    return getPitchName(10).should.equal('B♭');
+  it('should return flat names by default', () => {
+    expect(getPitchName(1)).toBe('D♭');
+    expect(getPitchName(3)).toBe('E♭');
+    expect(getPitchName(6)).toBe('G♭');
+    expect(getPitchName(8)).toBe('A♭');
+    expect(getPitchName(10)).toBe('B♭');
   });
 
   it('should return flat names with flat option', () =>
-    getPitchName(1, { flat: true }).should.equal('D♭'));
+    expect(getPitchName(1, { flat: true })).toBe('D♭'));
 
-  it('should return sharp names with sharp option', function() {
-    getPitchName(1, { sharp: true }).should.equal('C♯');
-    getPitchName(3, { sharp: true }).should.equal('D♯');
-    getPitchName(6, { sharp: true }).should.equal('F♯');
-    getPitchName(8, { sharp: true }).should.equal('G♯');
-    return getPitchName(10, { sharp: true }).should.equal('A♯');
+  it('should return sharp names with sharp option', () => {
+    expect(getPitchName(1, { sharp: true })).toBe('C♯');
+    expect(getPitchName(3, { sharp: true })).toBe('D♯');
+    expect(getPitchName(6, { sharp: true })).toBe('F♯');
+    expect(getPitchName(8, { sharp: true })).toBe('G♯');
+    expect(getPitchName(10, { sharp: true })).toBe('A♯');
   });
 
-  return it('should return both names with both options', () =>
-    getPitchName(1, { sharp: true, flat: true }).should.equal('D♭/\nC♯'));
+  it('should return both names with both options', () =>
+    expect(getPitchName(1, { sharp: true, flat: true })).toBe('D♭/\nC♯'));
 });
 
-describe('pitchFromScientificNotation', function() {
-  it('should parse the pitch class', function() {
-    pitchFromScientificNotation('C4').should.equal(60);
-    pitchFromScientificNotation('D4').should.equal(62);
-    pitchFromScientificNotation('E4').should.equal(64);
-    pitchFromScientificNotation('F4').should.equal(65);
-    pitchFromScientificNotation('G4').should.equal(67);
-    pitchFromScientificNotation('A4').should.equal(69);
-    return pitchFromScientificNotation('B4').should.equal(71);
+describe('pitchFromScientificNotation', () => {
+  it('should parse the pitch class', () => {
+    expect(pitchFromScientificNotation('C4')).toBe(60);
+    expect(pitchFromScientificNotation('D4')).toBe(62);
+    expect(pitchFromScientificNotation('E4')).toBe(64);
+    expect(pitchFromScientificNotation('F4')).toBe(65);
+    expect(pitchFromScientificNotation('G4')).toBe(67);
+    expect(pitchFromScientificNotation('A4')).toBe(69);
+    expect(pitchFromScientificNotation('B4')).toBe(71);
   });
-  it('should parse the octave', function() {
-    pitchFromScientificNotation('C1').should.equal(24);
-    pitchFromScientificNotation('C2').should.equal(36);
-    pitchFromScientificNotation('C3').should.equal(48);
-    pitchFromScientificNotation('C4').should.equal(60);
-    pitchFromScientificNotation('C5').should.equal(72);
-    return pitchFromScientificNotation('C6').should.equal(84);
+  it('should parse the octave', () => {
+    expect(pitchFromScientificNotation('C1')).toBe(24);
+    expect(pitchFromScientificNotation('C2')).toBe(36);
+    expect(pitchFromScientificNotation('C3')).toBe(48);
+    expect(pitchFromScientificNotation('C4')).toBe(60);
+    expect(pitchFromScientificNotation('C5')).toBe(72);
+    expect(pitchFromScientificNotation('C6')).toBe(84);
   });
   it('should parse accidentals', function() {
-    pitchFromScientificNotation('Cb4').should.equal(59);
-    pitchFromScientificNotation('C#4').should.equal(61);
-    pitchFromScientificNotation('C♭4').should.equal(59);
-    pitchFromScientificNotation('C♯4').should.equal(61);
-    pitchFromScientificNotation('C♭♭4').should.equal(58);
-    return pitchFromScientificNotation('C♯♯4').should.equal(62);
+    expect(pitchFromScientificNotation('Cb4')).toBe(59);
+    expect(pitchFromScientificNotation('C#4')).toBe(61);
+    expect(pitchFromScientificNotation('C♭4')).toBe(59);
+    expect(pitchFromScientificNotation('C♯4')).toBe(61);
+    expect(pitchFromScientificNotation('C♭♭4')).toBe(58);
+    expect(pitchFromScientificNotation('C♯♯4')).toBe(62);
   });
-  return it('should parse double accidentals');
-}); //, ->
-// pitchFromScientificNotation('C𝄫4').should.equal 58
-// pitchFromScientificNotation('C𝄪4').should.equal 62
+  // test.skip('should parse double accidentals');
+});
+// expect(pitchFromScientificNotation('C𝄫4')).toBe(58);
+// expect(pitchFromScientificNotation('C𝄪4')).toBe(62);
 
-describe('normalizePitchClass', () =>
-  it('should return an integer in 0..11', function() {
-    normalizePitchClass(0).should.equal(0);
-    normalizePitchClass(11).should.equal(11);
-    normalizePitchClass(-1).should.equal(11);
-    normalizePitchClass(-13).should.equal(11);
-    normalizePitchClass(12).should.equal(0);
-    normalizePitchClass(13).should.equal(1);
-    return normalizePitchClass(25).should.equal(1);
-  }));
+describe('normalizePitchClass', () => {
+  it('should return an integer in 0..11', () => {
+    expect(normalizePitchClass(0)).toBe(0);
+    expect(normalizePitchClass(11)).toBe(11);
+    expect(normalizePitchClass(-1)).toBe(11);
+    expect(normalizePitchClass(-13)).toBe(11);
+    expect(normalizePitchClass(12)).toBe(0);
+    expect(normalizePitchClass(13)).toBe(1);
+    expect(normalizePitchClass(25)).toBe(1);
+  });
+});
 
 // aka pitchNameToNumber
-describe('parsePitchClass', function() {
-  it('should parse naturals', function() {
-    parsePitchClass('C').should.equal(0);
-    parsePitchClass('D').should.equal(2);
-    parsePitchClass('E').should.equal(4);
-    parsePitchClass('F').should.equal(5);
-    parsePitchClass('G').should.equal(7);
-    parsePitchClass('A').should.equal(9);
-    return parsePitchClass('B').should.equal(11);
+describe('parsePitchClass', () => {
+  it('should parse naturals', () => {
+    expect(parsePitchClass('C')).toBe(0);
+    expect(parsePitchClass('D')).toBe(2);
+    expect(parsePitchClass('E')).toBe(4);
+    expect(parsePitchClass('F')).toBe(5);
+    expect(parsePitchClass('G')).toBe(7);
+    expect(parsePitchClass('A')).toBe(9);
+    expect(parsePitchClass('B')).toBe(11);
   });
 
-  it('should parse sharps', function() {
-    parsePitchClass('C#').should.equal(1);
-    return parsePitchClass('C♯').should.equal(1);
+  it('should parse sharps', () => {
+    expect(parsePitchClass('C#')).toBe(1);
+    expect(parsePitchClass('C♯')).toBe(1);
   });
 
-  it('should parse flats', function() {
-    parsePitchClass('Cb').should.equal(11);
-    return parsePitchClass('C♭').should.equal(11);
+  it('should parse flats', () => {
+    expect(parsePitchClass('Cb')).toBe(11);
+    expect(parsePitchClass('C♭')).toBe(11);
   });
 
-  return it('should parse double sharps and flats');
+  // test.skip('should parse double sharps and flats');
 });
-// parsePitchClass('C𝄪').should.equal 2
-// parsePitchClass('C𝄫').should.equal 10
+// expect(parsePitchClass('C𝄪')).toBe(2)
+// expect(parsePitchClass('C𝄫')).toBe(10)
 
-describe('pitchToPitchClass', () =>
-  it('should return an integer in [0...12]', function() {
-    pitchToPitchClass(0).should.equal(0);
-    pitchToPitchClass(1).should.equal(1);
-    pitchToPitchClass(12).should.equal(0);
-    pitchToPitchClass(13).should.equal(1);
-    pitchToPitchClass(-1).should.equal(11);
-    return pitchToPitchClass(-13).should.equal(11);
-  }));
+describe('pitchToPitchClass', () => {
+  it('should return an integer in [0...12]', () => {
+    expect(pitchToPitchClass(0)).toBe(0);
+    expect(pitchToPitchClass(1)).toBe(1);
+    expect(pitchToPitchClass(12)).toBe(0);
+    expect(pitchToPitchClass(13)).toBe(1);
+    expect(pitchToPitchClass(-1)).toBe(11);
+    expect(pitchToPitchClass(-13)).toBe(11);
+  });
+});
 
 describe('intervalClassDifference', () =>
-  it('should return an integer in [0...12]', function() {
-    intervalClassDifference(0, 5).should.equal(5);
-    intervalClassDifference(5, 0).should.equal(7);
-    return intervalClassDifference(0, 12).should.equal(0);
+  it('should return an integer in [0...12]', () => {
+    expect(intervalClassDifference(0, 5)).toBe(5);
+    expect(intervalClassDifference(5, 0)).toBe(7);
+    expect(intervalClassDifference(0, 12)).toBe(0);
   }));
 
 describe('midi2name', () =>
-  it('should return a pitch name', function() {
-    midi2name(0).should.equal('C-1');
-    midi2name(12).should.equal('C0');
-    midi2name(13).should.equal('C♯0');
-    midi2name(23).should.equal('B0');
-    midi2name(24).should.equal('C1');
-    midi2name(36).should.equal('C2');
-    return midi2name(127).should.equal('G9');
+  it('should return a pitch name', () => {
+    expect(midi2name(0)).toBe('C-1');
+    expect(midi2name(12)).toBe('C0');
+    expect(midi2name(13)).toBe('C♯0');
+    expect(midi2name(23)).toBe('B0');
+    expect(midi2name(24)).toBe('C1');
+    expect(midi2name(36)).toBe('C2');
+    expect(midi2name(127)).toBe('G9');
   }));
 
 describe('name2midi', () =>
-  it('should return a midi number', function() {
-    name2midi('C-1').should.equal(0);
-    name2midi('C0').should.equal(12);
-    name2midi('C♯0').should.equal(13);
-    name2midi('B0').should.equal(23);
-    name2midi('C1').should.equal(24);
-    name2midi('C2').should.equal(36);
-    return name2midi('G9').should.equal(127);
+  it('should return a midi number', () => {
+    expect(name2midi('C-1')).toBe(0);
+    expect(name2midi('C0')).toBe(12);
+    expect(name2midi('C♯0')).toBe(13);
+    expect(name2midi('B0')).toBe(23);
+    expect(name2midi('C1')).toBe(24);
+    expect(name2midi('C2')).toBe(36);
+    expect(name2midi('G9')).toBe(127);
   }));
 
 //
 // Objects
 //
 
-describe('Interval', function() {
-  it('should implement fromString', function() {
-    Interval.fromString('P1').semitones.should.equal(0);
-    Interval.fromString('m2').semitones.should.equal(1);
-    Interval.fromString('M2').semitones.should.equal(2);
-    Interval.fromString('m3').semitones.should.equal(3);
-    Interval.fromString('M3').semitones.should.equal(4);
-    Interval.fromString('P4').semitones.should.equal(5);
-    Interval.fromString('TT').semitones.should.equal(6);
-    Interval.fromString('P5').semitones.should.equal(7);
-    Interval.fromString('m6').semitones.should.equal(8);
-    Interval.fromString('M6').semitones.should.equal(9);
-    Interval.fromString('m7').semitones.should.equal(10);
-    Interval.fromString('M7').semitones.should.equal(11);
-    return Interval.fromString('P8').semitones.should.equal(12);
+describe('Interval', () => {
+  it('should implement fromString', () => {
+    expect(Interval.fromString('P1').semitones).toBe(0);
+    expect(Interval.fromString('m2').semitones).toBe(1);
+    expect(Interval.fromString('M2').semitones).toBe(2);
+    expect(Interval.fromString('m3').semitones).toBe(3);
+    expect(Interval.fromString('M3').semitones).toBe(4);
+    expect(Interval.fromString('P4').semitones).toBe(5);
+    expect(Interval.fromString('TT').semitones).toBe(6);
+    expect(Interval.fromString('P5').semitones).toBe(7);
+    expect(Interval.fromString('m6').semitones).toBe(8);
+    expect(Interval.fromString('M6').semitones).toBe(9);
+    expect(Interval.fromString('m7').semitones).toBe(10);
+    expect(Interval.fromString('M7').semitones).toBe(11);
+    expect(Interval.fromString('P8').semitones).toBe(12);
   });
 
-  it('should implement toString', function() {
-    Interval.fromSemitones(0)
-      .toString()
-      .should.equal('P1');
-    Interval.fromSemitones(1)
-      .toString()
-      .should.equal('m2');
-    Interval.fromSemitones(4)
-      .toString()
-      .should.equal('M3');
-    return Interval.fromSemitones(12)
-      .toString()
-      .should.equal('P8');
+  it('should implement toString', () => {
+    expect(Interval.fromSemitones(0).toString()).toBe('P1');
+    expect(Interval.fromSemitones(1).toString()).toBe('m2');
+    expect(Interval.fromSemitones(4).toString()).toBe('M3');
+    expect(Interval.fromSemitones(12).toString()).toBe('P8');
   });
 
-  it('should be interned', function() {
-    Interval.fromString('P1').should.equal(Interval.fromString('P1'));
-    Interval.fromString('M2').should.equal(Interval.fromString('M2'));
-    return Interval.fromString('P1').should.not.equal(
-      Interval.fromString('M2')
-    );
+  it('should be interned', () => {
+    expect(Interval.fromString('P1')).toBe(Interval.fromString('P1'));
+    expect(Interval.fromString('M2')).toBe(Interval.fromString('M2'));
+    expect(Interval.fromString('P1')).not.toBe(Interval.fromString('M2'));
   });
 
   describe('add', () =>
     it('should add to an interval', () =>
-      Interval.fromString('m2').add(Interval.fromString('M2')).semitones
-        .should === 3));
+      expect(
+        Interval.fromString('m2').add(Interval.fromString('M2')).semitones
+      ).toBe(3)));
 
-  return describe('between', function() {
-    it('should return the interval between two pitches', function() {
-      Interval.between(Pitch.fromString('E4'), Pitch.fromString('E4'))
-        .toString()
-        .should.equal('P1');
-      Interval.between(Pitch.fromString('E4'), Pitch.fromString('F4'))
-        .toString()
-        .should.equal('m2');
-      return Interval.between(Pitch.fromString('E4'), Pitch.fromString('G4'))
-        .toString()
-        .should.equal('m3');
+  describe('between', () => {
+    it('should return the interval between two pitches', () => {
+      expect(
+        Interval.between(
+          Pitch.fromString('E4'),
+          Pitch.fromString('E4')
+        ).toString()
+      ).toBe('P1');
+      expect(
+        Interval.between(
+          Pitch.fromString('E4'),
+          Pitch.fromString('F4')
+        ).toString()
+      ).toBe('m2');
+      expect(
+        Interval.between(
+          Pitch.fromString('E4'),
+          Pitch.fromString('G4')
+        ).toString()
+      ).toBe('m3');
     });
-    return it('should use modular arithmetic', () =>
-      Interval.between(Pitch.fromString('F4'), Pitch.fromString('C4'))
-        .toString()
-        .should.equal('P5'));
+    it('should use modular arithmetic', () =>
+      expect(
+        Interval.between(
+          Pitch.fromString('F4'),
+          Pitch.fromString('C4')
+        ).toString()
+      ).toBe('P5'));
   });
 });
 
-describe('Intervals', () => it('should be an array of Interval'));
+describe('Intervals', () => {
+  // test.skip('should be an array of Interval')
+});
 
-describe('Pitch', function() {
-  it('should parse scientific notation', function() {
-    Pitch.fromString('C4').midiNumber.should.equal(60);
-    Pitch.fromString('C5').midiNumber.should.equal(72);
-    Pitch.fromString('E4').midiNumber.should.equal(64);
-    return Pitch.fromString('G5').midiNumber.should.equal(79);
+describe('Pitch', () => {
+  it('should parse scientific notation', () => {
+    expect(Pitch.fromString('C4').midiNumber).toBe(60);
+    expect(Pitch.fromString('C5').midiNumber).toBe(72);
+    expect(Pitch.fromString('E4').midiNumber).toBe(64);
+    expect(Pitch.fromString('G5').midiNumber).toBe(79);
   });
 
-  it('should parse Helmholtz notation', function() {
-    Pitch.fromString('C,').midiNumber.should.equal(24);
-    Pitch.fromString('D,').midiNumber.should.equal(26);
-    Pitch.fromString('C').midiNumber.should.equal(36);
-    Pitch.fromString('c').midiNumber.should.equal(48);
-    Pitch.fromString('c♯').midiNumber.should.equal(49);
-    Pitch.fromString('c♭').midiNumber.should.equal(47);
-    Pitch.fromString("c'").midiNumber.should.equal(60);
-    Pitch.fromString("c'''").midiNumber.should.equal(84);
-    return Pitch.fromString("d'''").midiNumber.should.equal(86);
+  it('should parse Helmholtz notation', () => {
+    expect(Pitch.fromString('C,').midiNumber).toBe(24);
+    expect(Pitch.fromString('D,').midiNumber).toBe(26);
+    expect(Pitch.fromString('C').midiNumber).toBe(36);
+    expect(Pitch.fromString('c').midiNumber).toBe(48);
+    expect(Pitch.fromString('c♯').midiNumber).toBe(49);
+    expect(Pitch.fromString('c♭').midiNumber).toBe(47);
+    expect(Pitch.fromString("c'").midiNumber).toBe(60);
+    expect(Pitch.fromString("c'''").midiNumber).toBe(84);
+    expect(Pitch.fromString("d'''").midiNumber).toBe(86);
   });
 
-  it('should implement toString', function() {
-    Pitch.fromMidiNumber(60)
-      .toString()
-      .should.equal('C4');
-    Pitch.fromMidiNumber(72)
-      .toString()
-      .should.equal('C5');
-    Pitch.fromMidiNumber(64)
-      .toString()
-      .should.equal('E4');
-    return Pitch.fromMidiNumber(79)
-      .toString()
-      .should.equal('G5');
+  it('should implement toString', () => {
+    expect(Pitch.fromMidiNumber(60).toString()).toBe('C4');
+    expect(Pitch.fromMidiNumber(72).toString()).toBe('C5');
+    expect(Pitch.fromMidiNumber(64).toString()).toBe('E4');
+    expect(Pitch.fromMidiNumber(79).toString()).toBe('G5');
   });
 
-  it('should add to an interval', function() {
-    Pitch.fromString('C4')
-      .add(Interval.fromString('P1'))
-      .toString()
-      .should.equal('C4');
-    Pitch.fromString('C4')
-      .add(Interval.fromString('M2'))
-      .toString()
-      .should.equal('D4');
-    return Pitch.fromString('C4')
-      .add(Interval.fromString('P8'))
-      .toString()
-      .should.equal('C5');
+  it('should add to an interval', () => {
+    expect(
+      Pitch.fromString('C4')
+        .add(Interval.fromString('P1'))
+        .toString()
+    ).toBe('C4');
+    expect(
+      Pitch.fromString('C4')
+        .add(Interval.fromString('M2'))
+        .toString()
+    ).toBe('D4');
+    expect(
+      Pitch.fromString('C4')
+        .add(Interval.fromString('P8'))
+        .toString()
+    ).toBe('C5');
   });
 
   it('should implement transposeBy', () =>
-    Pitch.fromString('C4')
-      .transposeBy(Interval.fromString('M2'))
-      .toString()
-      .should.equal('D4'));
+    expect(
+      Pitch.fromString('C4')
+        .transposeBy(Interval.fromString('M2'))
+        .toString()
+    ).toBe('D4'));
 
-  it('#toPitch should return itself');
-  return it('#toPitchClass should return its pitch class');
+  // test.skip('#toPitch should itself');
+  // test.skip('#toPitchClass should its pitch class');
 });
 
-describe('PitchClass', function() {
-  it('#fromString should construct a pitch class', function() {
-    PitchClass.fromString('C').semitones.should.equal(0);
-    PitchClass.fromString('E').semitones.should.equal(4);
-    PitchClass.fromString('G').semitones.should.equal(7);
-    PitchClass.fromString('C♭').semitones.should.equal(11);
-    return PitchClass.fromString('C♯').semitones.should.equal(1);
+describe('PitchClass', () => {
+  it('#fromString should construct a pitch class', () => {
+    expect(PitchClass.fromString('C').semitones).toBe(0);
+    expect(PitchClass.fromString('E').semitones).toBe(4);
+    expect(PitchClass.fromString('G').semitones).toBe(7);
+    expect(PitchClass.fromString('C♭').semitones).toBe(11);
+    expect(PitchClass.fromString('C♯').semitones).toBe(1);
   });
 
-  it('#fromSemitones should construct a pitch class');
+  // test.skip('#fromSemitones should construct a pitch class');
 
-  it('#enharmonicizeTo should return the enharmonic equivalent within a scale');
+  // test.skip('#enharmonicizeTo should return the enharmonic equivalent within a scale');
 
-  it('#toString should return the name of the pitch class', function() {
-    PitchClass.fromSemitones(0)
-      .toString()
-      .should.equal('C');
-    PitchClass.fromSemitones(2)
-      .toString()
-      .should.equal('D');
-    return PitchClass.fromSemitones(4)
-      .toString()
-      .should.equal('E');
+  it('#toString should return the name of the pitch class', () => {
+    expect(PitchClass.fromSemitones(0).toString()).toBe('C');
+    expect(PitchClass.fromSemitones(2).toString()).toBe('D');
+    expect(PitchClass.fromSemitones(4).toString()).toBe('E');
   });
 
-  it('should normalize its input', function() {
-    PitchClass.fromSemitones(12)
-      .toString()
-      .should.equal('C');
-    return PitchClass.fromSemitones(14)
-      .toString()
-      .should.equal('D');
+  it('should normalize its input', () => {
+    expect(PitchClass.fromSemitones(12).toString()).toBe('C');
+    expect(PitchClass.fromSemitones(14).toString()).toBe('D');
   });
 
   it('should add to an interval', () =>
-    PitchClass.fromString('C')
-      .add(Interval.fromString('M2'))
-      .toString()
-      .should.equal('D'));
+    expect(
+      PitchClass.fromString('C')
+        .add(Interval.fromString('M2'))
+        .toString()
+    ).toBe('D'));
 
-  it('#toPitch should return a pitch within the specified octave');
-  return it('#toPitchClass should return itself');
+  // test.skip('#toPitch should return a pitch within the specified octave');
+  // test.skip('#toPitchClass should itself');
 });
 
 describe('Pitches', () =>
   it('should contain 12 pitches', function() {
-    Pitches.should.be.an.Array;
-    Pitches.should.have.length(12);
-    return Pitches[0].should.be.an.instanceOf(Pitch);
+    expect(Pitches).toBeInstanceOf(Array);
+    expect(Pitches).toHaveLength(12);
+    expect(Pitches[0]).toBeInstanceOf(Pitch);
   }));
