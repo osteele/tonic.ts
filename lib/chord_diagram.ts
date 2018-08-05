@@ -1,30 +1,31 @@
 import * as _ from 'lodash';
 import { hsv2css } from './color_utils';
+import { GraphicsContext } from './graphics';
 import { FretCount, FretNumbers, Instrument } from './instruments';
 import { Interval } from './interval';
 
 type Style = {
-  h_gutter: number;
-  v_gutter: number;
-  string_spacing: number;
-  fret_height: number;
-  above_fretboard: number;
-  note_radius: number;
-  closed_string_fontsize: number;
-  chord_degree_colors: string[];
-  intervalClass_colors: string[];
+  hGutter: number;
+  vGutter: number;
+  stringSpacing: number;
+  fretHeight: number;
+  aboveFretboard: number;
+  noteRadius: number;
+  closedStringFontSize: number;
+  chordDegreeColors: string[];
+  intervalClassColors: string[];
 };
 
 const SmallStyle = {
-  h_gutter: 5,
-  v_gutter: 5,
-  string_spacing: 6,
-  fret_height: 8,
-  above_fretboard: 8,
-  note_radius: 1,
-  closed_string_fontsize: 4,
-  chord_degree_colors: ['red', 'blue', 'green', 'orange'],
-  intervalClass_colors: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(n =>
+  hGutter: 5,
+  vGutter: 5,
+  stringSpacing: 6,
+  fretHeight: 8,
+  aboveFretboard: 8,
+  noteRadius: 1,
+  closedStringFontsize: 4,
+  chordDegreeColors: ['red', 'blue', 'green', 'orange'],
+  intervalClassColors: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(n =>
     // i = (7 * n) % 12  # color by circle of fifth ascension
     hsv2css({ h: (n * 360) / 12, s: 1, v: 1 })
   )
@@ -32,10 +33,10 @@ const SmallStyle = {
 
 const DefaultStyle = {
   ...SmallStyle,
-  string_spacing: 12,
-  fret_height: 16,
-  note_radius: 3,
-  closed_string_fontsize: 8
+  stringSpacing: 12,
+  fretHeight: 16,
+  noteRadius: 3,
+  closedStringFontSize: 8
 };
 
 function computeChordDiagramDimensions(
@@ -46,8 +47,8 @@ function computeChordDiagramDimensions(
     style = DefaultStyle;
   }
   return {
-    width: 2 * style.h_gutter + (instrument.strings - 1) * style.string_spacing,
-    height: 2 * style.v_gutter + (style.fret_height + 2) * FretCount
+    width: 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing,
+    height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount
   };
 }
 
@@ -55,45 +56,20 @@ function computeChordDiagramDimensions(
 // Drawing Methods
 //
 
-interface DrawingContext {
-  arc: (
-    x: number,
-    y: number,
-    radius: number,
-    a: number,
-    b: number,
-    c: boolean
-  ) => void;
-  beginPath: () => void;
-  fill: () => void;
-  lineTo: (x: number, y: number) => void;
-  moveTo: (x: number, y: number) => void;
-  rect: (x: number, y: number, width: number, height: number) => void;
-  restore: () => void;
-  save: () => void;
-  scale: (x: number, y: number) => void;
-  stroke: () => void;
-  translate: (x: number, y: number) => void;
-
-  fillStyle: string;
-  lineWidth: number;
-  strokeStyle: string;
-}
-
 function drawChordDiagramStrings(
-  ctx: DrawingContext,
+  ctx: GraphicsContext,
   instrument: Instrument,
   options: { dimStrings?: number[] } = {}
 ) {
   const style = DefaultStyle;
   const result = [];
   instrument.stringNumbers.forEach(string => {
-    const x = string * style.string_spacing + style.h_gutter;
+    const x = string * style.stringSpacing + style.hGutter;
     ctx.beginPath();
-    ctx.moveTo(x, style.v_gutter + style.above_fretboard);
+    ctx.moveTo(x, style.vGutter + style.aboveFretboard);
     ctx.lineTo(
       x,
-      style.v_gutter + style.above_fretboard + FretCount * style.fret_height
+      style.vGutter + style.aboveFretboard + FretCount * style.fretHeight
     );
     ctx.strokeStyle =
       options.dimStrings && options.dimStrings.indexOf(string) >= 0
@@ -104,7 +80,7 @@ function drawChordDiagramStrings(
 }
 
 function drawChordDiagramFrets(
-  ctx: DrawingContext,
+  ctx: GraphicsContext,
   instrument: Instrument,
   param = { drawNut: true }
 ) {
@@ -112,11 +88,11 @@ function drawChordDiagramFrets(
   const style = DefaultStyle;
   ctx.strokeStyle = 'black';
   FretNumbers.forEach(fret => {
-    const y = style.v_gutter + style.above_fretboard + fret * style.fret_height;
+    const y = style.vGutter + style.aboveFretboard + fret * style.fretHeight;
     ctx.beginPath();
-    ctx.moveTo(style.v_gutter - 0.5, y);
+    ctx.moveTo(style.vGutter - 0.5, y);
     ctx.lineTo(
-      style.v_gutter + 0.5 + (instrument.strings - 1) * style.string_spacing,
+      style.vGutter + 0.5 + (instrument.strings - 1) * style.stringSpacing,
       y
     );
     if (fret === 0 && drawNut) {
@@ -128,7 +104,7 @@ function drawChordDiagramFrets(
 }
 
 function drawChordDiagram(
-  ctx: DrawingContext,
+  ctx: GraphicsContext,
   instrument: Instrument,
   positions: { fret: number; string: number; intervalClass: Interval }[],
   options: {
@@ -181,11 +157,11 @@ function drawChordDiagram(
       fret -= topFret;
     }
     return {
-      x: style.h_gutter + string * style.string_spacing,
+      x: style.hGutter + string * style.stringSpacing,
       y:
-        style.v_gutter +
-        style.above_fretboard +
-        (fret - 0.5) * style.fret_height +
+        style.vGutter +
+        style.aboveFretboard +
+        (fret - 0.5) * style.fretHeight +
         dy
     };
   }
@@ -201,9 +177,9 @@ function drawChordDiagram(
     ctx.lineWidth = 1;
     ctx.beginPath();
     if (isRoot && position.fret) {
-      (r => ctx.rect(x - r, y - r, 2 * r, 2 * r))(style.note_radius);
+      (r => ctx.rect(x - r, y - r, 2 * r, 2 * r))(style.noteRadius);
     } else {
-      ctx.arc(x, y, style.note_radius, 0, Math.PI * 2, false);
+      ctx.arc(x, y, style.noteRadius, 0, Math.PI * 2, false);
     }
     if (position.fret > 0 || isRoot) {
       ctx.fill();
@@ -221,18 +197,18 @@ function drawChordDiagram(
       });
       const w = x2 - x1;
       ctx.save();
-      ctx.translate((x1 + x2) / 2, y - style.fret_height * 0.25);
+      ctx.translate((x1 + x2) / 2, y - style.fretHeight * 0.25);
       ctx.beginPath();
       const eccentricity = 10;
 
       ctx.save();
       ctx.scale(w, eccentricity);
-      ctx.arc(0, 0, style.string_spacing / 2 / eccentricity, Math.PI, 0, false);
+      ctx.arc(0, 0, style.stringSpacing / 2 / eccentricity, Math.PI, 0, false);
       ctx.restore();
 
       ctx.save();
       ctx.scale(w, 14);
-      ctx.arc(0, 0, style.string_spacing / 2 / eccentricity, 0, Math.PI, true);
+      ctx.arc(0, 0, style.stringSpacing / 2 / eccentricity, 0, Math.PI, true);
       ctx.restore();
 
       ctx.fill();
@@ -249,7 +225,7 @@ function drawChordDiagram(
   function drawFingerPositions() {
     positions.forEach(position => {
       const default_options = {
-        color: style.intervalClass_colors[position.intervalClass.semitones],
+        color: style.intervalClassColors[position.intervalClass.semitones],
         isRoot: position.intervalClass.semitones === 0
       };
       drawFingerPosition(position, _.extend(default_options, position));
@@ -264,7 +240,7 @@ function drawChordDiagram(
     const closed_strings = instrument.stringNumbers.filter(
       string => !fretted_strings[string]
     );
-    const r = style.note_radius;
+    const r = style.noteRadius;
     ctx.fillStyle = 'black';
     closed_strings.forEach(string => {
       const { x, y } = fingerCoordinates({ string, fret: 0 });
