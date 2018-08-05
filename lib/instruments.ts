@@ -76,8 +76,8 @@ export const Instruments: { [_: string]: Instrument } = [
     return acc;
   }, {});
 
-const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
-const FretCount = FretNumbers.length - 1; // doesn't include nut
+export const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
+export const FretCount = FretNumbers.length - 1; // doesn't include nut
 
 // const intervalPositionsFromRoot = function(
 //   instrument,
