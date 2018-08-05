@@ -1,3 +1,4 @@
+import { semitonesToAccidentalString } from './accidentals';
 import { Pitch } from './pitches';
 import {
   normalizePitchClass,
@@ -72,14 +73,10 @@ export class Interval {
     return new Interval(semitones);
   }
 
-  // pitch1 and pitch2 can both be pitches, or pitch classes
-  // static between(pitch1:Pitch, pitch2:Pitch): Interval;
-  // static between(pitch1:PitchClass, pitch2:PitchClass): Interval;
-  static between(
-    pitch1: Pitch | PitchClass | number,
-    pitch2: Pitch | PitchClass | number
-  ) {
-    // static function between<T>(pitch1: T, pitch2: T) {
+  static between(pitch1: Pitch, pitch2: Pitch): Interval;
+  static between(pitch1: PitchClass, pitch2: PitchClass): Interval;
+  static between(pitch1: number, pitch2: number): Interval;
+  static between(pitch1: any, pitch2: any) {
     let semitones = 0;
     if (pitch1 instanceof Pitch && pitch2 instanceof Pitch) {
       semitones = pitch2.midiNumber - pitch1.midiNumber;
@@ -116,6 +113,6 @@ export const Intervals = IntervalNames.reduce(
 export function intervalClassDifference(
   a: PitchClassNumber,
   b: PitchClassNumber
-): int {
+): number {
   return normalizePitchClass(b - a);
 }
