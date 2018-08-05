@@ -1,58 +1,56 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-import { intervalClassDifference, Pitch } from './pitches';
+import { Pitch } from './pitches';
 
-//
-// Fretboard
-//
-
-class Instrument {
+export class Instrument {
   name: string;
   fretted: boolean;
-  stringPitches: [Pitch];
-  fretCount: number;
+  stringPitches: Pitch[];
+  fretCount: number | null;
   strings: number;
   stringCount: number;
-  stringNumbers: [number];
-  constructor({ name1, fretted, stringPitches: string, fretCount }) {
-    let name;
-    this.name = name1;
+  stringNumbers: number[];
+  constructor({
+    name,
+    fretted = false,
+    stringPitches,
+    fretCount
+  }: {
+    name: string;
+    fretted?: boolean;
+    stringPitches: Pitch[] | string;
+    fretCount?: number;
+  }) {
+    this.name = name;
     this.fretted = fretted;
-    this.stringPitches = stringPitches;
-    this.fretCount = fretCount;
-    if (typeof this.stringPitches === 'string') {
-      this.stringPitches = this.stringPitches.split(/\s/);
-    }
-    if (typeof this.stringPitches[0] === 'string') {
-      this.stringPitches = (() => {
-        const result = [];
-        for (name of Array.from(this.stringPitches)) {
-          result.push(Pitch.fromString(name));
-        }
-        return result;
-      })();
-    }
+    this.fretCount = fretCount || null;
+    this.stringPitches =
+      typeof stringPitches === 'string'
+        ? stringPitches.split(/\s/).map(Pitch.fromString)
+        : (stringPitches as Pitch[]);
+    // if (typeof this.stringPitches[0] === 'string') {
+    //   this.stringPitches = (() => {
+    //     const result = [];
+    //     for (name of Array.from(this.stringPitches)) {
+    //       result.push(Pitch.fromString(name));
+    //     }
+    //     return result;
+    //   })();
+    // }
     this.strings = this.stringCount = this.stringPitches.length;
     this.stringNumbers = __range__(0, this.strings, false);
   }
 
-  eachFingerPosition(fn) {
-    return Array.from(this.stringNumbers).map(string =>
-      __range__(0, this.fretCount, true).map(fret => fn({ string, fret }))
+  eachFingerPosition(fn: (_: { string: number; fret: number }) => any) {
+    return this.stringNumbers.map(string =>
+      __range__(0, this.fretCount || 0, true).map(fret => fn({ string, fret }))
     );
   }
 
-  pitchAt({ string, fret }) {
+  pitchAt({ string, fret }: { string: number; fret: number }) {
     return Pitch.fromMidiNumber(this.stringPitches[string].midiNumber + fret);
   }
 }
 
-const Instruments = [
+export const Instruments: { [_: string]: Instrument } = [
   {
     name: 'Guitar',
     stringPitches: 'E2 A2 D3 G3 B3 E4',
@@ -71,36 +69,36 @@ const Instruments = [
     name: 'Cello',
     stringPitches: 'C G D A'
   }
-].map(attrs => new Instrument(attrs));
-
-(() =>
-  Array.from(Instruments).map(
-    instrument => (Instruments[instrument.name] = instrument)
-  ))();
+]
+  .map(attrs => new Instrument(attrs))
+  .reduce((acc: { [_: string]: Instrument }, instr) => {
+    acc[instr.name] = instr;
+    return acc;
+  }, {});
 
 const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
 const FretCount = FretNumbers.length - 1; // doesn't include nut
 
-const intervalPositionsFromRoot = function(
-  instrument,
-  rootPosition,
-  semitones
-) {
-  const rootPitch = instrument.pitchAt(rootPosition);
-  const positions = [];
-  fretboard_positions_each(function(fingerPosition) {
-    if (
-      intervalClassDifference(rootPitch, instrument.pitchAt(fingerPosition)) !==
-      semitones
-    ) {
-      return;
-    }
-    return positions.push(fingerPosition);
-  });
-  return positions;
-};
+// const intervalPositionsFromRoot = function(
+//   instrument,
+//   rootPosition,
+//   semitones
+// ) {
+//   const rootPitch = instrument.pitchAt(rootPosition);
+//   const positions = [];
+//   fretboard_positions_each(function(fingerPosition) {
+//     if (
+//       intervalClassDifference(rootPitch, instrument.pitchAt(fingerPosition)) !==
+//       semitones
+//     ) {
+//       return;
+//     }
+//     return positions.push(fingerPosition);
+//   });
+//   return positions;
+// };
 
-function __range__(left, right, inclusive) {
+function __range__(left: number, right: number, inclusive: boolean) {
   let range = [];
   let ascending = left < right;
   let end = !inclusive ? right : ascending ? right + 1 : right - 1;
@@ -109,12 +107,3 @@ function __range__(left, right, inclusive) {
   }
   return range;
 }
-
-export const Default = Instruments.Guitar;
-export {
-  FretNumbers,
-  FretCount,
-  Instrument,
-  Instruments,
-  intervalPositionsFromRoot
-};

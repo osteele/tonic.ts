@@ -1,72 +1,85 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-require('coffee-errors');
-const should = require('should');
-const { Pitch } = require('../lib/pitches');
-const { Instrument, Instruments } = require('../lib/instruments');
+import { Instruments } from '../lib/instruments';
 
-describe('Instruments', () =>
-  it('should define a guitar', () =>
-    Instruments.Guitar.should.be.an.instanceOf(Instrument)));
+describe('Instruments', () => {
+  it('should define a guitar', () => {
+    expect(Instruments.Guitar).toBeTruthy();
+  });
+});
 
-describe('Instrument', function() {
-  const guitar = Instruments.Guitar;
+describe('Instrument', () => {
+  const guitar = Instruments['Guitar'];
 
-  it('should have a string count', () => guitar.stringCount.should.equal(6));
-
-  it('should have an array of strings', () => guitar.strings.should.equal(6));
-
-  it('should have a fret count', () => guitar.fretCount.should.equal(12));
-
-  it('should have an array of strings', () =>
-    guitar.stringNumbers.should.eql([0, 1, 2, 3, 4, 5]));
-
-  it('should have an array of string pitches', function() {
-    guitar.stringPitches.should.be.an.Array;
-    guitar.stringPitches.should.have.length(6);
-    guitar.stringPitches[0].should.be.an.instanceOf(Pitch);
-    guitar.stringPitches[0].toString().should.equal('E2');
-    return guitar.stringPitches[5].toString().should.equal('E4');
+  it('should have a string count', () => {
+    expect(guitar.stringCount).toBe(6);
   });
 
-  it('should define the pitch at each string and fret', function() {
-    guitar
-      .pitchAt({ string: 0, fret: 0 })
-      .toString()
-      .should.equal('E2');
-    guitar
-      .pitchAt({ string: 0, fret: 1 })
-      .toString()
-      .should.equal('F2');
-    return guitar
-      .pitchAt({ string: 5, fret: 3 })
-      .toString()
-      .should.equal('G4');
+  it('should have an array of strings', () => {
+    expect(guitar.strings).toBe(6);
   });
 
-  return describe('eachFingerPosition', () =>
-    it('should iterate over each finger position', function() {
+  it('should have a fret count', () => {
+    expect(guitar.fretCount).toBe(12);
+  });
+
+  it('should have an array of strings', () => {
+    expect(guitar.stringNumbers).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('should have an array of string pitches', () => {
+    expect(guitar.stringPitches).toHaveLength(6);
+    expect(guitar.stringPitches[0].toString()).toBe('E2');
+    expect(guitar.stringPitches[5].toString()).toBe('E4');
+  });
+
+  it('should define the pitch at each string and fret', () => {
+    expect(guitar.pitchAt({ string: 0, fret: 0 }).toString()).toBe('E2');
+    expect(guitar.pitchAt({ string: 0, fret: 1 }).toString()).toBe('F2');
+    expect(guitar.pitchAt({ string: 5, fret: 3 }).toString()).toBe('G4');
+  });
+
+  describe('eachFingerPosition', () =>
+    it('should iterate over each finger position', () => {
       let count = 0;
       let found = false;
-      const strings = [];
-      const frets = [];
-      guitar.eachFingerPosition(function({ string, fret }) {
-        string.should.be.within(0, 5);
-        fret.should.be.within(0, 12);
+      const strings: { [_: number]: boolean } = {};
+      const frets: { [_: number]: boolean } = {};
+      guitar.eachFingerPosition(({ string, fret }) => {
+        expect(string).toBeWithin(0, 5);
+        expect(fret).toBeWithin(0, 12);
         strings[string] = true;
         frets[fret] = true;
         count += 1;
-        return found || (found = string === 2 && fret === 3);
+
+        found || (found = string === 2 && fret === 3);
       });
-      count.should.equal(6 * 13);
-      strings.should.have.length(6);
-      frets.should.have.length(13);
-      frets[0].should.be.true;
-      frets[12].should.be.true;
-      should.not.exist(frets[13]);
-      return found.should.be.true;
+      expect(count).toBe(6 * 13);
+      expect(Object.keys(strings)).toHaveLength(6);
+      expect(Object.keys(frets)).toHaveLength(13);
+      expect(frets[0]).toBe(true);
+      expect(frets[12]).toBe(true);
+      expect(frets[13]).toBeUndefined();
+      expect(found).toBe(true);
     }));
+});
+
+declare namespace jest {
+  interface Matchers {
+    toBeWithin: typeof toBeWithin;
+  }
+}
+
+function toBeWithin(
+  this: jest.MatcherUtils,
+  received: number,
+  a: number,
+  b: number
+) {
+  return {
+    message: () => `expected ${received} to be within ${a}…${b}`,
+    pass: a <= received && received <= b
+  };
+}
+
+expect.extend({
+  toBeWithin
 });
