@@ -1,8 +1,8 @@
-import { FlatNoteNames, SharpNoteNames } from './notes';
 import { Pitch } from './pitches';
 import { Interval } from './interval';
 import { PitchClass, normalizePitchClass } from './pitch_class';
 import { Chord } from './chords';
+import {chordFromRomanNumeral} from './chord_progressions';
 
 // A scale is a named collection, either of intervals or notes.
 export class Scale {
@@ -110,7 +110,17 @@ export class Scale {
     }
     return scale;
   }
-}
+
+  fromRomanNumeral(name:string):Chord {
+    return chordFromRomanNumeral(name, this);
+  }
+
+  progression(names:string):Chord[] {
+    return names.split(/[\s+\-]+/).map(name =>
+      this.fromRomanNumeral(name)
+    );
+  };
+  }
 
 function toPitchOrPitchClass(
   pitch: Pitch | PitchClass | string

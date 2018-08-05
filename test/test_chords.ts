@@ -139,7 +139,6 @@ describe('Major Chord Class', () => {
     // eql [0, 4, 7]
 
     // it.skip('#invert');
-    // it.skip('#fromRomanNumeral');
     // it.skip('#fromPitches');
   });
 

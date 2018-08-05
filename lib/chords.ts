@@ -156,10 +156,6 @@ export class Chord {
     });
   }
 
-  // static fromRomanNumeral(name:string, scale:Scale):Chord {
-  //   return chordFromRomanNumeral(name, scale);
-  // }
-
   static fromString(name: string): Chord | ChordClass {
     const match = name.match(ChordNameRe);
     if (!match) {
@@ -239,3 +235,7 @@ export const ChordClassMap: { [_: string]: ChordClass } = ChordClasses.reduce(
   },
   {}
 );
+
+function rotateArray<T>(array: T[], n: number): T[] {
+  return array.slice(n).concat(array.slice(0, n));
+}
