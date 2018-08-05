@@ -17,11 +17,12 @@
     "url": "http://github.com/osteele/schoen/issues"
   },
   "dependencies": {
-    "typescript": "^3.0.1",
-    "underscore": "~1.5.2"
+    "lodash": "^4.17.10",
+    "typescript": "^3.0.1"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
+    "@types/lodash": "^4.14.116",
     "jest": "^23.4.2",
     "ts-jest": "^23.1.2"
   },

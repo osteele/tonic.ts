@@ -1,88 +1,107 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS206: Consider reworking classes to avoid initClass
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-import _ from  'underscore'
-// import util from 'util'
-import  './utils';
-import { Interval, Pitch, PitchClass } from './pitches';
+// import  './utils';
+import * as _ from 'lodash';
+import { Chord } from './chords';
+import { Instrument } from './instruments';
+import { Interval } from './interval';
+import { PitchClass } from './pitch_class';
+
+type FingeringPosition = {
+  string: number;
+  fret: number;
+  intervalClass: Interval;
+};
 
 // These are "fingerings" and not "voicings" because they also include barre information.
 class Fingering {
-  static initClass() {
-    this.cached_getter('fretstring', function() {
-      const fretArray = Array.from(this.instrument.stringNumbers).map(s => -1);
-      for (let { string, fret } of Array.from(this.positions)) {
-        fretArray[string] = fret;
-      }
-      return Array.from(fretArray)
-        .map(x => (x >= 0 ? x : 'x'))
-        .join('');
-    });
-
-    this.cached_getter('chordName', function() {
-      let { name } = this.chord;
-      if (this.inversion > 0) {
-        name += ` / ${this.instrument.pitchAt(this.positions[0]).toString()}`;
-      }
-      return name;
-    });
-
-    // @cached_getter 'pitches', ->
-    //   (@instrument.pitchAt(positions) for positions in @positions)
-
-    // @cached_getter 'intervals', ->
-    //   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
-
-    this.cached_getter('inversion', function() {
-      return this.chord.pitches.indexOf(
-        Interval.between(
-          this.chord.root,
-          this.instrument.pitchAt(this.positions[0])
-        )
-      );
-    });
-
-    this.cached_getter('inversionLetter', function() {
-      if (!(this.inversion > 0)) {
-        return;
-      }
-      return String.fromCharCode(96 + this.inversion);
-    });
-  }
-  positions: [int];
+  positions: FingeringPosition[];
   chord: Chord;
-  barres: [int];
+  barres: number[];
   instrument: Instrument;
-  properties: object;
-  constructor({ positions, chord, barres, instrument }) {
-    this.positions = positions;
+  properties: { [_: string]: any };
+  constructor({
+    positions,
+    chord,
+    barres,
+    instrument
+  }: {
+    positions: FingeringPosition[];
+    chord: Chord;
+    barres: number[];
+    instrument: Instrument;
+  }) {
     this.chord = chord;
-    this.barres = barres;
     this.instrument = instrument;
-    this.positions.sort((a, b) => a.string - b.string);
+    this.positions = [...positions];
+    this.positions.sort(
+      (a: { string: number }, b: { string: number }) => a.string - b.string
+    );
+    this.barres = barres;
     this.properties = {};
   }
+
+  private _fretString: string | null;
+  get fretString(): string {
+    if (!this._fretString) {
+      this._fretString = this.computeFretString();
+    }
+    return this._fretString;
+  }
+
+  // string representation of a fingering
+  computeFretString(): string {
+    const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
+    this.positions.forEach(
+      ({ string, fret }: { string: number; fret: number }) => {
+        fretArray[string] = fret;
+      }
+    );
+    return fretArray.map(x => (x >= 0 ? x : 'x')).join('');
+  }
+
+  // chordName(): string {
+  //   let { name } = this.chord;
+  //   if (this.inversion() > 0) {
+  //     name += ` / ${this.instrument.pitchAt(this.positions[0]).toString()}`;
+  //   }
+  //   return name;
+  // }
+
+  // @cached_getter 'pitches', ->
+  //   (@instrument.pitchAt(positions) for positions in @positions)
+
+  // @cached_getter 'intervals', ->
+  //   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
+
+  // inversion():number {
+  //   return this.chord.pitches.indexOf(
+  //     Interval.between(
+  //       this.chord.root,
+  //       this.instrument.pitchAt(this.positions[0])
+  //     )
+  //   );
+  // }
+
+  //   inversionLetter():string {
+  //   if (!(this.inversion > 0)) {
+  //     return;
+  //   }
+  //   return String.fromCharCode(96 + this.inversion);
+  // }
+  // }
 }
-Fingering.initClass();
 
 //
 // Barres
 //
 
-const powerset = function(array) {
+function powerset<T>(array: T[]): T[][] {
   if (!array.length) {
     return [[]];
   }
-  const [x, ...xs] = Array.from(array);
+  const [x, ...xs] = array;
   const tail = powerset(xs);
-  return tail.concat(Array.from(tail).map(ys => [x].concat(ys)));
-};
+  return tail.concat(tail.map(ys => [x].concat(ys)));
+}
 
 // Returns an array of strings indexed by fret number. Each string
 // has a character at each string position:
@@ -90,7 +109,7 @@ const powerset = function(array) {
 // '>' = fretted at a higher fret
 // '<' = fretted at a lower fret, or open
 // 'x' = muted
-const computeBarreCandidateStrings = function(instrument, fretArray) {
+const computeBarreCandidateStrings = function(fretArray) {
   const codeStrings = [];
   for (var referenceFret of Array.from(fretArray)) {
     if (typeof referenceFret !== 'number') {
@@ -114,9 +133,9 @@ const computeBarreCandidateStrings = function(instrument, fretArray) {
   return codeStrings;
 };
 
-const findBarres = function(instrument, fretArray) {
+function findBarres(fretArray) {
   const barres = [];
-  const iterable = computeBarreCandidateStrings(instrument, fretArray);
+  const iterable = computeBarreCandidateStrings(fretArray);
   for (let fret = 0; fret < iterable.length; fret++) {
     const codeString = iterable[fret];
     if (fret === 0) {
@@ -141,18 +160,18 @@ const findBarres = function(instrument, fretArray) {
     });
   }
   return barres;
-};
+}
 
-const collectBarreSets = function(instrument, fretArray) {
-  const barres = findBarres(instrument, fretArray);
+function collectBarreSets(fretArray) {
+  const barres = findBarres(fretArray);
   return powerset(barres);
-};
+}
 
 //
 // Fingerings
 //
 
-const fingerPositionsOnChord = function(chord, instrument) {
+function fingerPositionsOnChord(chord: Chord, instrument: Instrument) {
   const { root, intervals } = chord;
   const positions = [];
   instrument.eachFingerPosition(function(pos) {
@@ -162,17 +181,17 @@ const fingerPositionsOnChord = function(chord, instrument) {
     }
   });
   return positions;
-};
+}
 
 // TODO add options for strumming vs. fingerstyle; muting; stretch
-const chordFingerings = function(chord, instrument, options) {
-  if (options == null) {
-    options = {};
-  }
-  options = _.extend({ filter: true, allPositions: false }, options);
+export function chordFingerings(
+  chord: Chord,
+  instrument: Instrument,
+  options = { filter: true, allPositions: false, fingerPicking: false }
+) {
   const warn = false;
   if (chord.root == null) {
-    throw new Error(`No root for ${util.inspect(chord)}`);
+    throw new Error(`No root for ${chord}`);
   }
   if (chord.root instanceof PitchClass) {
     chord = chord.at(chord.root.toPitch());
@@ -182,7 +201,7 @@ const chordFingerings = function(chord, instrument, options) {
   // Generate
   //
 
-  const fretsPerString = function() {
+  function fretsPerString() {
     let positions = fingerPositionsOnChord(chord, instrument);
     if (!options.allPositions) {
       positions = Array.from(positions).filter(pos => pos.fret <= 4);
@@ -194,9 +213,9 @@ const chordFingerings = function(chord, instrument, options) {
       strings[string].push(fret);
     }
     return strings;
-  };
+  }
 
-  const collectFingeringPositions = function(fretCandidatesPerString) {
+  function collectFingeringPositions(fretCandidatesPerString) {
     const stringCount = fretCandidatesPerString.length;
     const positionSet = [];
     const fretArray = [];
@@ -216,10 +235,10 @@ const chordFingerings = function(chord, instrument, options) {
     };
     fill(0);
     return positionSet;
-  };
+  }
 
   // actually tests pitch classes, not pitches
-  const containsAllChordPitches = function(fretArray) {
+  function containsAllChordPitches(fretArray) {
     const trace = fretArray.join('') === '022100';
     const pitchClasses = [];
     for (let string = 0; string < fretArray.length; string++) {
@@ -234,9 +253,9 @@ const chordFingerings = function(chord, instrument, options) {
       }
     }
     return pitchClasses.length === chord.pitches.length;
-  };
+  }
 
-  const maximumFretDistance = function(fretArray) {
+  function maximumFretDistance(fretArray) {
     const frets = Array.from(fretArray).filter(
       fret => typeof fret === 'number'
     );
@@ -246,13 +265,13 @@ const chordFingerings = function(chord, instrument, options) {
         Math.min(...Array.from(frets || [])) <=
       3
     );
-  };
+  }
 
-  const generateFingerings = function() {
+  function generateFingerings() {
     const fingerings = [];
-    let fretArrays = collectFingeringPositions(fretsPerString());
-    fretArrays = fretArrays.filter(containsAllChordPitches);
-    fretArrays = fretArrays.filter(maximumFretDistance);
+    const fretArrays = collectFingeringPositions(fretsPerString())
+      .filter(containsAllChordPitches)
+      .filter(maximumFretDistance);
     for (var fretArray of Array.from(fretArrays)) {
       const positions = (() => {
         const result = [];
@@ -273,7 +292,7 @@ const chordFingerings = function(chord, instrument, options) {
       }
       let sets = [[]];
       if (positions.length > 4) {
-        sets = collectBarreSets(instrument, fretArray);
+        sets = collectBarreSets(fretArray);
       }
       for (let barres of Array.from(sets)) {
         fingerings.push(
@@ -282,7 +301,7 @@ const chordFingerings = function(chord, instrument, options) {
       }
     }
     return fingerings;
-  };
+  }
 
   const chordNoteCount = chord.pitches.length;
 
@@ -291,7 +310,7 @@ const chordFingerings = function(chord, instrument, options) {
   //
 
   // really counts distinct pitch classes, not distinct pitches
-  const countDistinctNotes = function(fingering) {
+  function countDistinctNotes(fingering) {
     // _.chain(fingering.positions).pluck('intervalClass').uniq().value().length
     const intervalClasses = [];
     for (let { intervalClass } of Array.from(fingering.positions)) {
@@ -300,14 +319,14 @@ const chordFingerings = function(chord, instrument, options) {
       }
     }
     return intervalClasses.length;
-  };
+  }
 
   const hasAllNotes = fingering =>
     countDistinctNotes(fingering) === chordNoteCount;
 
-  const mutedMedialStrings = fingering => fingering.fretstring.match(/\dx+\d/);
+  const mutedMedialStrings = fingering => fingering.fretString.match(/\dx+\d/);
 
-  const mutedTrebleStrings = fingering => fingering.fretstring.match(/x$/);
+  const mutedTrebleStrings = fingering => fingering.fretString.match(/x$/);
 
   const getFingerCount = function(fingering) {
     let n = Array.from(fingering.positions).filter(pos => pos.fret > 0).length;
@@ -317,18 +336,23 @@ const chordFingerings = function(chord, instrument, options) {
     return n;
   };
 
-  const fourFingersOrFewer = fingering => getFingerCount(fingering) <= 4;
+  const fourFingersOrFewer: (_: Fingering) => boolean = fingering =>
+    getFingerCount(fingering) <= 4;
 
   // Construct the filter set
 
-  const filters = [];
+  const filters: {
+    name: string;
+    select?: (_: Fingering) => boolean;
+    reject?: (_: Fingering) => boolean;
+  }[] = [];
   // filters.push name: 'has all chord notes', select: hasAllNotes
 
   if (options.filter) {
     filters.push({ name: 'four fingers or fewer', select: fourFingersOrFewer });
   }
 
-  if (!options.fingerpicking) {
+  if (!options.fingerPicking) {
     filters.push({
       name: 'no muted medial strings',
       reject: mutedMedialStrings
@@ -340,7 +364,7 @@ const chordFingerings = function(chord, instrument, options) {
   }
 
   // filter by all the filters in the list, except ignore those that wouldn't pass anything
-  const filterFingerings = function(fingerings) {
+  function filterFingerings(fingerings: Fingering[]): Fingering[] {
     for (var { name, select, reject } of Array.from(filters)) {
       let filtered = fingerings;
       if (reject) {
@@ -358,38 +382,46 @@ const chordFingerings = function(chord, instrument, options) {
       fingerings = filtered;
     }
     return fingerings;
-  };
+  }
 
   //
   // Sort
   //
 
   // FIXME count pitch classes, not sounded strings
-  const highNoteCount = fingering => fingering.positions.length;
+  const highNoteCount: (_: Fingering) => number = fingering =>
+    fingering.positions.length;
 
-  const isRootPosition = fingering =>
-    _(fingering.positions).sortBy(pos => pos.string)[0].degreeIndex === 0;
+  const isRootPosition: (_: Fingering) => boolean = fingering =>
+    _.sortBy(fingering.positions, pos => pos.string)[0].degreeIndex === 0;
 
-  const reverseSortKey = fn => a => -fn(a);
+  function reverseSortKey(
+    fn: (_: Fingering) => number
+  ): (_: Fingering) => number {
+    return a => -fn(a);
+  }
 
   // ordered list of preferences, from most to least important
-  const preferences = [
+  const preferences: { name: string; key: (_: Fingering) => any }[] = [
     { name: 'root position', key: isRootPosition },
     { name: 'high note count', key: highNoteCount },
     {
       name: 'avoid barres',
-      key: reverseSortKey(fingering => fingering.barres.length)
+      key: reverseSortKey((fingering: Fingering) => fingering.barres.length)
     },
     { name: 'low finger count', key: reverseSortKey(getFingerCount) }
   ];
 
-  const sortFingerings = function(fingerings) {
-    for (let { key } of Array.from(preferences.slice(0).reverse())) {
-      fingerings = _(fingerings).sortBy(key);
-    }
-    fingerings.reverse();
-    return fingerings;
-  };
+  function sortFingerings(fingerings: Fingering[]): Fingering[] {
+    return [...preferences]
+      .reverse()
+      .reduce(
+        (results: Fingering[], { key }) =>
+          _.sortBy(results, key) as Fingering[],
+        fingerings
+      )
+      .reverse();
+  }
 
   //
   // Generate, filter, and sort
@@ -399,51 +431,56 @@ const chordFingerings = function(chord, instrument, options) {
   fingerings = filterFingerings(fingerings);
   fingerings = sortFingerings(fingerings);
 
-  const properties = {
+  const properties: { [_: string]: RegExp | ((_: Fingering) => any) } = {
     root: isRootPosition,
-    barres(f) {
+    barres(f: Fingering) {
       return f.barres.length;
     },
     fingers: getFingerCount,
-    inversion(f) {
-      return f.inversionLetter || '';
-    },
+    // inversion(f: Fingering) {
+    //   return f.inversionLetter || '';
+    // },
     // bass: /^\d{3}x*$/
     // treble: /^x*\d{3}$/
     skipping: /\dx+\d/,
     muting: /\dx/,
     open: /0/,
-    triad({ positions }) {
+    triad({ positions }: Fingering) {
       return positions.length === 3;
     },
-    position({ positions }) {
-      return Math.max(_.min(_.pluck(positions, 'fret')) - 1, 0);
+    position({ positions }: Fingering) {
+      // const frets = positions.map(({ fret }) => fret);
+      return Math.max(
+        _
+          .chain(positions)
+          .map('fret')
+          .min()
+          .value()! - 1,
+        0
+      );
     },
-    strings({ positions }) {
+    strings({ positions }: Fingering) {
       return positions.length;
     }
   };
-  for (let name in properties) {
+  // console.info('fingerings', fingerings);
+  Object.keys(properties).forEach(name => {
     const fn = properties[name];
-    for (let fingering of Array.from(fingerings)) {
+    fingerings.forEach((fingering: Fingering) => {
       const value =
-        fn instanceof RegExp ? fn.test(fingering.fretstring) : fn(fingering);
+        fn instanceof RegExp ? fn.test(fingering.fretString) : fn(fingering);
       fingering.properties[name] = value;
-    }
-  }
+    });
+  });
 
   return fingerings;
-};
+}
 
-const bestFingeringFor = (chord, instrument) =>
-  chordFingerings(chord, instrument)[0];
+export function bestFingeringFor(chord: Chord, instrument: Instrument) {
+  return chordFingerings(chord, instrument)[0];
+}
 
-export {
-  bestFingeringFor,
-  chordFingerings
-};
-
-function __range__(left, right, inclusive) {
+function __range__(left: number, right: number, inclusive: boolean) {
   let range = [];
   let ascending = left < right;
   let end = !inclusive ? right : ascending ? right + 1 : right - 1;

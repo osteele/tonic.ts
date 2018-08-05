@@ -1,90 +1,91 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-require('coffee-errors');
-const should = require('should');
-const {Interval} = require('../lib/pitches');
-const {Chord} = require('../lib/chords');
-const {Instruments} = require('../lib/instruments');
-const {Fingering, bestFingeringFor} = require('../lib/fingerings');
+import { Chord } from '../lib/chords';
+import { bestFingeringFor } from '../lib/fingerings';
+import { Instruments } from '../lib/instruments';
+import { Interval } from '../lib/interval';
 
-describe('Fingering', function() {
-  const chord = Chord.fromString('E Major');
+describe('Fingering', () => {
+  const chord = Chord.fromString('E Major') as Chord;
   const instrument = Instruments.Guitar;
   const fingering = bestFingeringFor(chord, instrument);
 
-  it('should have a chord property', () => fingering.chord.should.be.equal(chord));
+  // it('should have an array of barres', () =>
+  //   fingering.barres.should.be.an.Array);
 
-  it('should have an instrument property', () => fingering.instrument.should.equal(instrument));
-
-  it('should have an array of barres', () => fingering.barres.should.be.an.Array);
-
-  it('should have a fretstring', function() {
-    fingering.fretstring.should.be.a.String;
-    return fingering.fretstring.should.match(/^[\dx]{6}$/);
+  it('should have a fretString', () => {
+    expect(fingering.fretString).toMatch(/^[\dx]{6}$/);
   });
 
-  it('should have an inversion');
-    // fingering.positions.should.be.an.Array
+  // it.skip('should have an inversion');
+  // it.skip('should have an inversion letter');
+  // it.skip('should have a properties dictionary')
 
-  it('should have an inversion letter');
-    // fingering.positions.should.be.an.Array
-
-  it('should have a properties dictioary', () => fingering.properties.should.be.an.Object);
-
-  return describe('positions', function() {
-    it('should be an array', () => fingering.positions.should.be.an.Array);
-
-    return it('should have fret and string properties');
+  describe('positions', () => {
+    // it.skip('should be an array);
+    // it.skip('should have fret and string properties');
   });
 });
-      // fingering.positions[0].should.have.properties 'fret', 'string', 'intervalClass'
+// fingering.positions[0].should.have.properties 'fret', 'string', 'intervalClass'
 
-describe('bestFingeringFor', () =>
-  describe('E Major', function() {
-    const fingering = bestFingeringFor(Chord.fromString('E Major'), Instruments.Guitar);
+describe('bestFingeringFor', () => {
+  describe('E Major', () => {
+    const fingering = bestFingeringFor(
+      Chord.fromString('E Major') as Chord,
+      Instruments.Guitar
+    );
 
-    it('should have fingers at 022100', function() {
-      fingering.positions.should.have.length(6);
-      fingering.positions[0].string.should.equal(0, 'finger #1 string');
-      fingering.positions[0].fret.should.equal(0, 'finger #1 fret');
-      fingering.positions[0].intervalClass.should.equal(Interval.fromString('P1'), 'finger #1 intervalClass');
+    it('should have fingers at 022100', () => {
+      expect(fingering.positions).toHaveLength(6);
+      expect(fingering.positions[0].string).toBe(0); // 'finger #1 string'
+      expect(fingering.positions[0].fret).toBe(0); // 'finger #1 fret'
+      expect(fingering.positions[0].intervalClass).toBe(
+        Interval.fromString('P1')
+      );
 
-      fingering.positions[1].string.should.equal(1, 'finger #2 string');
-      fingering.positions[1].fret.should.equal(2, 'finger #2 fret');
-      fingering.positions[1].intervalClass.should.equal(Interval.fromString('P5'), 'finger #2 intervalClass');
+      expect(fingering.positions[1].string).toBe(1); // 'finger #2 string'
+      expect(fingering.positions[1].fret).toBe(2); // 'finger #2 fret'
+      expect(fingering.positions[1].intervalClass).toBe(
+        Interval.fromString('P5')
+      );
 
-      fingering.positions[2].string.should.equal(2, 'finger #3 string');
-      fingering.positions[2].fret.should.equal(2, 'finger #3 fret');
-      fingering.positions[2].intervalClass.should.equal(Interval.fromString('P1'), 'finger #3 intervalClass');
+      expect(fingering.positions[2].string).toBe(2); // 'finger #3 string'
+      expect(fingering.positions[2].fret).toBe(2); // 'finger #3 fret'
+      expect(fingering.positions[2].intervalClass).toBe(
+        Interval.fromString('P1')
+      );
 
-      fingering.positions[3].string.should.equal(3, 'finger #4 string');
-      fingering.positions[3].fret.should.equal(1, 'finger #4 fret');
-      fingering.positions[3].intervalClass.should.equal(Interval.fromString('M3'), 'finger #4 intervalClass');
+      expect(fingering.positions[3].string).toBe(3); // 'finger #4 string'
+      expect(fingering.positions[3].fret).toBe(1); // 'finger #4 fret'
+      expect(fingering.positions[3].intervalClass).toBe(
+        Interval.fromString('M3')
+      );
 
-      fingering.positions[4].string.should.equal(4, 'finger #5 string');
-      fingering.positions[4].fret.should.equal(0, 'finger #5 fret');
-      fingering.positions[4].intervalClass.should.equal(Interval.fromString('P5'), 'finger #5 intervalClass');
+      expect(fingering.positions[4].string).toBe(4); // 'finger #5 string'
+      expect(fingering.positions[4].fret).toBe(0); // 'finger #5 fret'
+      expect(fingering.positions[4].intervalClass).toBe(
+        Interval.fromString('P5')
+      );
 
-      fingering.positions[5].string.should.equal(5, 'finger #6 string');
-      fingering.positions[5].fret.should.equal(0, 'finger #6 fret');
-      return fingering.positions[5].intervalClass.should.equal(Interval.fromString('P1'), 'finger #6 intervalClass');
+      expect(fingering.positions[5].string).toBe(5); // 'finger #6 string'
+      expect(fingering.positions[5].fret).toBe(0); // 'finger #6 fret'
+      expect(fingering.positions[5].intervalClass).toBe(
+        Interval.fromString('P1')
+      );
     });
 
-    it('should have no barres', () => fingering.barres.should.have.length(0));
-
-    return it('properties', function() {
-      fingering.properties.root.should.equal(true, 'root');
-      fingering.properties.barres.should.equal(0, 'barres');
-      fingering.properties.fingers.should.equal(3, 'fingers');
-      fingering.properties.skipping.should.equal(false, 'skipping');
-      fingering.properties.muting.should.equal(false, 'muting');
-      fingering.properties.open.should.equal(true, 'open');
-      fingering.properties.triad.should.equal(false, 'triad');
-      fingering.properties.position.should.equal(0, 'position');
-      return fingering.properties.strings.should.equal(6, 'strings');
+    it('should have no barres', () => {
+      expect(fingering.barres).toHaveLength(0);
     });
-  })
-);
+
+    it('properties', () => {
+      expect(fingering.properties.root).toBe(true); // 'root'
+      expect(fingering.properties.barres).toBe(0); // 'barres'
+      expect(fingering.properties.fingers).toBe(3); // 'fingers'
+      expect(fingering.properties.skipping).toBe(false); // 'skipping'
+      expect(fingering.properties.muting).toBe(false); // 'muting'
+      expect(fingering.properties.open).toBe(true); // 'open'
+      expect(fingering.properties.triad).toBe(false); // 'triad'
+      expect(fingering.properties.position).toBe(0); // 'position'
+      expect(fingering.properties.strings).toBe(6); // 'strings'
+    });
+  });
+});
