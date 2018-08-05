@@ -5,7 +5,9 @@ import {
   PitchClassNumber
 } from './pitch_class';
 
-export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(/\s/);
+export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
+  /\s/
+);
 
 export const LongIntervalNames = [
   'Unison',
@@ -102,12 +104,18 @@ export class Interval {
 const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
 type IntervalMap = { [_: string]: Interval };
-const Intervals = IntervalNames.reduce((acc: IntervalMap, name, semitones) => {
-  acc[name] = new Interval(semitones);
-  return acc;
-}, {});
+export const Intervals = IntervalNames.reduce(
+  (acc: IntervalMap, name, semitones) => {
+    acc[name] = new Interval(semitones);
+    return acc;
+  },
+  {}
+);
 
 // The interval class (integer in [0...12]) between two pitch class numbers
-export function intervalClassDifference(a: PitchClassNumber, b: PitchClassNumber):int {
+export function intervalClassDifference(
+  a: PitchClassNumber,
+  b: PitchClassNumber
+): int {
   return normalizePitchClass(b - a);
 }

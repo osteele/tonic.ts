@@ -1,10 +1,6 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 import { Chord, ChordClass, ChordClasses, ChordClassMap } from '../lib/chords';
-import { Intervals, Pitch } from '../lib/pitches';
+import { Intervals } from '../lib/interval';
+import { Pitch } from '../lib/pitches';
 
 describe('ChordClasses', () => {
   it('should be an array of ChordClass', () => {

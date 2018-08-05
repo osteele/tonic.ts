@@ -1,4 +1,5 @@
-import { Interval, IntervalNames, Pitch, PitchClass } from './pitches';
+import {  Pitch } from './pitches';
+import { Interval } from './interval';
 
 //
 // ChordClasses
