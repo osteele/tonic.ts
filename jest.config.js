@@ -4,6 +4,9 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest'
   },
   testPathIgnorePatterns: ['/node_modules/'],
-  testRegex: '(/__tests__/.*|(\\.|/)(.*/)(test|spec))(_[^.]+)?\\.tsx?$',
+  testMatch: [
+    '**/__tests__/**/*.(js|ts)?(x)',
+    '**/?(*.)+(spec|test).(js|ts)?(x)'
+  ],
   testURL: 'http://localhost/'
 };
