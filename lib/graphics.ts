@@ -22,6 +22,7 @@ export interface GraphicsContext {
   stroke: () => void;
   translate: (x: number, y: number) => void;
 
+  globalAlpha: number;
   fillStyle: string;
   font: string;
   lineWidth: number;

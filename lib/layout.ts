@@ -1,36 +1,24 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-const Context = { canvas: null };
+import { GraphicsContext } from './graphics';
 
-const drawText = function(text, options) {
-  if (options == null) {
-    options = {};
-  }
-  const { ctx } = Context;
-  if (_.isObject(text)) {
-    options = text;
-  }
+var Context: GraphicsContext | null;
+
+type Gravity =
+ "top"|"center"|"middle"|"bottom"|"centerbottom"|"left"|"right"|"topLeft"|"topRight"|"botLeft"|"botRight"|"";
+
+type DrawTextOptions = {
+  font: string,
+  fillStyle: string,
+  x: number,
+  y: number,
+  gravity: Gravity,
+  width: number
+}
+
+export function drawText( text: string, options: Partial<DrawTextOptions> = {} ) {
+  const ctx = Context!;
   let { font, fillStyle, x, y, gravity, width } = options;
   if (!gravity) {
     gravity = '';
-  }
-  if (options.choices) {
-    for (let choice of Array.from(options.choices)) {
-      if (_.isString(choice)) {
-        text = choice;
-      }
-      if (_.isObject(choice)) {
-        ({ font } = choice);
-      }
-      if (measure_text(text, { font }).width <= options.width) {
-        break;
-      }
-    }
   }
   if (font) {
     ctx.font = font;
@@ -58,26 +46,24 @@ const drawText = function(text, options) {
     y += m.emHeightAscent;
   }
   return ctx.fillText(text, x, y);
-};
+}
 
-const withCanvas = function(canvas, cb) {
-  const savedCanvas = Context.canvas;
+export function withCanvas (canvas:GraphicsContext, cb: ()=>any) {
+  const savedContext = Context;
   try {
-    Context.canvas = canvas;
+    Context = canvas;
     return cb();
   } finally {
-    Context.canvas = savedCanvas;
+    Context = savedContext;
   }
-};
+}
 
-const withGraphicsContext = function(cb) {
-  const { ctx } = Context;
+export function withGraphicsContext(cb:(_:GraphicsContext)=>any) {
+  const ctx = Context!;
   ctx.save();
   try {
     return cb(ctx);
   } finally {
     ctx.restore();
   }
-};
-
-export { withCanvas, withGraphicsContext };
+}

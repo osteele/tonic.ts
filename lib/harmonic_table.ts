@@ -1,28 +1,21 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-import _ from 'underscore';
-const { IntervalNames } from './pitches';
-const { drawText, withGraphicsContext } from './layout';
-const ChordDiagram from './chord_diagram';
+import * as _ from 'lodash';
+import * as ChordDiagram from './chord_diagram';
+import { GraphicsContext } from './graphics';
+import { IntervalNames } from './interval';
+import { drawText, withGraphicsContext } from './layout';
 
 const DefaultStyle = {
-  intervalClass_colors: ChordDiagram.defaultStyle.intervalClass_colors,
+  intervalClassColors: ChordDiagram.defaultStyle.intervalClassColors,
   radius: 50,
   center: true,
-  fill_cells: false,
-  label_cells: false
+  fillCells: false,
+  labelCells: false
 };
 
-// Enumerate these explicitly instead of computing them,
-// so that we can fine-tune the position of cells that
-// could be placed at one of several different locations.
-const IntervalVectors = {
+// Enumerate these explicitly instead of computing them, so that we can
+// fine-tune the position of cells that could be placed at one of several
+// different locations.
+const IntervalVectors = <{ [_: number]: { [_: string]: number } }>{
   2: { P5: -1, m3: -1 },
   3: { m3: 1 },
   4: { M3: 1 },
@@ -31,82 +24,66 @@ const IntervalVectors = {
   11: { P5: 1, M3: 1 }
 };
 
-// Returns a record {m3 M3 P5} that represents the canonical vector (according to `IntervalVectors`)
-// of the interval class.
-const intervalClassVectors = function(intervalClass) {
-  const original_intervalClass = intervalClass; // for error reporting
-  const adjustments = {};
-  const adjust = function(d_ic, intervals) {
-    intervalClass += d_ic;
-    for (var k in intervals) {
-      if (adjustments[k] == null) {
-        adjustments[k] = 0;
-      }
-    }
-    return (() => {
-      const result = [];
-      for (k in intervals) {
-        const v = intervals[k];
-        result.push((adjustments[k] += v));
-      }
-      return result;
-    })();
-  };
+// Returns a record {m3 M3 P5} that represents the canonical vector (according
+// to `IntervalVectors`) of the interval class.
+function intervalClassVectors(
+  intervalClass: number
+): { m3: number; M3: number; P5: number } {
+  const originalIntervalClass = intervalClass; // for error reporting
+  let [dM3, dP5] = [0, 0];
   while (intervalClass >= 24) {
-    adjust(-24, { P5: 4, M3: -1 });
+    intervalClass -= 24;
+    dM3 -= 1;
+    dP5 += 4;
   }
   while (intervalClass >= 12) {
-    adjust(-12, { M3: 3 });
+    intervalClass -= 12;
+    dM3 += 3;
   }
-  let [record, sign] = Array.from([IntervalVectors[intervalClass], 1]);
-  if (!record) {
-    [record, sign] = Array.from([IntervalVectors[12 - intervalClass], -1]);
-  }
-  const intervals = _.extend({ m3: 0, M3: 0, P5: 0, sign: 1 }, record);
-  for (var k in intervals) {
-    intervals[k] *= sign;
-  }
-  for (k in adjustments) {
-    const v = adjustments[k];
-    intervals[k] += v;
-  }
-  const computed_semitones =
+  const record =
+    IntervalVectors[intervalClass] ||
+    _.mapValues(IntervalVectors[12 - intervalClass], n => -n);
+  const intervals = { m3: 0, M3: 0, P5: 0, record };
+  intervals['M3'] += dM3;
+  intervals['P5'] += dP5;
+  const originalIc = originalIntervalClass % 12;
+  const computedIc =
     (12 + intervals.P5 * 7 + intervals.M3 * 4 + intervals.m3 * 3) % 12;
-  if (computed_semitones !== original_intervalClass % 12) {
+  if (computedIc !== originalIc) {
     console.error(
-      `Error computing grid position for ${original_intervalClass}:\n`,
-      `  ${original_intervalClass} ->`,
-      intervals,
-      '->',
-      computed_semitones,
-      '!=',
-      original_intervalClass % 12
+      `Error computing grid position for ${originalIntervalClass}:\n
+      ${originalIntervalClass} -> ${intervals} -> ${computedIc} != ${originalIc}`
     );
   }
   return intervals;
-};
+}
 
-const drawHarmonicTable = function(intervalClasses, options) {
-  let x, y;
-  if (options == null) {
-    options = {};
+function drawHarmonicTable(
+  intervalClasses: number[],
+  options_: {
+    intervalClassColors?: string[];
+    radius?: number;
+    draw?: boolean;
+    fillCells?: boolean;
+    labelCells?: boolean;
+  } = {}
+) {
+  const options = { draw: true, ...DefaultStyle, ...options_ };
+  const colors = options.intervalClassColors;
+  if (intervalClasses.indexOf(0) < 0) {
+    intervalClasses = [0, ...intervalClasses];
   }
-  options = _.extend({ draw: true }, DefaultStyle, options);
-  const colors = options.intervalClass_colors;
-  if (!Array.from(intervalClasses).includes(0)) {
-    intervalClasses = [0].concat(intervalClasses);
-  }
-  const cell_radius = options.radius;
-  const hex_radius = cell_radius / 2;
+  const cellRadius = options.radius;
+  const hexRadius = cellRadius / 2;
 
-  const cell_center = function(interval_klass) {
-    const vectors = intervalClassVectors(interval_klass);
+  function getCellCenter(intervalClass: number): { x: number; y: number } {
+    const vectors = intervalClassVectors(intervalClass);
     const dy = vectors.P5 + (vectors.M3 + vectors.m3) / 2;
     const dx = vectors.M3 - vectors.m3;
-    const x = dx * cell_radius * 0.8;
-    const y = -dy * cell_radius * 0.95;
+    const x = dx * cellRadius * 0.8;
+    const y = -dy * cellRadius * 0.95;
     return { x, y };
-  };
+  }
 
   const bounds = {
     left: Infinity,
@@ -114,13 +91,13 @@ const drawHarmonicTable = function(intervalClasses, options) {
     right: -Infinity,
     bottom: -Infinity
   };
-  for (var interval_klass of Array.from(intervalClasses)) {
-    ({ x, y } = cell_center(interval_klass));
-    bounds.left = Math.min(bounds.left, x - hex_radius);
-    bounds.top = Math.min(bounds.top, y - hex_radius);
-    bounds.right = Math.max(bounds.right, x + hex_radius);
-    bounds.bottom = Math.max(bounds.bottom, y + hex_radius);
-  }
+  intervalClasses.forEach(intervalClass => {
+    const { x, y } = getCellCenter(intervalClass);
+    bounds.left = Math.min(bounds.left, x - hexRadius);
+    bounds.top = Math.min(bounds.top, y - hexRadius);
+    bounds.right = Math.max(bounds.right, x + hexRadius);
+    bounds.bottom = Math.max(bounds.bottom, y + hexRadius);
+  });
 
   if (!options.draw) {
     return {
@@ -129,35 +106,31 @@ const drawHarmonicTable = function(intervalClasses, options) {
     };
   }
 
-  return withGraphicsContext(function(ctx) {
+  withGraphicsContext((ctx: GraphicsContext) => {
     ctx.translate(-bounds.left, -bounds.bottom);
 
-    for (interval_klass of Array.from(intervalClasses)) {
-      const isRoot = interval_klass === 0;
-      var color = colors[interval_klass % 12];
-      if (!color) {
-        color = colors[12 - interval_klass];
-      }
+    intervalClasses.forEach(intervalClass => {
+      const isRoot = intervalClass === 0;
+      const color = colors[intervalClass % 12] || colors[12 - intervalClass];
       ctx.beginPath();
-      ({ x, y } = cell_center(interval_klass));
+      const { x, y } = getCellCenter(intervalClass);
 
       // frame
       for (let i = 0; i <= 6; i++) {
         const a = (i * Math.PI) / 3;
-        const pos = [
-          x + hex_radius * Math.cos(a),
-          y + hex_radius * Math.sin(a)
-        ];
+        const mx = x + hexRadius * Math.cos(a);
+        const my = y + hexRadius * Math.sin(a);
         if (i === 0) {
-          ctx.moveTo(...Array.from(pos || []));
+          ctx.moveTo(mx, my);
+        } else {
+          ctx.lineTo(mx, my);
         }
-        ctx.lineTo(...Array.from(pos || []));
       }
       ctx.strokeStyle = 'gray';
       ctx.stroke();
 
       // fill
-      if (isRoot || (options.fill_cells && interval_klass < 12)) {
+      if (isRoot || (options.fillCells && intervalClass < 12)) {
         ctx.fillStyle = color || 'rgba(255,0,0,0.15)';
         if (!isRoot) {
           ctx.globalAlpha = 0.3;
@@ -166,61 +139,54 @@ const drawHarmonicTable = function(intervalClasses, options) {
         ctx.globalAlpha = 1;
       }
 
-      if (isRoot || options.fill_cells) {
-        continue;
+      if (isRoot || options.fillCells) {
+        return;
       }
 
       // fill
-      if (options.label_cells) {
+      if (options.labelCells) {
         ctx.globalAlpha = 0.3;
       }
-      (function() {
-        let [dx, dy, dn] = Array.from([-y, x, 2 / Math.sqrt(x * x + y * y)]);
-        dx *= dn;
-        dy *= dn;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(x + dx, y + dy);
-        ctx.lineTo(x - dx, y - dy);
-        ctx.fillStyle = color;
-        return ctx.fill();
-      })();
+
+      let [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x * x + y * y)];
+      dx *= dn;
+      dy *= dn;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(x + dx, y + dy);
+      ctx.lineTo(x - dx, y - dy);
+      ctx.fillStyle = color;
+      ctx.fill();
 
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, 2 * Math.PI, false);
       ctx.fillStyle = color;
       ctx.fill();
       ctx.globalAlpha = 1;
-    }
+    });
 
     ctx.beginPath();
     ctx.arc(0, 0, 2.5, 0, 2 * Math.PI, false);
     ctx.fillStyle = 'red';
     ctx.fill();
 
-    if (options.label_cells) {
-      return (() => {
-        const result = [];
-        for (interval_klass of Array.from(intervalClasses)) {
-          let label = IntervalNames[interval_klass];
-          if (interval_klass === 0) {
-            label = 'R';
-          }
-          ({ x, y } = cell_center(interval_klass));
-          result.push(
-            drawText(label, {
-              font: '10pt Times',
-              fillStyle: 'black',
-              x,
-              y,
-              gravity: 'center'
-            })
-          );
+    if (options.labelCells) {
+      intervalClasses.forEach(intervalClass => {
+        let label = IntervalNames[intervalClass];
+        if (intervalClass === 0) {
+          label = 'R';
         }
-        return result;
-      })();
+        const { x, y } = getCellCenter(intervalClass);
+        drawText(label, {
+          font: '10pt Times',
+          fillStyle: 'black',
+          x,
+          y,
+          gravity: 'center'
+        });
+      });
     }
   });
-};
+}
 
- export const draw = drawHarmonicTable;
+export const draw = drawHarmonicTable;
