@@ -1,5 +1,5 @@
+import { FretCount, FretNumbers, Instrument } from '../instruments';
 import { GraphicsContext } from './graphics';
-import { FretCount, FretNumbers, Instrument } from './instruments';
 
 //
 // Style
