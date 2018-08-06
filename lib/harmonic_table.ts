@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 import * as ChordDiagram from './chord_diagram';
-import { GraphicsContext } from './graphics';
+import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 import { IntervalNames } from './interval';
-import { drawText, withGraphicsContext } from './layout';
 
 const DefaultStyle = {
   intervalClassColors: ChordDiagram.defaultStyle.intervalClassColors,
