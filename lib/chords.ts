@@ -1,9 +1,6 @@
-import {  Pitch } from './pitches';
+import { Pitch } from './pitches';
+import { rotateArray } from './utils';
 import { Interval } from './interval';
-
-//
-// ChordClasses
-//
 
 const ChordNameRe = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 const InversionNames = 'acd'.split(/./);
@@ -166,7 +163,7 @@ export class Chord {
       className = 'Major';
     }
     const chordClass = ChordClass.fromString(className);
-    return (rootName) ? chordClass.at(Pitch.fromString(rootName)) : chordClass;
+    return rootName ? chordClass.at(Pitch.fromString(rootName)) : chordClass;
   }
 
   static fromPitches(pitches: Pitch[]): Chord {
@@ -230,12 +227,8 @@ export const ChordClassMap: { [_: string]: ChordClass } = ChordClasses.reduce(
         acc[name] = chordClass;
       }
     );
-    acc[chordClass.intervals.map((i) => i.semitones).join(',')] = chordClass;
+    acc[chordClass.intervals.map(i => i.semitones).join(',')] = chordClass;
     return acc;
   },
   {}
 );
-
-function rotateArray<T>(array: T[], n: number): T[] {
-  return array.slice(n).concat(array.slice(0, n));
-}

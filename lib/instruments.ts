@@ -25,7 +25,7 @@ export class Instrument {
     this.stringPitches =
       typeof stringPitches === 'string'
         ? stringPitches.split(/\s/).map(Pitch.fromString)
-        : (stringPitches as Pitch[]);
+        : stringPitches;
     // if (typeof this.stringPitches[0] === 'string') {
     //   this.stringPitches = (() => {
     //     const result = [];
@@ -39,17 +39,20 @@ export class Instrument {
     this.stringNumbers = __range__(0, this.strings, false);
   }
 
-  eachFingerPosition(fn: (_: { string: number; fret: number }) => any) {
+  forEachFingerPosition(fn: (_: FretPosition) => any) {
     return this.stringNumbers.map(string =>
       __range__(0, this.fretCount || 0, true).map(fret => fn({ string, fret }))
     );
   }
 
-  pitchAt({ string, fret }: { string: number; fret: number }) {
+  pitchAt({ string, fret }: FretPosition) {
     return Pitch.fromMidiNumber(this.stringPitches[string].midiNumber + fret);
   }
 }
 
+export type FretPosition = { string: number; fret: number };
+
+// Instruments, indexed by name
 export const Instruments: { [_: string]: Instrument } = [
   {
     name: 'Guitar',
@@ -76,6 +79,7 @@ export const Instruments: { [_: string]: Instrument } = [
     return acc;
   }, {});
 
+// TODO: make this a property of the instrument
 export const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
 export const FretCount = FretNumbers.length - 1; // doesn't include nut
 
@@ -98,6 +102,7 @@ export const FretCount = FretNumbers.length - 1; // doesn't include nut
 //   return positions;
 // };
 
+// TODO: replace this by something more idiomatic
 function __range__(left: number, right: number, inclusive: boolean) {
   let range = [];
   let ascending = left < right;
