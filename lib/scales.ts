@@ -1,6 +1,7 @@
 import { Pitch } from './pitches';
 import { Interval } from './interval';
-import { PitchClass, normalizePitchClass } from './pitch_class';
+import { PitchClass } from './pitch_class';
+import {normalizePitchClass} from './names';
 import { Chord } from './chords';
 import {chordFromRomanNumeral} from './chord_progressions';
 

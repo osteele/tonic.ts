@@ -8,7 +8,7 @@ import { powerset } from './utils';
 class Fingering {
   positions: FingeringPosition[];
   chord: Chord;
-  barres: BarreRec[];
+  barres: Barre[];
   instrument: Instrument;
   properties: { [_: string]: any };
   constructor({
@@ -19,7 +19,7 @@ class Fingering {
   }: {
     positions: FingeringPosition[];
     chord: Chord;
-    barres: BarreRec[];
+    barres: Barre[];
     instrument: Instrument;
   }) {
     this.chord = chord;
@@ -93,7 +93,7 @@ type FingeringPosition = {
 // Barres
 //
 
-type BarreRec = {
+type Barre = {
   fret: number;
   firstString: number;
   stringCount: number;
@@ -127,8 +127,8 @@ function computeBarreCandidateStrings(fretArray: number[]): string[] {
   return codeStrings;
 }
 
-function findBarres(fretArray: number[]): BarreRec[] {
-  const barres = <BarreRec[]>[];
+function findBarres(fretArray: number[]): Barre[] {
+  const barres = <Barre[]>[];
   const iterable = computeBarreCandidateStrings(fretArray);
   for (let fret = 0; fret < iterable.length; fret++) {
     const codeString = iterable[fret];
@@ -267,7 +267,7 @@ export function chordFingerings(
             degreeIndex: chord.intervals.indexOf(intervalClass)
           };
         });
-      let sets = <BarreRec[][]>[[]];
+      let sets = <Barre[][]>[[]];
       if (positions.length > 4) {
         sets = collectBarreSets(fretArray);
       }
@@ -371,17 +371,15 @@ export function chordFingerings(
   //
 
   // FIXME count pitch classes, not sounded strings
-  const highNoteCount: (_: Fingering) => number = fingering =>
+  const highNoteCount: FingeringProjection<number> = fingering =>
     fingering.positions.length;
 
-  const isRootPosition: (_: Fingering) => boolean = fingering =>
+  const isRootPosition: FingeringPredicate = fingering =>
     _.sortBy(fingering.positions, pos => pos.string)[0].degreeIndex === 0;
 
-  function reverseSortKey(
-    fn: (_: Fingering) => number
-  ): (_: Fingering) => number {
-    return a => -fn(a);
-  }
+  const reverseSortKey: (
+    _: FingeringProjection<number>
+  ) => FingeringProjection<number> = fn => a => -fn(a);
 
   // ordered list of preferences, from most to least important
   const preferences: { name: string; key: (_: Fingering) => any }[] = [
@@ -413,39 +411,35 @@ export function chordFingerings(
   fingerings = filterFingerings(fingerings);
   fingerings = sortFingerings(fingerings);
 
-  const properties: { [_: string]: RegExp | ((_: Fingering) => any) } = {
+  const properties: { [_: string]: RegExp | FingeringProjection<any> } = {
     root: isRootPosition,
     barres(f: Fingering) {
       return f.barres.length;
     },
     fingers: getFingerCount,
+    // TODO: restore this
     // inversion(f: Fingering) {
     //   return f.inversionLetter || '';
     // },
-    // bass: /^\d{3}x*$/
-    // treble: /^x*\d{3}$/
+    bass: /^\d{3}x*$/,
+    treble: /^x*\d{3}$/,
     skipping: /\dx+\d/,
     muting: /\dx/,
     open: /0/,
-    triad({ positions }: Fingering) {
-      return positions.length === 3;
-    },
-    position({ positions }: Fingering) {
+    triad: ({ positions }) => positions.length === 3,
+    position: ({ positions }) =>
       // const frets = positions.map(({ fret }) => fret);
-      return Math.max(
+      Math.max(
         _
           .chain(positions)
           .map('fret')
           .min()
           .value()! - 1,
         0
-      );
-    },
-    strings({ positions }: Fingering) {
-      return positions.length;
-    }
+      ),
+    strings: ({ positions }) => positions.length
   };
-  // console.info('fingerings', fingerings);
+
   Object.keys(properties).forEach(name => {
     const fn = properties[name];
     fingerings.forEach((fingering: Fingering) => {

@@ -1,0 +1,21 @@
+import { AccidentalValues } from './accidentals';
+import { NoteNames } from './names';
+
+export type MidiNumber = number;
+
+export const midi2name = (n: MidiNumber) =>
+  `${NoteNames[(n + 12) % 12]}${Math.floor((n - 12) / 12)}`;
+
+export function name2midi(name: string): MidiNumber {
+  const m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/);
+  if (!m) {
+    throw new Error(`“${name}” is not a note name`);
+  }
+  const [noteName, accidentals, octave] = m.slice(1);
+  let pitch = NoteNames.indexOf(noteName);
+  for (let c of accidentals) {
+    pitch += AccidentalValues[c];
+  }
+  pitch += 12 * (1 + Number(octave));
+  return pitch;
+}

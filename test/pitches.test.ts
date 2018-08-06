@@ -1,7 +1,27 @@
-import { FlatNoteNames,  getPitchName, midi2name, name2midi, NoteNames, Pitch, Pitches, pitchFromScientificNotation,  SharpNoteNames } from '../lib/pitches';
-import {semitonesToAccidentalString} from '../lib/accidentals';
-import {getPitchClassName,normalizePitchClass,pitchToPitchClass,parsePitchClass,PitchClass} from '../lib/pitch_class';
-import {Interval,intervalClassDifference,  IntervalNames,LongIntervalNames} from '../lib/interval';
+import {
+  FlatNoteNames,
+  getPitchName,
+  NoteNames,
+  SharpNoteNames
+} from '../lib/names';
+import { Pitch, Pitches } from '../lib/pitches';
+import { pitchFromScientificNotation } from '../lib/names';
+import { midi2name, name2midi } from '../lib/midi';
+import { semitonesToAccidentalString } from '../lib/accidentals';
+import {
+  PitchClass
+} from '../lib/pitch_class';
+import { normalizePitchClass,
+  getPitchClassName,
+  pitchToPitchClass,
+  parsePitchClass,
+ } from '../lib/names';
+import {
+  Interval,
+  intervalClassDifference,
+  IntervalNames,
+  LongIntervalNames
+} from '../lib/interval';
 
 //
 // Constants
@@ -149,7 +169,7 @@ describe('pitchFromScientificNotation', () => {
     expect(pitchFromScientificNotation('C5')).toBe(72);
     expect(pitchFromScientificNotation('C6')).toBe(84);
   });
-  it('should parse accidentals', ()=> {
+  it('should parse accidentals', () => {
     expect(pitchFromScientificNotation('Cb4')).toBe(59);
     expect(pitchFromScientificNotation('C#4')).toBe(61);
     expect(pitchFromScientificNotation('C♭4')).toBe(59);

@@ -1,3 +1,4 @@
+// A map of accidental names to semitone offsets
 export const AccidentalValues: { [_: string]: number } = {
   '#': 1,
   '♯': 1,
@@ -6,6 +7,8 @@ export const AccidentalValues: { [_: string]: number } = {
   '𝄪': 2,
   '𝄫': -2
 };
+
+// Indexed by (semitones + 2)
 const AccidentalNames = ['𝄫', '♭', '', '♯', '𝄪'];
 
 export function semitonesToAccidentalString(n: number): string {
