@@ -9,7 +9,6 @@ import {Interval,intervalClassDifference,  IntervalNames,LongIntervalNames} from
 
 describe('FlatNoteNames', () => {
   it('should have 12 notes', () => {
-    expect(FlatNoteNames).toBeInstanceOf(Array);
     expect(FlatNoteNames).toHaveLength(12);
   });
   it('should start with C', () => expect(FlatNoteNames[0]).toBe('C'));
@@ -24,7 +23,6 @@ describe('FlatNoteNames', () => {
 
 describe('SharpNoteNames', () => {
   it('should have 12 notes', () => {
-    expect(SharpNoteNames).toBeInstanceOf(Array);
     expect(SharpNoteNames).toHaveLength(12);
   });
   it('should start with C', () => expect(SharpNoteNames[0]).toBe('C'));
@@ -43,7 +41,6 @@ describe('NoteNames', () =>
 
 describe('IntervalNames', () => {
   it('should have 13 intervals', () => {
-    expect(IntervalNames).toBeInstanceOf(Array);
     expect(IntervalNames).toHaveLength(13);
   });
   it('should start with P1', () => expect(IntervalNames[0]).toBe('P1'));
@@ -52,7 +49,6 @@ describe('IntervalNames', () => {
 
 describe('LongIntervalNames', () => {
   it('should have 13 intervals', () => {
-    expect(LongIntervalNames).toBeInstanceOf(Array);
     expect(LongIntervalNames).toHaveLength(13);
   });
   it('should start with Unison', () =>
@@ -413,7 +409,5 @@ describe('PitchClass', () => {
 
 describe('Pitches', () =>
   it('should contain 12 pitches', function() {
-    expect(Pitches).toBeInstanceOf(Array);
     expect(Pitches).toHaveLength(12);
-    expect(Pitches[0]).toBeInstanceOf(Pitch);
   }));

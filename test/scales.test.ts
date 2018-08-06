@@ -1,5 +1,4 @@
-import { Chord } from '../lib/chords';
-import { Scale, ScaleDegreeNames, Scales } from '../lib/scales';
+import { ScaleDegreeNames, Scales } from '../lib/scales';
 
 describe('Scales', () => {
   it('should have the right number of scales', () => {
@@ -26,7 +25,6 @@ describe('Diatonic Major Scale', () => {
   const scale = Scales['Diatonic Major'];
 
   it('should exist', () => expect(scale).toBeTruthy());
-  it('should be a Scale', () => expect(scale).toBeInstanceOf(Scale));
 
   it('should have seven pitch classes', () => {
     expect(scale.pitchClasses).toHaveLength(7);
@@ -67,7 +65,6 @@ describe('Diatonic Major Scale', () => {
 
     it('should have seven chords', () => {
       expect(chords).toHaveLength(7);
-      expect(chords[0]).toBeInstanceOf(Chord);
     });
 
     it('should have the correct chord sequence', () => {
