@@ -1,123 +1,100 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-import { FretCount, FretNumbers } from './instruments';
+import { GraphicsContext } from './graphics';
+import { FretCount, FretNumbers, Instrument } from './instruments';
 
 //
 // Style
 //
 
 const DefaultStyle = {
-  h_gutter: 10,
-  v_gutter: 10,
-  string_spacing: 20,
-  fret_width: 45,
-  fret_overhang: 0.3 * 45
+  hGutter: 10,
+  vGutter: 10,
+  stringSpacing: 20,
+  fretWidth: 45,
+  fretOverhang: 0.3 * 45
 };
 
-function paddedFretboardWidth(instrument, style) {
-  if (style == null) {
-    style = DefaultStyle;
-  }
-  return (
-    2 * style.v_gutter + style.fret_width * FretCount + style.fret_overhang
-  );
+function paddedFretboardWidth(instrument: Instrument, style = DefaultStyle) {
+  return 2 * style.vGutter + style.fretWidth * FretCount + style.fretOverhang;
 }
 
-function paddedFretboardHeight(instrument, style) {
+function paddedFretboardHeight(instrument: Instrument, style = DefaultStyle) {
   if (style == null) {
     style = DefaultStyle;
   }
-  return 2 * style.h_gutter + (instrument.strings - 1) * style.string_spacing;
+  return 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing;
 }
 
 //
 // Drawing Methods
 //
 
-const drawFretboardStrings = function(instrument, ctx) {
+function drawFretboardStrings(ctx: GraphicsContext, instrument: Instrument) {
   const style = DefaultStyle;
-  return (() => {
-    const result = [];
-    for (let string of Array.from(instrument.stringNumbers)) {
-      const y = string * style.string_spacing + style.h_gutter;
-      ctx.beginPath();
-      ctx.moveTo(style.h_gutter, y);
-      ctx.lineTo(
-        style.h_gutter + FretCount * style.fret_width + style.fret_overhang,
-        y
-      );
-      ctx.lineWidth = 1;
-      result.push(ctx.stroke());
-    }
-    return result;
-  })();
-};
+  instrument.stringNumbers.forEach(string => {
+    const y = string * style.stringSpacing + style.hGutter;
+    ctx.beginPath();
+    ctx.moveTo(style.hGutter, y);
+    ctx.lineTo(
+      style.hGutter + FretCount * style.fretWidth + style.fretOverhang,
+      y
+    );
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
 
-const drawFretboardFrets = function(ctx, instrument) {
+function drawFretboardFrets(ctx: GraphicsContext, instrument: Instrument) {
   const style = DefaultStyle;
-  return (() => {
-    const result = [];
-    for (let fret of Array.from(FretNumbers)) {
-      const x = style.h_gutter + fret * style.fret_width;
-      ctx.beginPath();
-      ctx.moveTo(x, style.h_gutter);
-      ctx.lineTo(
-        x,
-        style.h_gutter + (instrument.strings - 1) * style.string_spacing
-      );
-      if (fret === 0) {
-        ctx.lineWidth = 3;
-      }
-      ctx.stroke();
-      result.push((ctx.lineWidth = 1));
+  FretNumbers.forEach(fret => {
+    const x = style.hGutter + fret * style.fretWidth;
+    ctx.beginPath();
+    ctx.moveTo(x, style.hGutter);
+    ctx.lineTo(
+      x,
+      style.hGutter + (instrument.strings - 1) * style.stringSpacing
+    );
+    if (fret === 0) {
+      ctx.lineWidth = 3;
     }
-    return result;
-  })();
-};
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  });
+}
 
-const drawFretboardFingerPosition = function(
-  ctx,
-  instrument,
-  position,
-  options
+function drawFretboardFingerPosition(
+  ctx: GraphicsContext,
+  position: { string: number; fret: number },
+  options: { isRoot?: boolean; color?: string } = {}
 ) {
-  if (options == null) {
-    options = {};
-  }
-  const { string, fret } = position;
-  let { isRoot, color } = options;
   const style = DefaultStyle;
-  if (!color) {
-    color = isRoot ? 'red' : 'white';
-  }
-  let x = style.h_gutter + (fret - 0.5) * style.fret_width;
+  const { string, fret } = position;
+  const color = options.color || (options.isRoot ? 'red' : 'white');
+  let x = style.hGutter + (fret - 0.5) * style.fretWidth;
   if (fret === 0) {
-    x = style.h_gutter;
+    x = style.hGutter;
   }
-  const y = style.v_gutter + (5 - string) * style.string_spacing;
+  const y = style.vGutter + (5 - string) * style.stringSpacing;
   ctx.beginPath();
   ctx.arc(x, y, 7, 0, 2 * Math.PI, false);
   ctx.fillStyle = color;
-  if (!isRoot) {
+  if (!options.isRoot) {
     ctx.lineWidth = 2;
   }
   ctx.fill();
   ctx.stroke();
   ctx.strokeStyle = 'black';
-  return (ctx.lineWidth = 1);
-};
+  ctx.lineWidth = 1;
+}
 
-function drawFretboard(ctx, instrument, positions) {
+function drawFretboard(
+  ctx: GraphicsContext,
+  instrument: Instrument,
+  positions: { string: number; fret: number }[]
+) {
   drawFretboardStrings(ctx, instrument);
   drawFretboardFrets(ctx, instrument);
-  return Array.from(positions || []).map(position =>
-    drawFretboardFingerPosition(ctx, instrument, position, position)
+  (positions || []).forEach(position =>
+    drawFretboardFingerPosition(ctx, position)
   );
 }
 
