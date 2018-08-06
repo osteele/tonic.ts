@@ -1,7 +1,7 @@
-import { Chord } from '../lib/chords';
-import { bestFingeringFor } from '../lib/fingerings';
-import { Instruments } from '../lib/instruments';
-import { Interval } from '../lib/interval';
+import { Chord } from '../src/chords';
+import { bestFingeringFor } from '../src/fingerings';
+import { Instruments } from '../src/instruments';
+import { Interval } from '../src/interval';
 
 describe('Fingering', () => {
   const chord = Chord.fromString('E Major') as Chord;

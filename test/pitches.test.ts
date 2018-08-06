@@ -3,25 +3,25 @@ import {
   getPitchName,
   NoteNames,
   SharpNoteNames
-} from '../lib/names';
-import { Pitch, Pitches } from '../lib/pitches';
-import { pitchFromScientificNotation } from '../lib/names';
-import { midi2name, name2midi } from '../lib/midi';
-import { semitonesToAccidentalString } from '../lib/accidentals';
+} from '../src/names';
+import { Pitch, Pitches } from '../src/pitches';
+import { pitchFromScientificNotation } from '../src/names';
+import { midi2name, name2midi } from '../src/midi';
+import { semitonesToAccidentalString } from '../src/accidentals';
 import {
   PitchClass
-} from '../lib/pitch_class';
+} from '../src/pitch_class';
 import { normalizePitchClass,
   getPitchClassName,
   pitchToPitchClass,
   parsePitchClass,
- } from '../lib/names';
+ } from '../src/names';
 import {
   Interval,
   intervalClassDifference,
   IntervalNames,
   LongIntervalNames
-} from '../lib/interval';
+} from '../src/interval';
 
 //
 // Constants

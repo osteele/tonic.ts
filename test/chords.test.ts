@@ -1,6 +1,6 @@
-import { Chord, ChordClass, ChordClasses, ChordClassMap } from '../lib/chords';
-import { Intervals } from '../lib/interval';
-import { Pitch } from '../lib/pitches';
+import { Chord, ChordClass, ChordClasses, ChordClassMap } from '../src/chords';
+import { Intervals } from '../src/interval';
+import { Pitch } from '../src/pitches';
 
 describe('ChordClasses', () => {
   it('should be an array of ChordClass', () => {

@@ -1,4 +1,4 @@
-import { ScaleDegreeNames, Scales } from '../lib/scales';
+import { ScaleDegreeNames, Scales } from '../src/scales';
 
 describe('Scales', () => {
   it('should have the right number of scales', () => {

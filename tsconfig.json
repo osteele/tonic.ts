@@ -3,5 +3,6 @@
     "target": "es5",
     "noImplicitAny": true,
     "strictNullChecks": true
-  }
+  },
+  "include": ["src", "./typings.d.ts", "types", "test"]
 }

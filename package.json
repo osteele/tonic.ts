@@ -28,7 +28,7 @@
     "typedoc": "^0.11.1"
   },
   "scripts": {
-    "doc": "typedoc --out doc lib",
+    "doc": "typedoc --out doc src",
     "test": "jest"
   }
 }
