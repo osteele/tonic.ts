@@ -238,7 +238,7 @@ function parseChordNumeral(name: string) {
   const chord = {
     degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)![1]) + 1,
     major: name === name.toUpperCase(),
-    flat: name.match(/^b/),
+    flat: name.match(/^[♭b]/),
     diminished: name.match(/°/),
     augmented: name.match(/\+/)
   };
@@ -249,6 +249,6 @@ function parseChordNumeral(name: string) {
 //   major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
 //   minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
 
-export const ScaleDegreeNames = '1 b2 2 b3 3 4 b5 5 b6 6 b7 7'
+export const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
   .split(/\s/)
-  .map(d => d.replace(/(\d)/, '$1\u0302').replace(/b/, '\u266D'));
+  .map(d => d.replace(/(\d)/, '$1\u0302'));
