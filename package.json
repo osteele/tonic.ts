@@ -1,7 +1,7 @@
 {
   "name": "schoen",
   "description": "Music theory and instrument models.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Oliver Steele <steele@osteele.com>",
   "license": "MIT",
   "keywords": [
@@ -17,26 +17,18 @@
     "url": "http://github.com/osteele/schoen/issues"
   },
   "dependencies": {
-    "coffee-script": "~1.7.1",
-    "underscore": "~1.5.2"
+    "lodash": "^4.17.10",
+    "typescript": "^3.0.1"
   },
   "devDependencies": {
-    "coffee-errors": "~0.8.6",
-    "grunt": "~0.4",
-    "grunt-cli": "~0.1.13",
-    "grunt-coffeelint": "~0.0.8",
-    "grunt-contrib-coffee": "~0.10.0",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt-notify": "~0.2.17",
-    "grunt-update": "~0.2.3",
-    "load-grunt-tasks": "~0.3.0",
-    "grunt-autowatch": "~0.1.4",
-    "grunt-mocha-test": "~0.9.0",
-    "should": "~3.1.2"
+    "@types/jest": "^23.3.1",
+    "@types/lodash": "^4.14.116",
+    "jest": "^23.4.2",
+    "ts-jest": "^23.1.2",
+    "typedoc": "^0.11.1"
   },
   "scripts": {
-    "install": "./node_modules/coffee-script/bin/coffee -b -m -o dist lib",
-    "test": "grunt test"
+    "doc": "typedoc --out doc src",
+    "test": "jest"
   }
 }
