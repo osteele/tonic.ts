@@ -1,5 +1,5 @@
-import { Pitch } from '../src/pitches';
-import { ScaleDegreeNames, Scales } from '../src/scales';
+import { Pitch } from '../src/pitch';
+import { ScaleDegreeNames, Scales } from '../src/scale';
 
 describe('Scales', () => {
   it('should have the right number of scales', () => {

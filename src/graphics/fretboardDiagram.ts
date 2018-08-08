@@ -1,9 +1,4 @@
-import {
-  FretCount,
-  FretNumbers,
-  FretPosition,
-  Instrument
-} from '../instruments';
+import { FretCount, FretNumbers, FretPosition, Instrument } from '../instrument';
 import { GraphicsContext } from './graphics';
 
 //
@@ -103,8 +98,4 @@ function drawFretboard(
   );
 }
 
-export {
-  paddedFretboardWidth as width,
-  paddedFretboardHeight as height,
-  drawFretboard as draw
-};
+export { paddedFretboardWidth as width, paddedFretboardHeight as height, drawFretboard as draw };

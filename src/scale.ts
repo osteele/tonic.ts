@@ -1,9 +1,9 @@
-import { Chord } from './chords';
-import { chordFromRomanNumeral } from './chord_progressions';
+import { Chord } from './chord';
+import { chordFromRomanNumeral } from './chordProgression';
 import { Interval } from './interval';
 import { normalizePitchClass } from './names';
-import { Pitch } from './pitches';
-import { PitchClass } from './pitch_class';
+import { Pitch } from './pitch';
+import { PitchClass } from './pitchClass';
 
 // A scale is a named collection, either of intervals or notes.
 export class Scale {

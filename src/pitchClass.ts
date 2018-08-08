@@ -1,6 +1,6 @@
 import { Interval } from './interval';
 import { normalizePitchClass, NoteNames, parsePitchClass } from './names';
-import { Pitch } from './pitches';
+import { Pitch } from './pitch';
 
 export class PitchClass {
   name: string;

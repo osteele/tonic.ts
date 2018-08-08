@@ -1,13 +1,8 @@
 import * as _ from 'lodash';
-import {
-  FretCount,
-  FretNumbers,
-  FretPosition,
-  Instrument
-} from '../instruments';
+import { FretCount, FretNumbers, FretPosition, Instrument } from '../instrument';
 import { Interval } from '../interval';
-import { hsv2css } from './color_utils';
 import { GraphicsContext } from './graphics';
+import { hsv2css } from './utils';
 
 export type Style = {
   hGutter: number;

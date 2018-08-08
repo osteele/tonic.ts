@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { IntervalNames } from '../interval';
-import * as ChordDiagram from './chord_diagram';
+import * as ChordDiagram from './chordDiagram';
 import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 
 const DefaultStyle = {

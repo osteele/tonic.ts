@@ -1,4 +1,4 @@
-import { defaultStyle as ChordDiagramStyle } from './chord_diagram';
+import { defaultStyle as ChordDiagramStyle } from './chordDiagram';
 import { GraphicsContext } from './graphics';
 const { PI, cos, sin, min, max } = Math;
 

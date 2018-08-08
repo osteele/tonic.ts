@@ -5,7 +5,7 @@ import {
   pitchToPitchClass,
   pitchToScientificNotation
 } from './names';
-import { PitchClass } from './pitch_class';
+import { PitchClass } from './pitchClass';
 
 export class Pitch {
   name: string;

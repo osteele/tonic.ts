@@ -1,5 +1,5 @@
 import { semitonesToAccidentalString } from '../src/accidentals';
-import { FlatNoteNames, Interval, intervalClassDifference, IntervalNames, LongIntervalNames, NoteNames, Pitch, PitchClass, Pitches, SharpNoteNames } from '../src/index';
+import { FlatNoteNames, Interval, intervalClassDifference, IntervalNames, LongIntervalNames, NoteNames, Pitch, PitchClass, Pitches, SharpNoteNames } from '../src';
 import { midi2name, name2midi } from '../src/midi';
 import { getPitchClassName, getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation, pitchToPitchClass } from '../src/names';
 

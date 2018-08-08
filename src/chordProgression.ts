@@ -1,6 +1,6 @@
-import { Chord, ChordClass } from './chords';
-import { Pitch } from './pitches';
-import { Scale } from './scales';
+import { Chord, ChordClass } from './chord';
+import { Pitch } from './pitch';
+import { Scale } from './scale';
 
 const ChordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/);
 

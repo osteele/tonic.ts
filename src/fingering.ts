@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import { Chord } from './chords';
-import { FretPosition, Instrument } from './instruments';
+import { Chord } from './chord';
+import { FretPosition, Instrument } from './instrument';
 import { Interval } from './interval';
 import { powerset } from './utils';
 

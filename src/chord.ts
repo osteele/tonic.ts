@@ -1,4 +1,4 @@
-import { Pitch } from './pitches';
+import { Pitch } from './pitch';
 import { rotateArray } from './utils';
 import { Interval } from './interval';
 
