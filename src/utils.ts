@@ -8,7 +8,7 @@ export function powerset<T>(array: T[]): T[][] {
 }
 
 export function rotateArray<T>(array: T[], n: number): T[] {
-  return array.slice(n).concat(array.slice(0, n));
+  return [...array.slice(n), ...array.slice(0, n)];
 }
 
 export function memoize0<T>(fn: () => T): () => T {

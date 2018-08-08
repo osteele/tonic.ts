@@ -25,7 +25,7 @@ export class Fingering {
     this.chord = chord;
     this.instrument = instrument;
     this.positions = [...positions].sort(
-      (a: { string: number }, b: { string: number }) => a.string - b.string
+      (a: FretPosition, b: FretPosition) => a.string - b.string
     );
     this.barres = barres;
     this.properties = {};
@@ -42,11 +42,9 @@ export class Fingering {
   // string representation of a fingering
   computeFretString(): string {
     const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
-    this.positions.forEach(
-      ({ string, fret }: { string: number; fret: number }) => {
-        fretArray[string] = fret;
-      }
-    );
+    this.positions.forEach(({ string, fret }: FretPosition) => {
+      fretArray[string] = fret;
+    });
     return fretArray.map(x => (x >= 0 ? x : 'x')).join('');
   }
 

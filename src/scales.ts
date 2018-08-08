@@ -73,7 +73,7 @@ export class Scale {
     const pitches = this.pitchClasses;
     const tonic = this.tonic! as Pitch;
     return pitches.map((_, i) => {
-      const modePitches = pitches.slice(i).concat(pitches.slice(0, i));
+      const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
       const chordPitches = degrees.map((degree: number) =>
         tonic.add(Interval.fromSemitones(modePitches[degree]))
       );
@@ -132,7 +132,14 @@ function toPitchOrPitchClass(
   }
 }
 
-export const Scales: { [_: string]: Scale } = (<{name:string, parent?:string, pitchClasses:number[], modeNames?:string[]}[]>[
+export const Scales: { [_: string]: Scale } = (<
+  {
+    name: string;
+    parent?: string;
+    pitchClasses: number[];
+    modeNames?: string[];
+  }[]
+>[
   {
     name: 'Diatonic Major',
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -205,7 +212,10 @@ export const Scales: { [_: string]: Scale } = (<{name:string, parent?:string, pi
     pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11]
   }
 ]).reduce(
-  (acc: { [_: string]: Scale }, { name, parent=null, pitchClasses, modeNames }) => {
+  (
+    acc: { [_: string]: Scale },
+    { name, parent = null, pitchClasses, modeNames }
+  ) => {
     const scale = new Scale({
       name,
       parent: parent && acc[parent],
@@ -221,14 +231,21 @@ export const Scales: { [_: string]: Scale } = (<{name:string, parent?:string, pi
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;
-  pitchClasses = pitchClasses.slice(i).concat(pitchClasses.slice(0, i));
+  pitchClasses = [...pitchClasses.slice(i), ...pitchClasses.slice(0, i)];
   return pitchClasses.map(pc => normalizePitchClass(pc - pitchClasses[0]));
 }
 
 // Indexed by scale degree
-const Functions = 'Tonic Supertonic Mediant Subdominant Dominant Submediant Subtonic Leading'.split(
-  /\s/
-);
+const Functions = [
+  'Tonic',
+  'Supertonic',
+  'Mediant',
+  'Subdominant',
+  'Dominant',
+  'Submediant',
+  'Subtonic',
+  'Leading'
+];
 
 function parseChordNumeral(name: string) {
   const chord = {

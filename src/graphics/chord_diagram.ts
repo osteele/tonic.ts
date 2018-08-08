@@ -1,5 +1,10 @@
 import * as _ from 'lodash';
-import { FretCount, FretNumbers, Instrument } from '../instruments';
+import {
+  FretCount,
+  FretNumbers,
+  FretPosition,
+  Instrument
+} from '../instruments';
 import { Interval } from '../interval';
 import { hsv2css } from './color_utils';
 import { GraphicsContext } from './graphics';
@@ -62,7 +67,6 @@ function drawChordDiagramStrings(
   options: { dimStrings?: number[] } = {}
 ) {
   const style = DefaultStyle;
-  const result = [];
   instrument.stringNumbers.forEach(string => {
     const x = string * style.stringSpacing + style.hGutter;
     ctx.beginPath();
@@ -123,7 +127,6 @@ function drawChordDiagram(
     style: DefaultStyle
   }
 ) {
-  let fret, string;
   let { barres, dy, drawNut, style } = options;
 
   let topFret = 0;
@@ -146,13 +149,7 @@ function drawChordDiagram(
     );
   }
 
-  function fingerCoordinates({
-    string,
-    fret
-  }: {
-    fret: number;
-    string: number;
-  }) {
+  function fingerCoordinates({ string, fret }: FretPosition) {
     if (fret > 0) {
       fret -= topFret;
     }
@@ -167,7 +164,7 @@ function drawChordDiagram(
   }
 
   function drawFingerPosition(
-    position: { fret: number; string: number },
+    position: FretPosition,
     options: { isRoot?: boolean; color?: string } = {}
   ) {
     const { isRoot, color } = options;
@@ -190,6 +187,7 @@ function drawChordDiagram(
   function drawBarres() {
     ctx.fillStyle = 'black';
     barres.forEach(({ fret, firstString, stringCount }) => {
+      const eccentricity = 10;
       const { x: x1, y } = fingerCoordinates({ string: firstString, fret });
       const { x: x2 } = fingerCoordinates({
         string: firstString + stringCount - 1,
@@ -199,7 +197,6 @@ function drawChordDiagram(
       ctx.save();
       ctx.translate((x1 + x2) / 2, y - style.fretHeight * 0.25);
       ctx.beginPath();
-      const eccentricity = 10;
 
       ctx.save();
       ctx.scale(w, eccentricity);
@@ -224,11 +221,11 @@ function drawChordDiagram(
 
   function drawFingerPositions() {
     positions.forEach(position => {
-      const default_options = {
+      drawFingerPosition(position, {
+        ...(options as { isRoot?: boolean; color?: string }),
         color: style.intervalClassColors[position.intervalClass.semitones],
         isRoot: position.intervalClass.semitones === 0
-      };
-      drawFingerPosition(position, _.extend(default_options, position));
+      });
     });
   }
 

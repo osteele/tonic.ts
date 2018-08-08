@@ -1,4 +1,9 @@
-import { FretCount, FretNumbers, Instrument } from '../instruments';
+import {
+  FretCount,
+  FretNumbers,
+  FretPosition,
+  Instrument
+} from '../instruments';
 import { GraphicsContext } from './graphics';
 
 //
@@ -63,7 +68,7 @@ function drawFretboardFrets(ctx: GraphicsContext, instrument: Instrument) {
 
 function drawFretboardFingerPosition(
   ctx: GraphicsContext,
-  position: { string: number; fret: number },
+  position: FretPosition,
   options: { isRoot?: boolean; color?: string } = {}
 ) {
   const style = DefaultStyle;
@@ -89,7 +94,7 @@ function drawFretboardFingerPosition(
 function drawFretboard(
   ctx: GraphicsContext,
   instrument: Instrument,
-  positions: { string: number; fret: number }[]
+  positions: FretPosition[]
 ) {
   drawFretboardStrings(ctx, instrument);
   drawFretboardFrets(ctx, instrument);
