@@ -62,14 +62,16 @@ describe('Instrument', () => {
     }));
 });
 
-declare namespace jest {
-  interface Matchers {
-    toBeWithin: typeof toBeWithin;
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeWithin: (min: number, max: number) => R;
+    }
   }
 }
 
 function toBeWithin(
-  this: jest.MatcherUtils,
+  // this: jest.MatcherUtils,
   received: number,
   a: number,
   b: number

@@ -393,14 +393,17 @@ export function chordFingerings(
   ];
 
   function sortFingerings(fingerings: Fingering[]): Fingering[] {
-    return [...preferences]
-      .reverse()
-      .reduce(
-        (results: Fingering[], { key }) =>
-          _.sortBy(results, key) as Fingering[],
-        fingerings
-      )
-      .reverse();
+    [...preferences].reverse().forEach(({ key }) => {
+      _.sortBy(fingerings, key);
+    });
+    return fingerings;
+    // .reverse()
+    // .reduce(
+    //   (results: Fingering[], { key }) =>
+    //     _.sortBy(results, key) as Fingering[],
+    //   fingerings
+    // )
+    // .reverse();
   }
 
   //

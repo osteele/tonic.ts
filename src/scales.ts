@@ -1,9 +1,9 @@
-import { Pitch } from './pitches';
-import { Interval } from './interval';
-import { PitchClass } from './pitch_class';
-import {normalizePitchClass} from './names';
 import { Chord } from './chords';
-import {chordFromRomanNumeral} from './chord_progressions';
+import { chordFromRomanNumeral } from './chord_progressions';
+import { Interval } from './interval';
+import { normalizePitchClass } from './names';
+import { Pitch } from './pitches';
+import { PitchClass } from './pitch_class';
 
 // A scale is a named collection, either of intervals or notes.
 export class Scale {
@@ -18,14 +18,14 @@ export class Scale {
     name,
     pitchClasses,
     parent = null,
-    modeNames,
+    modeNames = [],
     tonic = null
   }: {
     name: string;
     pitchClasses: number[];
-    parent?: Scale | null;
+    parent?: Scale | string | null;
     modeNames?: string[];
-    tonic?: Pitch | string;
+    tonic?: Pitch | string | null;
   }) {
     this.name = name;
     this.parent = typeof parent === 'string' ? Scales[parent] : parent;
@@ -33,27 +33,25 @@ export class Scale {
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones)
     );
-    this.tonic = tonic ? toPitchOrPitchClass(tonic) : null;
+    this.tonic = typeof tonic === 'string' ? toPitchOrPitchClass(tonic) : tonic;
     if (this.tonic instanceof Pitch) {
-      this.pitches = this.intervals.map(
-        (interval: Interval) => (this.tonic! as Pitch).add(interval)
+      this.pitches = this.intervals.map((interval: Interval) =>
+        (this.tonic! as Pitch).add(interval)
       );
     }
     if (this.tonic instanceof PitchClass) {
-      this.pitches = this.intervals.map(
-        (interval: Interval) => (this.tonic! as PitchClass).add(interval)
+      this.pitches = this.intervals.map((interval: Interval) =>
+        (this.tonic! as PitchClass).add(interval)
       );
     }
-    if (modeNames) {
-      this.modes = modeNames.map(
-        (name, i) =>
-          new Scale({
-            name: name,
-            parent: this,
-            pitchClasses: rotatePitchClasses(pitchClasses, i)
-          })
-      );
-    }
+    this.modes = modeNames.map(
+      (name, i) =>
+        new Scale({
+          name: name,
+          parent: this,
+          pitchClasses: rotatePitchClasses(pitchClasses, i)
+        })
+    );
   }
 
   at(tonic: Pitch | string): Scale {
@@ -112,16 +110,14 @@ export class Scale {
     return scale;
   }
 
-  fromRomanNumeral(name:string):Chord {
+  fromRomanNumeral(name: string): Chord {
     return chordFromRomanNumeral(name, this);
   }
 
-  progression(names:string):Chord[] {
-    return names.split(/[\s+\-]+/).map(name =>
-      this.fromRomanNumeral(name)
-    );
-  };
+  progression(names: string): Chord[] {
+    return names.split(/[\s+\-]+/).map(name => this.fromRomanNumeral(name));
   }
+}
 
 function toPitchOrPitchClass(
   pitch: Pitch | PitchClass | string
@@ -136,7 +132,7 @@ function toPitchOrPitchClass(
   }
 }
 
-export const Scales: { [_: string]: Scale } = [
+export const Scales: { [_: string]: Scale } = (<{name:string, parent?:string, pitchClasses:number[], modeNames?:string[]}[]>[
   {
     name: 'Diatonic Major',
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -146,8 +142,8 @@ export const Scales: { [_: string]: Scale } = [
   },
   {
     name: 'Natural Minor',
-    pitchClasses: [0, 2, 3, 5, 7, 8, 10],
-    parent: 'Diatonic Major'
+    parent: 'Diatonic Major',
+    pitchClasses: [0, 2, 3, 5, 7, 8, 10]
   },
   {
     name: 'Major Pentatonic',
@@ -162,8 +158,8 @@ export const Scales: { [_: string]: Scale } = [
   },
   {
     name: 'Minor Pentatonic',
-    pitchClasses: [0, 3, 5, 7, 10],
-    parent: 'Major Pentatonic'
+    parent: 'Major Pentatonic',
+    pitchClasses: [0, 3, 5, 7, 10]
   },
   {
     name: 'Melodic Minor',
@@ -208,13 +204,13 @@ export const Scales: { [_: string]: Scale } = [
     name: 'Octatonic',
     pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11]
   }
-].reduce(
-  (acc: { [_: string]: Scale }, { name, pitchClasses, parent, modeNames }) => {
+]).reduce(
+  (acc: { [_: string]: Scale }, { name, parent=null, pitchClasses, modeNames }) => {
     const scale = new Scale({
       name,
+      parent: parent && acc[parent],
       pitchClasses,
-      modeNames,
-      parent: parent ? acc[parent] : null
+      modeNames
     });
     acc[scale.name] = scale;
     acc[scale.name.replace(/\s/g, '')] = scale;

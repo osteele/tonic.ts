@@ -99,7 +99,7 @@ export class Interval {
 const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
 type IntervalMap = { [_: string]: Interval };
-export const Intervals = IntervalNames.reduce(
+export const Intervals: IntervalMap = IntervalNames.reduce(
   (acc: IntervalMap, name, semitones) => {
     acc[name] = new Interval(semitones);
     return acc;

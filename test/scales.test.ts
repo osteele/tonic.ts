@@ -1,3 +1,4 @@
+import { Pitch } from '../src/pitches';
 import { ScaleDegreeNames, Scales } from '../src/scales';
 
 describe('Scales', () => {
@@ -58,9 +59,9 @@ describe('Diatonic Major Scale', () => {
 
     it('should have seven pitches', () => {
       expect(eMajor.pitches).toHaveLength(7);
-      expect(eMajor.pitches!.map(pitch => pitch.toString())).toEqual(
-        'E F♯ G♯ A B C♯ D♯'.split(/\s/)
-      );
+      const pitches = eMajor.pitches! as Pitch[];
+      const pitchNames = pitches.map(pitch => pitch.toString());
+      expect(pitchNames).toEqual('E F♯ G♯ A B C♯ D♯'.split(/\s/));
     });
 
     it('should have seven chords', () => {
