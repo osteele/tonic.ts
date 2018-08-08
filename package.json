@@ -14,18 +14,19 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@types/lodash": "^4.14.116",
-    "lodash": "^4.17.10",
-    "typescript": "^3.0.1"
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
     "jest": "^23.4.2",
     "ts-jest": "^23.1.2",
-    "typedoc": "^0.11.1"
+    "typedoc": "^0.11.1",
+    "typescript": "^3.0.1"
   },
   "scripts": {
+    "prepublish": "tsc",
     "build": "tsc",
-    "doc": "typedoc --out docs/api index.ts --module commonjs",
+    "doc": "typedoc --out docs/api src --mode modules --module commonjs",
     "test": "jest"
   }
 }
