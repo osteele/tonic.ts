@@ -1,27 +1,7 @@
-import {
-  FlatNoteNames,
-  getPitchName,
-  NoteNames,
-  SharpNoteNames
-} from '../src/names';
-import { Pitch, Pitches } from '../src/pitches';
-import { pitchFromScientificNotation } from '../src/names';
-import { midi2name, name2midi } from '../src/midi';
 import { semitonesToAccidentalString } from '../src/accidentals';
-import {
-  PitchClass
-} from '../src/pitch_class';
-import { normalizePitchClass,
-  getPitchClassName,
-  pitchToPitchClass,
-  parsePitchClass,
- } from '../src/names';
-import {
-  Interval,
-  intervalClassDifference,
-  IntervalNames,
-  LongIntervalNames
-} from '../src/interval';
+import { FlatNoteNames, Interval, intervalClassDifference, IntervalNames, LongIntervalNames, NoteNames, Pitch, PitchClass, Pitches, SharpNoteNames } from '../src/index';
+import { midi2name, name2midi } from '../src/midi';
+import { getPitchClassName, getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation, pitchToPitchClass } from '../src/names';
 
 //
 // Constants

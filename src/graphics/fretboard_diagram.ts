@@ -98,6 +98,8 @@ function drawFretboard(
   );
 }
 
-export const width = paddedFretboardWidth;
-export const height = paddedFretboardHeight;
-export const draw = drawFretboard;
+export {
+  paddedFretboardWidth as width,
+  paddedFretboardHeight as height,
+  drawFretboard as draw
+};

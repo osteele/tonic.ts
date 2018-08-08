@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "doc": "typedoc --out doc/api src",
+    "doc": "typedoc --out docs/api index.ts --module commonjs",
     "test": "jest"
   }
 }

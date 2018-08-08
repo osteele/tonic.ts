@@ -188,4 +188,4 @@ function drawHarmonicTable(
   });
 }
 
-export const draw = drawHarmonicTable;
+export { drawHarmonicTable as draw };

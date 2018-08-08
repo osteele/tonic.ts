@@ -31,7 +31,7 @@ export interface GraphicsContext {
 
 var Context: GraphicsContext | null;
 
-type Gravity =
+export type Gravity =
   | 'top'
   | 'center'
   | 'middle'
@@ -45,7 +45,7 @@ type Gravity =
   | 'botRight'
   | '';
 
-type DrawTextOptions = {
+export type DrawTextOptions = {
   font: string;
   fillStyle: string;
   x: number;

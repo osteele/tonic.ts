@@ -4,7 +4,7 @@ import { Interval } from '../interval';
 import { hsv2css } from './color_utils';
 import { GraphicsContext } from './graphics';
 
-type Style = {
+export type Style = {
   hGutter: number;
   vGutter: number;
   stringSpacing: number;
@@ -16,7 +16,7 @@ type Style = {
   intervalClassColors: string[];
 };
 
-const SmallStyle = {
+export const SmallStyle = {
   hGutter: 5,
   vGutter: 5,
   stringSpacing: 6,
@@ -31,7 +31,7 @@ const SmallStyle = {
   )
 };
 
-const DefaultStyle = {
+export const DefaultStyle = {
   ...SmallStyle,
   stringSpacing: 12,
   fretHeight: 16,
@@ -268,12 +268,10 @@ function drawChordDiagram(
   return { topFret };
 }
 
-export const defaultStyle = DefaultStyle;
-
 export const width = (instrument: Instrument) =>
   computeChordDiagramDimensions(instrument).width;
 
 export const height = (instrument: Instrument) =>
   computeChordDiagramDimensions(instrument).height;
 
-export const draw = drawChordDiagram;
+export { DefaultStyle as defaultStyle, drawChordDiagram as draw };

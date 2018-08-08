@@ -6,5 +6,5 @@
     "declaration": true,
     "outDir": "./dist"
   },
-  "include": ["src", "./typings.d.ts", "types", "test"]
+  "include": ["src", "index.js", "./typings.d.ts", "types"]
 }

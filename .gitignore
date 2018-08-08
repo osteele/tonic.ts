@@ -1,4 +1,4 @@
 node_modules
 dist
-doc/
+docs/api
 *.log

@@ -1,5 +1,4 @@
-import { Chord } from '../src/chords';
-import { Scales } from '../src/scales';
+import { Chord, Scales } from '../src/index';
 
 describe('Scale.fromRomanNumeral', () => {
   const scale = Scales.DiatonicMajor.at('E4');

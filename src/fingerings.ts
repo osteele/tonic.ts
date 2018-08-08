@@ -5,7 +5,7 @@ import { Interval } from './interval';
 import { powerset } from './utils';
 
 // These are "fingerings" and not "voicings" because they also include barre information.
-class Fingering {
+export class Fingering {
   positions: FingeringPosition[];
   chord: Chord;
   barres: Barre[];
@@ -82,7 +82,7 @@ class Fingering {
   // }
 }
 
-type FingeringPosition = {
+export type FingeringPosition = {
   string: number;
   fret: number;
   degreeIndex: number;
@@ -93,7 +93,7 @@ type FingeringPosition = {
 // Barres
 //
 
-type Barre = {
+export type Barre = {
   fret: number;
   firstString: number;
   stringCount: number;
@@ -185,7 +185,7 @@ export function chordFingerings(
   chord: Chord,
   instrument: Instrument,
   options = { filter: true, allPositions: false, fingerPicking: false }
-) {
+): Fingering[] {
   const warn = false;
   if (chord.root == null) {
     throw new Error(`No root for ${chord}`);
