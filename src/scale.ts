@@ -7,13 +7,13 @@ import { PitchClass } from './pitchClass';
 
 // A scale is a named collection, either of intervals or notes.
 export class Scale {
-  name: string;
-  pitchClasses: number[];
-  parent: Scale | null;
-  modes: Scale[] = [];
-  tonic: Pitch | PitchClass | null;
-  intervals: Interval[];
-  pitches: Pitch[] | PitchClass[] | null;
+  readonly name: string;
+  readonly pitchClasses: number[];
+  readonly parent: Scale | null;
+  readonly modes: Scale[] = [];
+  readonly tonic: Pitch | PitchClass | null;
+  readonly intervals: Interval[];
+  readonly pitches: Pitch[] | PitchClass[] | null;
   constructor({
     name,
     pitchClasses,

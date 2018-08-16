@@ -8,8 +8,8 @@ import {
 import { PitchClass } from './pitchClass';
 
 export class Pitch {
-  name: string;
-  midiNumber: number;
+  readonly name: string;
+  readonly midiNumber: number;
   constructor({ name, midiNumber }: { name?: string; midiNumber: number }) {
     this.name = name || pitchToScientificNotation(midiNumber);
     this.midiNumber = midiNumber;

@@ -8,11 +8,11 @@ const InversionNames = 'acd'.split(/./);
 // An instance of ChordClass represents the intervals of the chord,
 // without the root. For example, Dom7. It represents the quality, suspensions, and additions.
 export class ChordClass {
-  name: string;
-  fullName: string;
-  abbr: string;
-  abbrs: string[];
-  intervals: Interval[];
+  readonly name: string;
+  readonly fullName: string;
+  readonly abbr: string;
+  readonly abbrs: string[];
+  readonly intervals: Interval[];
   constructor({
     name,
     fullName,
@@ -61,15 +61,15 @@ export class ChordClass {
 // - a scale degree (e.g. I)
 // - a tonicized scale (e.g. C Major)
 export class Chord {
-  chordClass: ChordClass;
-  root: Pitch;
-  inversion: number;
-  name: string;
-  fullName: string;
-  abbr: string;
-  abbrs: string[];
-  intervals: Interval[];
-  pitches: Pitch[];
+  readonly chordClass: ChordClass;
+  readonly root: Pitch;
+  readonly inversion: number;
+  readonly name: string;
+  readonly fullName: string;
+  readonly abbr: string;
+  readonly abbrs: string[];
+  readonly intervals: Interval[];
+  readonly pitches: Pitch[];
   constructor({
     chordClass,
     root,

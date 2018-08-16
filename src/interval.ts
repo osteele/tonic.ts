@@ -1,7 +1,7 @@
 import { semitonesToAccidentalString } from './accidentals';
 import { normalizePitchClass, PitchClassNumber } from './names';
-import { PitchClass } from './pitchClass';
 import { Pitch } from './pitch';
+import { PitchClass } from './pitchClass';
 './names';
 
 export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
@@ -31,8 +31,8 @@ export const LongIntervalNames = [
 //
 // FIXME these are interval classes, not intervals
 export class Interval {
-  semitones: number;
-  accidentals: number;
+  readonly semitones: number;
+  readonly accidentals: number;
   constructor(semitones: number, accidentals = 0) {
     this.semitones = semitones;
     this.accidentals = accidentals;

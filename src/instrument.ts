@@ -1,13 +1,13 @@
 import { Pitch } from './pitch';
 
 export class Instrument {
-  name: string;
-  fretted: boolean;
-  stringPitches: Pitch[];
-  fretCount: number | null;
-  strings: number;
-  stringCount: number;
-  stringNumbers: number[];
+  readonly name: string;
+  readonly fretted: boolean;
+  readonly stringPitches: Pitch[];
+  readonly fretCount: number | null;
+  readonly strings: number;
+  readonly stringCount: number;
+  readonly stringNumbers: number[];
   constructor({
     name,
     fretted = false,
@@ -50,7 +50,7 @@ export class Instrument {
   }
 }
 
-export type FretPosition = { string: number; fret: number };
+export type FretPosition = { readonly string: number; readonly fret: number };
 
 // Instruments, indexed by name
 export const Instruments: { [_: string]: Instrument } = [

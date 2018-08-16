@@ -6,11 +6,11 @@ import { powerset } from './utils';
 
 // These are "fingerings" and not "voicings" because they also include barre information.
 export class Fingering {
-  positions: FingeringPosition[];
-  chord: Chord;
-  barres: Barre[];
-  instrument: Instrument;
-  properties: { [_: string]: any };
+  readonly positions: FingeringPosition[];
+  readonly chord: Chord;
+  readonly barres: Barre[];
+  readonly instrument: Instrument;
+  readonly properties: { [_: string]: any };
   constructor({
     positions,
     chord,
@@ -81,10 +81,10 @@ export class Fingering {
 }
 
 export type FingeringPosition = {
-  string: number;
-  fret: number;
-  degreeIndex: number;
-  intervalClass: Interval;
+  readonly string: number;
+  readonly fret: number;
+  readonly degreeIndex: number;
+  readonly intervalClass: Interval;
 };
 
 //
@@ -92,10 +92,10 @@ export type FingeringPosition = {
 //
 
 export type Barre = {
-  fret: number;
-  firstString: number;
-  stringCount: number;
-  fingerReplacementCount: number;
+  readonly fret: number;
+  readonly firstString: number;
+  readonly stringCount: number;
+  readonly fingerReplacementCount: number;
 };
 
 // Returns an array of strings indexed by fret number. Each string
@@ -431,8 +431,7 @@ export function chordFingerings(
     position: ({ positions }) =>
       // const frets = positions.map(({ fret }) => fret);
       Math.max(
-        _
-          .chain(positions)
+        _.chain(positions)
           .map('fret')
           .min()
           .value()! - 1,

@@ -3,8 +3,8 @@ import { normalizePitchClass, NoteNames, parsePitchClass } from './names';
 import { Pitch } from './pitch';
 
 export class PitchClass {
-  name: string;
-  semitones: number;
+  readonly name: string;
+  readonly semitones: number;
   constructor({ semitones, name }: { name?: string; semitones: number }) {
     this.semitones = semitones;
     this.name = name || NoteNames[semitones];
