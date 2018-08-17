@@ -2,9 +2,9 @@ import { Chord, ChordClass } from './chord';
 import { Pitch } from './pitch';
 import { Scale } from './scale';
 
-const ChordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/);
+const chordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/);
 
-const RomanNumeralModifiers: { [_: string]: string } = {
+const romanNumeralModifiers: { [_: string]: string } = {
   '+': 'aug',
   '°': 'dim',
   '6': 'maj6',
@@ -23,7 +23,7 @@ export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
     throw new Error('requires a scale with a tonic');
   }
   const [accidental, romanNumeral, modifiers, inversion] = match.slice(1);
-  const degree = ChordRomanNumerals.indexOf(romanNumeral.toUpperCase());
+  const degree = chordRomanNumerals.indexOf(romanNumeral.toUpperCase());
   if (!(degree >= 0)) {
     throw new Error('Not a chord name');
   }
@@ -41,7 +41,7 @@ export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
   })();
   if (modifiers) {
     // throw new Error("Unimplemented: mixing minor chords with chord modifiers") unless chordType == 'Major'
-    chordType = RomanNumeralModifiers[modifiers];
+    chordType = romanNumeralModifiers[modifiers];
     if (!chordType) {
       throw new Error(`unknown chord modifier “${modifiers}”`);
     }

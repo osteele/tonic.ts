@@ -29,7 +29,7 @@ export interface GraphicsContext {
   strokeStyle: string;
 }
 
-let Context: GraphicsContext | null;
+let globalContext: GraphicsContext | null;
 
 export type Gravity =
   | 'top'
@@ -90,17 +90,17 @@ export function drawText(text: string, options: Partial<DrawTextOptions> = {}) {
 }
 
 export function withCanvas(canvas: GraphicsContext, cb: () => any) {
-  const savedContext = Context;
+  const savedContext = globalContext;
   try {
-    Context = canvas;
+    globalContext = canvas;
     return cb();
   } finally {
-    Context = savedContext;
+    globalContext = savedContext;
   }
 }
 
 export function withGraphicsContext(cb: (_: GraphicsContext) => any) {
-  const ctx = Context!;
+  const ctx = globalContext!;
   ctx.save();
   try {
     return cb(ctx);

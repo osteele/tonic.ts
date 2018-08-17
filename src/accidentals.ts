@@ -9,12 +9,12 @@ export const AccidentalValues: { [_: string]: number } = {
 };
 
 // Indexed by (semitones + 2)
-const AccidentalNames = ['𝄫', '♭', '', '♯', '𝄪'];
+const accidentalNames = ['𝄫', '♭', '', '♯', '𝄪'];
 
 export function semitonesToAccidentalString(n: number): string {
   // fast path:
   if (-2 <= n && n <= 2) {
-    return AccidentalNames[n + 2];
+    return accidentalNames[n + 2];
   }
   let [single, double] = ['♯', '𝄪'];
   if (n < 0) {

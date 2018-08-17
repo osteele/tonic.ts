@@ -234,7 +234,8 @@ function rotatePitchClasses(pitchClasses: number[], i: number) {
 }
 
 // Indexed by scale degree
-const Functions = [
+// tslint:disable-next-line variable-name
+const FunctionNames = [
   'Tonic',
   'Supertonic',
   'Mediant',
@@ -260,6 +261,7 @@ function parseChordNumeral(name: string) {
 //   major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
 //   minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
 
+// tslint:disable-next-line variable-name
 export const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
   .split(/\s/)
   .map((d) => d.replace(/(\d)/, '$1\u0302'));

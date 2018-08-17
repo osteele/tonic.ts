@@ -58,6 +58,7 @@ export interface FretPosition {
 }
 
 // Instruments, indexed by name
+// tslint:disable-next-line variable-name
 export const Instruments: { [_: string]: Instrument } = [
   {
     name: 'Guitar',
@@ -85,7 +86,10 @@ export const Instruments: { [_: string]: Instrument } = [
   }, {});
 
 // TODO: make this a property of the instrument
+// tslint:disable-next-line variable-name
 export const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
+
+// tslint:disable-next-line variable-name
 export const FretCount = FretNumbers.length - 1; // doesn't include nut
 
 // const intervalPositionsFromRoot = function(

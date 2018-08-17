@@ -3,10 +3,13 @@ import { AccidentalValues } from './accidentals';
 export type PitchClassName = string;
 export type PitchClassNumber = number;
 
+// tslint:disable-next-line variable-name
 export const SharpNoteNames = 'C C♯ D D♯ E F F♯ G G♯ A A♯ B'.split(/\s/);
 
+// tslint:disable-next-line variable-name
 export const FlatNoteNames = 'C D♭ D E♭ E F G♭ G A♭ A B♭ B'.split(/\s/);
 
+// tslint:disable-next-line variable-name
 export const NoteNames = SharpNoteNames;
 
 export function getPitchName(

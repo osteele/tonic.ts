@@ -3,7 +3,7 @@ import { IntervalNames } from '../interval';
 import * as ChordDiagram from './chordDiagram';
 import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 
-const DefaultStyle = {
+const defaultStyle = {
   intervalClassColors: ChordDiagram.defaultStyle.intervalClassColors,
   radius: 50,
   center: true,
@@ -14,7 +14,7 @@ const DefaultStyle = {
 // Enumerate these explicitly instead of computing them, so that we can
 // fine-tune the position of cells that could be placed at one of several
 // different locations.
-const IntervalVectors = {
+const intervalVectors = {
   2: { P5: -1, m3: -1 },
   3: { m3: 1 },
   4: { M3: 1 },
@@ -40,8 +40,8 @@ function intervalClassVectors(
     dM3 += 3;
   }
   const record =
-    IntervalVectors[intervalClass] ||
-    _.mapValues(IntervalVectors[12 - intervalClass], (n) => -n);
+    intervalVectors[intervalClass] ||
+    _.mapValues(intervalVectors[12 - intervalClass], (n) => -n);
   const intervals = { m3: 0, M3: 0, P5: 0, record };
   intervals.M3 += dM3;
   intervals.P5 += dP5;

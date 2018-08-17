@@ -10,6 +10,7 @@ import { GraphicsContext } from './graphics';
 // Style
 //
 
+// tslint:disable-next-line variable-name
 const DefaultStyle = {
   hGutter: 10,
   vGutter: 10,

@@ -2,8 +2,11 @@ import { Interval } from './interval';
 import { Pitch } from './pitch';
 import { rotateArray } from './utils';
 
+// tslint:disable-next-line variable-name
 const ChordNameRe = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
-const InversionNames = "acd".split(/./);
+
+// tslint:disable-next-line variable-name
+const InversionNames = 'acd'.split(/./);
 
 // An instance of ChordClass represents the intervals of the chord,
 // without the root. For example, Dom7. It represents the quality, suspensions, and additions.
@@ -171,6 +174,7 @@ export class Chord {
   }
 }
 
+// tslint:disable-next-line variable-name
 export const ChordClasses: ChordClass[] = [
   { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
   { name: 'Minor', abbrs: ['m'], intervals: '037' },
@@ -216,6 +220,7 @@ export const ChordClasses: ChordClass[] = [
 });
 
 // `ChordClassMap` is indexed by name, abbreviation, and pitch classes
+// tslint:disable-next-line variable-name
 export const ChordClassMap: { [_: string]: ChordClass } = ChordClasses.reduce(
   (acc: { [_: string]: ChordClass }, chordClass) => {
     [chordClass.name, chordClass.fullName, ...chordClass.abbrs].forEach(

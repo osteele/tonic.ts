@@ -3,10 +3,12 @@ import { normalizePitchClass, PitchClassNumber } from './names';
 import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
 
+// tslint:disable-next-line variable-name
 export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
   /\s/,
 );
 
+// tslint:disable-next-line variable-name
 export const LongIntervalNames = [
   'Unison',
   'Minor 2nd',
@@ -70,8 +72,8 @@ export class Interval {
     this.semitones = semitones;
     this.accidentals = accidentals;
     const dict =
-      IntervalBySemitone[this.semitones] ||
-      (IntervalBySemitone[this.semitones] = {});
+      intervalBySemitone[this.semitones] ||
+      (intervalBySemitone[this.semitones] = {});
     if (dict[this.accidentals]) {
       // FIXME: can ts intern this way?
       return dict[this.accidentals];
@@ -94,12 +96,13 @@ export class Interval {
 }
 
 // new Interval interns into this
-const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
+const intervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
 export interface IntervalMap {
   [_: string]: Interval;
 }
 
+// tslint:disable-next-line variable-name
 export const Intervals: IntervalMap = IntervalNames.reduce(
   (acc: IntervalMap, name, semitones) => {
     acc[name] = new Interval(semitones);
