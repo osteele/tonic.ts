@@ -7,80 +7,6 @@ import { PitchClass } from './pitchClass';
 
 // A scale is a named collection, either of intervals or notes.
 export class Scale {
-  readonly name: string;
-  readonly pitchClasses: number[];
-  readonly parent: Scale | null;
-  readonly modes: Scale[] = [];
-  readonly tonic: Pitch | PitchClass | null;
-  readonly intervals: Interval[];
-  readonly pitches: Pitch[] | PitchClass[] | null;
-  constructor({
-    name,
-    pitchClasses,
-    parent = null,
-    modeNames = [],
-    tonic = null
-  }: {
-    name: string;
-    pitchClasses: number[];
-    parent?: Scale | string | null;
-    modeNames?: string[];
-    tonic?: Pitch | string | null;
-  }) {
-    this.name = name;
-    this.parent = typeof parent === 'string' ? Scales[parent] : parent;
-    this.pitchClasses = pitchClasses;
-    this.intervals = this.pitchClasses.map(
-      (semitones: number) => new Interval(semitones)
-    );
-    this.tonic = typeof tonic === 'string' ? toPitchOrPitchClass(tonic) : tonic;
-    if (this.tonic instanceof Pitch) {
-      this.pitches = this.intervals.map((interval: Interval) =>
-        (this.tonic! as Pitch).add(interval)
-      );
-    }
-    if (this.tonic instanceof PitchClass) {
-      this.pitches = this.intervals.map((interval: Interval) =>
-        (this.tonic! as PitchClass).add(interval)
-      );
-    }
-    this.modes = modeNames.map(
-      (name, i) =>
-        new Scale({
-          name: name,
-          parent: this,
-          pitchClasses: rotatePitchClasses(pitchClasses, i)
-        })
-    );
-  }
-
-  at(tonic: Pitch | string): Scale {
-    return new Scale({
-      name: this.name,
-      pitchClasses: this.pitchClasses,
-      tonic
-    });
-  }
-
-  chords(options: { sevenths?: boolean } = {}): Chord[] {
-    if (this.tonic == null) {
-      throw new Error('only implemented for scales with tonics');
-    }
-    const degrees = [0, 2, 4];
-    if (options.sevenths) {
-      degrees.push(6);
-    }
-    const pitches = this.pitchClasses;
-    const tonic = this.tonic! as Pitch;
-    return pitches.map((_, i) => {
-      const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
-      const chordPitches = degrees.map((degree: number) =>
-        tonic.add(Interval.fromSemitones(modePitches[degree]))
-      );
-      return Chord.fromPitches(chordPitches);
-    });
-  }
-
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
   //     throw new Error('only implemented for scales with tonics');
@@ -90,7 +16,7 @@ export class Scale {
   //     : FlatNoteNames;
   // }
 
-  static fromString(name: string): Scale {
+  public static fromString(name: string): Scale {
     let tonicName = null;
     let scaleName = null;
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
@@ -109,18 +35,91 @@ export class Scale {
     }
     return scale;
   }
+  public readonly name: string;
+  public readonly pitchClasses: number[];
+  public readonly parent: Scale | null;
+  public readonly modes: Scale[] = [];
+  public readonly tonic: Pitch | PitchClass | null;
+  public readonly intervals: Interval[];
+  public readonly pitches: Pitch[] | PitchClass[] | null;
+  constructor({
+    name,
+    pitchClasses,
+    parent = null,
+    modeNames = [],
+    tonic = null,
+  }: {
+    name: string;
+    pitchClasses: number[];
+    parent?: Scale | string | null;
+    modeNames?: string[];
+    tonic?: Pitch | string | null;
+  }) {
+    this.name = name;
+    this.parent = typeof parent === 'string' ? Scales[parent] : parent;
+    this.pitchClasses = pitchClasses;
+    this.intervals = this.pitchClasses.map(
+      (semitones: number) => new Interval(semitones),
+    );
+    this.tonic = typeof tonic === 'string' ? toPitchOrPitchClass(tonic) : tonic;
+    if (this.tonic instanceof Pitch) {
+      this.pitches = this.intervals.map((interval: Interval) =>
+        (this.tonic! as Pitch).add(interval),
+      );
+    }
+    if (this.tonic instanceof PitchClass) {
+      this.pitches = this.intervals.map((interval: Interval) =>
+        (this.tonic! as PitchClass).add(interval),
+      );
+    }
+    this.modes = modeNames.map(
+      (modeName, i) =>
+        new Scale({
+          name: modeName,
+          parent: this,
+          pitchClasses: rotatePitchClasses(pitchClasses, i),
+        }),
+    );
+  }
 
-  fromRomanNumeral(name: string): Chord {
+  public at(tonic: Pitch | string): Scale {
+    return new Scale({
+      name: this.name,
+      pitchClasses: this.pitchClasses,
+      tonic,
+    });
+  }
+
+  public chords(options: { sevenths?: boolean } = {}): Chord[] {
+    if (this.tonic == null) {
+      throw new Error('only implemented for scales with tonics');
+    }
+    const degrees = [0, 2, 4];
+    if (options.sevenths) {
+      degrees.push(6);
+    }
+    const pitches = this.pitchClasses;
+    const tonic = this.tonic! as Pitch;
+    return pitches.map((_, i) => {
+      const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
+      const chordPitches = degrees.map((degree: number) =>
+        tonic.add(Interval.fromSemitones(modePitches[degree])),
+      );
+      return Chord.fromPitches(chordPitches);
+    });
+  }
+
+  public fromRomanNumeral(name: string): Chord {
     return chordFromRomanNumeral(name, this);
   }
 
-  progression(names: string): Chord[] {
-    return names.split(/[\s+\-]+/).map(name => this.fromRomanNumeral(name));
+  public progression(names: string): Chord[] {
+    return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
   }
 }
 
 function toPitchOrPitchClass(
-  pitch: Pitch | PitchClass | string
+  pitch: Pitch | PitchClass | string,
 ): Pitch | PitchClass {
   if (typeof pitch !== 'string') {
     return pitch;
@@ -132,25 +131,19 @@ function toPitchOrPitchClass(
   }
 }
 
-export const Scales: { [_: string]: Scale } = (<
-  {
-    name: string;
-    parent?: string;
-    pitchClasses: number[];
-    modeNames?: string[];
-  }[]
->[
+// tslint:disable-next-line variable-name
+export const Scales: { [_: string]: Scale } = ([
   {
     name: 'Diatonic Major',
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
     modeNames: 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(
-      /\s/
-    )
+      /\s/,
+    ),
   },
   {
     name: 'Natural Minor',
     parent: 'Diatonic Major',
-    pitchClasses: [0, 2, 3, 5, 7, 8, 10]
+    pitchClasses: [0, 2, 3, 5, 7, 8, 10],
   },
   {
     name: 'Major Pentatonic',
@@ -160,13 +153,13 @@ export const Scales: { [_: string]: Scale } = (<
       'Suspended Pentatonic',
       'Man Gong',
       'Ritusen',
-      'Minor Pentatonic'
-    ]
+      'Minor Pentatonic',
+    ],
   },
   {
     name: 'Minor Pentatonic',
     parent: 'Major Pentatonic',
-    pitchClasses: [0, 3, 5, 7, 10]
+    pitchClasses: [0, 3, 5, 7, 10],
   },
   {
     name: 'Melodic Minor',
@@ -178,8 +171,8 @@ export const Scales: { [_: string]: Scale } = (<
       'Lydian Dominant',
       'Mixolydian b6',
       'Semilocrian',
-      'Superlocrian'
-    ]
+      'Superlocrian',
+    ],
   },
   {
     name: 'Harmonic Minor',
@@ -191,48 +184,53 @@ export const Scales: { [_: string]: Scale } = (<
       'Romanian',
       'Phrygian Dominant',
       'Lydian #2',
-      'Ultralocrian'
-    ]
+      'Ultralocrian',
+    ],
   },
   {
     name: 'Blues',
-    pitchClasses: [0, 3, 5, 6, 7, 10]
+    pitchClasses: [0, 3, 5, 6, 7, 10],
   },
   {
     name: 'Freygish',
-    pitchClasses: [0, 1, 4, 5, 7, 8, 10]
+    pitchClasses: [0, 1, 4, 5, 7, 8, 10],
   },
   {
     name: 'Whole Tone',
-    pitchClasses: [0, 2, 4, 6, 8, 10]
+    pitchClasses: [0, 2, 4, 6, 8, 10],
   },
   {
     // 'Octatonic' is the classical name. It's the jazz 'Diminished' scale.
     name: 'Octatonic',
-    pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11]
-  }
-]).reduce(
+    pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11],
+  },
+] as Array<{
+  name: string;
+  parent?: string;
+  pitchClasses: number[];
+  modeNames?: string[];
+}>).reduce(
   (
     acc: { [_: string]: Scale },
-    { name, parent = null, pitchClasses, modeNames }
+    { name, parent = null, pitchClasses, modeNames },
   ) => {
     const scale = new Scale({
       name,
       parent: parent && acc[parent],
       pitchClasses,
-      modeNames
+      modeNames,
     });
     acc[scale.name] = scale;
     acc[scale.name.replace(/\s/g, '')] = scale;
     return acc;
   },
-  {}
+  {},
 );
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;
   pitchClasses = [...pitchClasses.slice(i), ...pitchClasses.slice(0, i)];
-  return pitchClasses.map(pc => normalizePitchClass(pc - pitchClasses[0]));
+  return pitchClasses.map((pc) => normalizePitchClass(pc - pitchClasses[0]));
 }
 
 // Indexed by scale degree
@@ -244,7 +242,7 @@ const Functions = [
   'Dominant',
   'Submediant',
   'Subtonic',
-  'Leading'
+  'Leading',
 ];
 
 function parseChordNumeral(name: string) {
@@ -253,7 +251,7 @@ function parseChordNumeral(name: string) {
     major: name === name.toUpperCase(),
     flat: name.match(/^[♭b]/),
     diminished: name.match(/°/),
-    augmented: name.match(/\+/)
+    augmented: name.match(/\+/),
   };
   return chord;
 }
@@ -264,4 +262,4 @@ function parseChordNumeral(name: string) {
 
 export const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
   .split(/\s/)
-  .map(d => d.replace(/(\d)/, '$1\u0302'));
+  .map((d) => d.replace(/(\d)/, '$1\u0302'));

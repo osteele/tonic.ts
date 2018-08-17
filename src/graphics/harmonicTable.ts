@@ -8,25 +8,25 @@ const DefaultStyle = {
   radius: 50,
   center: true,
   fillCells: false,
-  labelCells: false
+  labelCells: false,
 };
 
 // Enumerate these explicitly instead of computing them, so that we can
 // fine-tune the position of cells that could be placed at one of several
 // different locations.
-const IntervalVectors = <{ [_: number]: { [_: string]: number } }>{
+const IntervalVectors = {
   2: { P5: -1, m3: -1 },
   3: { m3: 1 },
   4: { M3: 1 },
   5: { P5: -1 },
   6: { m3: 2 },
-  11: { P5: 1, M3: 1 }
-};
+  11: { P5: 1, M3: 1 },
+} as { [_: number]: { [_: string]: number } };
 
 // Returns a record {m3 M3 P5} that represents the canonical vector (according
 // to `IntervalVectors`) of the interval class.
 function intervalClassVectors(
-  intervalClass: number
+  intervalClass: number,
 ): { m3: number; M3: number; P5: number } {
   const originalIntervalClass = intervalClass; // for error reporting
   let [dM3, dP5] = [0, 0];
@@ -41,17 +41,17 @@ function intervalClassVectors(
   }
   const record =
     IntervalVectors[intervalClass] ||
-    _.mapValues(IntervalVectors[12 - intervalClass], n => -n);
+    _.mapValues(IntervalVectors[12 - intervalClass], (n) => -n);
   const intervals = { m3: 0, M3: 0, P5: 0, record };
-  intervals['M3'] += dM3;
-  intervals['P5'] += dP5;
+  intervals.M3 += dM3;
+  intervals.P5 += dP5;
   const originalIc = originalIntervalClass % 12;
   const computedIc =
     (12 + intervals.P5 * 7 + intervals.M3 * 4 + intervals.m3 * 3) % 12;
   if (computedIc !== originalIc) {
     console.error(
       `Error computing grid position for ${originalIntervalClass}:\n
-      ${originalIntervalClass} -> ${intervals} -> ${computedIc} != ${originalIc}`
+      ${originalIntervalClass} -> ${intervals} -> ${computedIc} != ${originalIc}`,
     );
   }
   return intervals;
@@ -65,9 +65,9 @@ function drawHarmonicTable(
     draw?: boolean;
     fillCells?: boolean;
     labelCells?: boolean;
-  } = {}
+  } = {},
 ) {
-  const options = { draw: true, ...DefaultStyle, ...options_ };
+  const options = { draw: true, ...defaultStyle, ...options_ };
   const colors = options.intervalClassColors;
   if (intervalClasses.indexOf(0) < 0) {
     intervalClasses = [0, ...intervalClasses];
@@ -88,9 +88,9 @@ function drawHarmonicTable(
     left: Infinity,
     top: Infinity,
     right: -Infinity,
-    bottom: -Infinity
+    bottom: -Infinity,
   };
-  intervalClasses.forEach(intervalClass => {
+  intervalClasses.forEach((intervalClass) => {
     const { x, y } = getCellCenter(intervalClass);
     bounds.left = Math.min(bounds.left, x - hexRadius);
     bounds.top = Math.min(bounds.top, y - hexRadius);
@@ -101,14 +101,14 @@ function drawHarmonicTable(
   if (!options.draw) {
     return {
       width: bounds.right - bounds.left,
-      height: bounds.bottom - bounds.top
+      height: bounds.bottom - bounds.top,
     };
   }
 
   withGraphicsContext((ctx: GraphicsContext) => {
     ctx.translate(-bounds.left, -bounds.bottom);
 
-    intervalClasses.forEach(intervalClass => {
+    intervalClasses.forEach((intervalClass) => {
       const isRoot = intervalClass === 0;
       const color = colors[intervalClass % 12] || colors[12 - intervalClass];
       ctx.beginPath();
@@ -147,9 +147,9 @@ function drawHarmonicTable(
         ctx.globalAlpha = 0.3;
       }
 
-      let [dx, dy, dn] = [-y, x, 2 / Math.sqrt(x * x + y * y)];
-      dx *= dn;
-      dy *= dn;
+      const dn = 2 / Math.sqrt(x * x + y * y);
+      const dx = -y * dn;
+      const dy = x * dn;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(x + dx, y + dy);
@@ -170,7 +170,7 @@ function drawHarmonicTable(
     ctx.fill();
 
     if (options.labelCells) {
-      intervalClasses.forEach(intervalClass => {
+      intervalClasses.forEach((intervalClass) => {
         let label = IntervalNames[intervalClass];
         if (intervalClass === 0) {
           label = 'R';
@@ -181,7 +181,7 @@ function drawHarmonicTable(
           fillStyle: 'black',
           x,
           y,
-          gravity: 'center'
+          gravity: 'center',
         });
       });
     }

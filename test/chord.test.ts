@@ -8,15 +8,15 @@ describe('ChordClasses', () => {
   });
 
   it.skip('should be indexed by chord name', () => {
-    expect(ChordClassMap['Major']).toBeTruthy();
-    expect(ChordClassMap['Minor']).toBeTruthy();
-    expect(ChordClassMap['Augmented']).toBeTruthy();
-    expect(ChordClassMap['Diminished']).toBeTruthy();
+    expect(ChordClassMap.Major).toBeTruthy();
+    expect(ChordClassMap.Minor).toBeTruthy();
+    expect(ChordClassMap.Augmented).toBeTruthy();
+    expect(ChordClassMap.Diminished).toBeTruthy();
   });
 
   it.skip('should be indexed by chord abbreviation', () => {
-    expect(ChordClassMap['M']).toBeTruthy();
-    expect(ChordClassMap['aug']).toBeTruthy();
+    expect(ChordClassMap.M).toBeTruthy();
+    expect(ChordClassMap.aug).toBeTruthy();
     expect(ChordClassMap['°']).toBeTruthy();
   });
 
@@ -81,14 +81,14 @@ describe('Chord', () => {
     it('should find the chord from an array of pitches', () => {
       const pitches = 'A3 C#4 E4'
         .split(/\s/)
-        .map(name => Pitch.fromString(name));
+        .map((name) => Pitch.fromString(name));
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A3 Major');
     }));
 });
 
 describe('Major Chord Class', () => {
-  const chordClass = ChordClassMap['Major'];
+  const chordClass = ChordClassMap.Major;
 
   it('should exist', () => expect(chordClass).toBeTruthy());
 
@@ -169,7 +169,7 @@ describe('Major Chord Class', () => {
 });
 
 describe('Minor Chord', () => {
-  const chordClass = ChordClassMap['Minor'];
+  const chordClass = ChordClassMap.Minor;
 
   describe('at C', () => {
     const chord = chordClass.at('C');

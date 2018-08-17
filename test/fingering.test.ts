@@ -29,7 +29,7 @@ describe('bestFingeringFor', () => {
   describe('E Major', () => {
     const fingering = bestFingeringFor(
       Chord.fromString('E Major') as Chord,
-      Instruments.Guitar
+      Instruments.Guitar,
     );
 
     it('should have fingers at 022100', () => {
@@ -37,37 +37,37 @@ describe('bestFingeringFor', () => {
       expect(fingering.positions[0].string).toBe(0); // 'finger #1 string'
       expect(fingering.positions[0].fret).toBe(0); // 'finger #1 fret'
       expect(fingering.positions[0].intervalClass).toBe(
-        Interval.fromString('P1')
+        Interval.fromString('P1'),
       );
 
       expect(fingering.positions[1].string).toBe(1); // 'finger #2 string'
       expect(fingering.positions[1].fret).toBe(2); // 'finger #2 fret'
       expect(fingering.positions[1].intervalClass).toBe(
-        Interval.fromString('P5')
+        Interval.fromString('P5'),
       );
 
       expect(fingering.positions[2].string).toBe(2); // 'finger #3 string'
       expect(fingering.positions[2].fret).toBe(2); // 'finger #3 fret'
       expect(fingering.positions[2].intervalClass).toBe(
-        Interval.fromString('P1')
+        Interval.fromString('P1'),
       );
 
       expect(fingering.positions[3].string).toBe(3); // 'finger #4 string'
       expect(fingering.positions[3].fret).toBe(1); // 'finger #4 fret'
       expect(fingering.positions[3].intervalClass).toBe(
-        Interval.fromString('M3')
+        Interval.fromString('M3'),
       );
 
       expect(fingering.positions[4].string).toBe(4); // 'finger #5 string'
       expect(fingering.positions[4].fret).toBe(0); // 'finger #5 fret'
       expect(fingering.positions[4].intervalClass).toBe(
-        Interval.fromString('P5')
+        Interval.fromString('P5'),
       );
 
       expect(fingering.positions[5].string).toBe(5); // 'finger #6 string'
       expect(fingering.positions[5].fret).toBe(0); // 'finger #6 fret'
       expect(fingering.positions[5].intervalClass).toBe(
-        Interval.fromString('P1')
+        Interval.fromString('P1'),
       );
     });
 

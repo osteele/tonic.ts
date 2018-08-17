@@ -11,7 +11,7 @@ export const NoteNames = SharpNoteNames;
 
 export function getPitchName(
   pitch: PitchClassName | PitchClassNumber,
-  { sharp, flat }: { sharp?: boolean; flat?: boolean } = {}
+  { sharp, flat }: { sharp?: boolean; flat?: boolean } = {},
 ): string {
   if (typeof pitch === 'string') {
     return pitch;
@@ -35,7 +35,7 @@ export function pitchFromScientificNotation(name: string): PitchClassNumber {
   let pitch =
     SharpNoteNames.indexOf(naturalName.toUpperCase()) +
     12 * (1 + Number(octave));
-  for (let c of accidentals) {
+  for (const c of accidentals) {
     pitch += AccidentalValues[c];
   }
   return pitch;
@@ -63,7 +63,7 @@ export function pitchToScientificNotation(midiNumber: number): string {
 
 export function parsePitchClass(
   name: PitchClassName,
-  normal = true
+  normal = true,
 ): PitchClassNumber {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
   if (!match) {
@@ -71,7 +71,7 @@ export function parsePitchClass(
   }
   const [naturalName, accidentals] = match.slice(1);
   let pitch = SharpNoteNames.indexOf(naturalName.toUpperCase());
-  for (let c of accidentals) {
+  for (const c of accidentals) {
     pitch += AccidentalValues[c];
   }
   if (normal) {

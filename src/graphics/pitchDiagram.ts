@@ -2,14 +2,16 @@ import { defaultStyle as ChordDiagramStyle } from './chordDiagram';
 import { GraphicsContext } from './graphics';
 const { PI, cos, sin, min, max } = Math;
 
-const drawPitchDiagram = function(
+function drawPitchDiagram(
   ctx: GraphicsContext,
   pitchClasses: number[],
   options: { pitchColors?: string[]; pitchNames?: string[]; draw: boolean } = {
-    draw: true
-  }
+    draw: true,
+  },
 ) {
-  let angle, x, y;
+  let angle;
+  let x;
+  let y;
   let { pitchColors, pitchNames } = options;
   if (!pitchColors) {
     pitchColors = ChordDiagramStyle.intervalClassColors;
@@ -19,7 +21,7 @@ const drawPitchDiagram = function(
   }
   // pitch_names = '1 2b 2 3b 3 4 T 5 6b 6 7b 7'.split(/\s/)
   const r = 10;
-  const r_label = r + 7;
+  const rLabel = r + 7;
 
   const pitchClassAngle = (pitchClass: number) =>
     ((pitchClass - 3) * 2 * PI) / 12;
@@ -29,7 +31,7 @@ const drawPitchDiagram = function(
     left: number,
     top: number,
     bottom?: number,
-    right?: number
+    right?: number,
   ) {
     bounds.left = min(bounds.left, left);
     bounds.top = min(bounds.top, top);
@@ -37,7 +39,7 @@ const drawPitchDiagram = function(
     bounds.bottom = max(bounds.bottom, bottom != null ? bottom : top);
   }
 
-  pitchClasses.forEach(pitchClass => {
+  pitchClasses.forEach((pitchClass) => {
     angle = pitchClassAngle(pitchClass);
     x = r * cos(angle);
     y = r * sin(angle);
@@ -65,8 +67,8 @@ const drawPitchDiagram = function(
   pitchNames.forEach((className, pitchClass) => {
     angle = pitchClassAngle(pitchClass);
     const measure = ctx.measureText(className);
-    x = r_label * cos(angle) - measure.width / 2;
-    y = r_label * sin(angle) + measure.emHeightDescent;
+    x = rLabel * cos(angle) - measure.width / 2;
+    y = rLabel * sin(angle) + measure.emHeightDescent;
     if (options.draw) {
       ctx.fillText(className, x, y);
     }
@@ -77,6 +79,6 @@ const drawPitchDiagram = function(
   });
 
   return bounds;
-};
+}
 
 export const draw = drawPitchDiagram;

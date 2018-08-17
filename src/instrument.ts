@@ -1,18 +1,18 @@
 import { Pitch } from './pitch';
 
 export class Instrument {
-  readonly name: string;
-  readonly fretted: boolean;
-  readonly stringPitches: Pitch[];
-  readonly fretCount: number | null;
-  readonly strings: number;
-  readonly stringCount: number;
-  readonly stringNumbers: number[];
+  public readonly name: string;
+  public readonly fretted: boolean;
+  public readonly stringPitches: Pitch[];
+  public readonly fretCount: number | null;
+  public readonly strings: number;
+  public readonly stringCount: number;
+  public readonly stringNumbers: number[];
   constructor({
     name,
     fretted = false,
     stringPitches,
-    fretCount
+    fretCount,
   }: {
     name: string;
     fretted?: boolean;
@@ -39,18 +39,23 @@ export class Instrument {
     this.stringNumbers = __range__(0, this.strings, false);
   }
 
-  forEachFingerPosition(fn: (_: FretPosition) => any) {
-    return this.stringNumbers.map(string =>
-      __range__(0, this.fretCount || 0, true).map(fret => fn({ string, fret }))
+  public forEachFingerPosition(fn: (_: FretPosition) => any) {
+    return this.stringNumbers.map((stringNumber) =>
+      __range__(0, this.fretCount || 0, true).map((fret) =>
+        fn({ string: stringNumber, fret }),
+      ),
     );
   }
 
-  pitchAt({ string, fret }: FretPosition) {
+  public pitchAt({ string, fret }: FretPosition) {
     return Pitch.fromMidiNumber(this.stringPitches[string].midiNumber + fret);
   }
 }
 
-export type FretPosition = { readonly string: number; readonly fret: number };
+export interface FretPosition {
+  readonly string: number;
+  readonly fret: number;
+}
 
 // Instruments, indexed by name
 export const Instruments: { [_: string]: Instrument } = [
@@ -58,22 +63,22 @@ export const Instruments: { [_: string]: Instrument } = [
     name: 'Guitar',
     stringPitches: 'E2 A2 D3 G3 B3 E4',
     fretted: true,
-    fretCount: 12
+    fretCount: 12,
   },
   {
     name: 'Violin',
-    stringPitches: 'G D A E'
+    stringPitches: 'G D A E',
   },
   {
     name: 'Viola',
-    stringPitches: 'C G D A'
+    stringPitches: 'C G D A',
   },
   {
     name: 'Cello',
-    stringPitches: 'C G D A'
-  }
+    stringPitches: 'C G D A',
+  },
 ]
-  .map(attrs => new Instrument(attrs))
+  .map((attrs) => new Instrument(attrs))
   .reduce((acc: { [_: string]: Instrument }, instr) => {
     acc[instr.name] = instr;
     return acc;
@@ -104,9 +109,9 @@ export const FretCount = FretNumbers.length - 1; // doesn't include nut
 
 // TODO: replace this by something more idiomatic
 function __range__(left: number, right: number, inclusive: boolean) {
-  let range = [];
-  let ascending = left < right;
-  let end = !inclusive ? right : ascending ? right + 1 : right - 1;
+  const range = [];
+  const ascending = left < right;
+  const end = !inclusive ? right : ascending ? right + 1 : right - 1;
   for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
     range.push(i);
   }

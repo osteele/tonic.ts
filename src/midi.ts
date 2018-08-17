@@ -13,7 +13,7 @@ export function name2midi(name: string): MidiNumber {
   }
   const [noteName, accidentals, octave] = m.slice(1);
   let pitch = NoteNames.indexOf(noteName);
-  for (let c of accidentals) {
+  for (const c of accidentals) {
     pitch += AccidentalValues[c];
   }
   pitch += 12 * (1 + Number(octave));

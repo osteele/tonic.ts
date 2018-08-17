@@ -1,7 +1,25 @@
+import {
+  FlatNoteNames,
+  Interval,
+  intervalClassDifference,
+  IntervalNames,
+  LongIntervalNames,
+  NoteNames,
+  Pitch,
+  PitchClass,
+  Pitches,
+  SharpNoteNames,
+} from '../src';
 import { semitonesToAccidentalString } from '../src/accidentals';
-import { FlatNoteNames, Interval, intervalClassDifference, IntervalNames, LongIntervalNames, NoteNames, Pitch, PitchClass, Pitches, SharpNoteNames } from '../src';
 import { midi2name, name2midi } from '../src/midi';
-import { getPitchClassName, getPitchName, normalizePitchClass, parsePitchClass, pitchFromScientificNotation, pitchToPitchClass } from '../src/names';
+import {
+  getPitchClassName,
+  getPitchName,
+  normalizePitchClass,
+  parsePitchClass,
+  pitchFromScientificNotation,
+  pitchToPitchClass,
+} from '../src/names';
 
 //
 // Constants
@@ -278,7 +296,7 @@ describe('Interval', () => {
   describe('add', () =>
     it('should add to an interval', () =>
       expect(
-        Interval.fromString('m2').add(Interval.fromString('M2')).semitones
+        Interval.fromString('m2').add(Interval.fromString('M2')).semitones,
       ).toBe(3)));
 
   describe('between', () => {
@@ -286,28 +304,28 @@ describe('Interval', () => {
       expect(
         Interval.between(
           Pitch.fromString('E4'),
-          Pitch.fromString('E4')
-        ).toString()
+          Pitch.fromString('E4'),
+        ).toString(),
       ).toBe('P1');
       expect(
         Interval.between(
           Pitch.fromString('E4'),
-          Pitch.fromString('F4')
-        ).toString()
+          Pitch.fromString('F4'),
+        ).toString(),
       ).toBe('m2');
       expect(
         Interval.between(
           Pitch.fromString('E4'),
-          Pitch.fromString('G4')
-        ).toString()
+          Pitch.fromString('G4'),
+        ).toString(),
       ).toBe('m3');
     });
     it('should use modular arithmetic', () =>
       expect(
         Interval.between(
           Pitch.fromString('F4'),
-          Pitch.fromString('C4')
-        ).toString()
+          Pitch.fromString('C4'),
+        ).toString(),
       ).toBe('P5'));
   });
 });
@@ -347,17 +365,17 @@ describe('Pitch', () => {
     expect(
       Pitch.fromString('C4')
         .add(Interval.fromString('P1'))
-        .toString()
+        .toString(),
     ).toBe('C4');
     expect(
       Pitch.fromString('C4')
         .add(Interval.fromString('M2'))
-        .toString()
+        .toString(),
     ).toBe('D4');
     expect(
       Pitch.fromString('C4')
         .add(Interval.fromString('P8'))
-        .toString()
+        .toString(),
     ).toBe('C5');
   });
 
@@ -365,7 +383,7 @@ describe('Pitch', () => {
     expect(
       Pitch.fromString('C4')
         .transposeBy(Interval.fromString('M2'))
-        .toString()
+        .toString(),
     ).toBe('D4'));
 
   // test.skip('#toPitch should itself');
@@ -400,7 +418,7 @@ describe('PitchClass', () => {
     expect(
       PitchClass.fromString('C')
         .add(Interval.fromString('M2'))
-        .toString()
+        .toString(),
     ).toBe('D'));
 
   // test.skip('#toPitch should return a pitch within the specified octave');
@@ -408,6 +426,6 @@ describe('PitchClass', () => {
 });
 
 describe('Pitches', () =>
-  it('should contain 12 pitches', function() {
+  it('should contain 12 pitches', () => {
     expect(Pitches).toHaveLength(12);
   }));

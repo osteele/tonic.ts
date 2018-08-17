@@ -2,10 +2,10 @@
 export const AccidentalValues: { [_: string]: number } = {
   '#': 1,
   '♯': 1,
-  b: -1,
+  "b": -1,
   '♭': -1,
   '𝄪': 2,
-  '𝄫': -2
+  '𝄫': -2,
 };
 
 // Indexed by (semitones + 2)

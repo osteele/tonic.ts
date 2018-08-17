@@ -5,14 +5,14 @@ export interface GraphicsContext {
     radius: number,
     a: number,
     b: number,
-    c: boolean
+    c: boolean,
   ) => void;
   beginPath: () => void;
   fill: () => void;
   fillText: (_: string, x: number, y: number) => void;
   lineTo: (x: number, y: number) => void;
   measureText: (
-    _: string
+    _: string,
   ) => { width: number; emHeightAscent: number; emHeightDescent: number };
   moveTo: (x: number, y: number) => void;
   rect: (x: number, y: number, width: number, height: number) => void;
@@ -29,7 +29,7 @@ export interface GraphicsContext {
   strokeStyle: string;
 }
 
-var Context: GraphicsContext | null;
+let Context: GraphicsContext | null;
 
 export type Gravity =
   | 'top'
@@ -45,18 +45,19 @@ export type Gravity =
   | 'botRight'
   | '';
 
-export type DrawTextOptions = {
+export interface DrawTextOptions {
   font: string;
   fillStyle: string;
   x: number;
   y: number;
   gravity: Gravity;
   width: number;
-};
+}
 
 export function drawText(text: string, options: Partial<DrawTextOptions> = {}) {
-  const ctx = Context!;
-  let { font, fillStyle, x, y, gravity, width } = options;
+  const ctx = globalContext!;
+  let { x, y, gravity } = options;
+  const { fillStyle, font } = options;
   if (!gravity) {
     gravity = '';
   }

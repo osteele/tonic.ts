@@ -2,10 +2,9 @@ import { semitonesToAccidentalString } from './accidentals';
 import { normalizePitchClass, PitchClassNumber } from './names';
 import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
-'./names';
 
 export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
-  /\s/
+  /\s/,
 );
 
 export const LongIntervalNames = [
@@ -21,7 +20,7 @@ export const LongIntervalNames = [
   'Major 6th',
   'Minor 7th',
   'Major 7th',
-  'Octave'
+  'Octave',
 ];
 
 // An Interval is the signed distance between two notes.
@@ -31,8 +30,42 @@ export const LongIntervalNames = [
 //
 // FIXME these are interval classes, not intervals
 export class Interval {
-  readonly semitones: number;
-  readonly accidentals: number;
+  public static fromSemitones(semitones: number): Interval {
+    return new Interval(semitones);
+  }
+
+  public static fromString(name: string): Interval {
+    const semitones = IntervalNames.indexOf(name);
+    if (!(semitones >= 0)) {
+      throw new Error(`No interval named ${name}`);
+    }
+    return new Interval(semitones);
+  }
+
+  public static between(pitch1: Pitch, pitch2: Pitch): Interval;
+  public static between(pitch1: PitchClass, pitch2: PitchClass): Interval;
+  public static between(pitch1: number, pitch2: number): Interval;
+  public static between(pitch1: any, pitch2: any) {
+    let semitones = 0;
+    if (pitch1 instanceof Pitch && pitch2 instanceof Pitch) {
+      semitones = pitch2.midiNumber - pitch1.midiNumber;
+    } else if (pitch1 instanceof PitchClass && pitch2 instanceof PitchClass) {
+      semitones = normalizePitchClass(pitch2.semitones - pitch1.semitones);
+    } else if (typeof pitch1 === 'number' && typeof pitch2 === 'number') {
+      semitones = pitch2 - pitch1;
+    } else {
+      throw new Error(
+        `Can't take the interval between ${pitch1} and ${pitch2}`,
+      );
+    }
+    if (!(0 <= semitones && semitones < 12)) {
+      semitones = normalizePitchClass(semitones);
+    }
+    // throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
+    return Interval.fromSemitones(semitones);
+  }
+  public readonly semitones: number;
+  public readonly accidentals: number;
   constructor(semitones: number, accidentals = 0) {
     this.semitones = semitones;
     this.accidentals = accidentals;
@@ -47,7 +80,7 @@ export class Interval {
   }
 
   // TODO: what is the ts equivalent of toString?
-  toString(): string {
+  public toString(): string {
     let s = IntervalNames[this.semitones];
     if (this.accidentals) {
       s = semitonesToAccidentalString(this.accidentals) + s;
@@ -55,62 +88,30 @@ export class Interval {
     return s;
   }
 
-  add(other: Interval): Interval {
+  public add(other: Interval): Interval {
     return new Interval(this.semitones + other.semitones);
-  }
-
-  static fromSemitones(semitones: number): Interval {
-    return new Interval(semitones);
-  }
-
-  static fromString(name: string): Interval {
-    const semitones = IntervalNames.indexOf(name);
-    if (!(semitones >= 0)) {
-      throw new Error(`No interval named ${name}`);
-    }
-    return new Interval(semitones);
-  }
-
-  static between(pitch1: Pitch, pitch2: Pitch): Interval;
-  static between(pitch1: PitchClass, pitch2: PitchClass): Interval;
-  static between(pitch1: number, pitch2: number): Interval;
-  static between(pitch1: any, pitch2: any) {
-    let semitones = 0;
-    if (pitch1 instanceof Pitch && pitch2 instanceof Pitch) {
-      semitones = pitch2.midiNumber - pitch1.midiNumber;
-    } else if (pitch1 instanceof PitchClass && pitch2 instanceof PitchClass) {
-      semitones = normalizePitchClass(pitch2.semitones - pitch1.semitones);
-    } else if (typeof pitch1 === 'number' && typeof pitch2 === 'number') {
-      semitones = pitch2 - pitch1;
-    } else {
-      throw new Error(
-        `Can't take the interval between ${pitch1} and ${pitch2}`
-      );
-    }
-    if (!(0 <= semitones && semitones < 12)) {
-      semitones = normalizePitchClass(semitones);
-    }
-    // throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
-    return Interval.fromSemitones(semitones);
   }
 }
 
 // new Interval interns into this
 const IntervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
-export type IntervalMap = { [_: string]: Interval };
+export interface IntervalMap {
+  [_: string]: Interval;
+}
+
 export const Intervals: IntervalMap = IntervalNames.reduce(
   (acc: IntervalMap, name, semitones) => {
     acc[name] = new Interval(semitones);
     return acc;
   },
-  {}
+  {},
 );
 
 // The interval class (integer in [0...12]) between two pitch class numbers
 export function intervalClassDifference(
   a: PitchClassNumber,
-  b: PitchClassNumber
+  b: PitchClassNumber,
 ): number {
   return normalizePitchClass(b - a);
 }

@@ -1,5 +1,14 @@
-export type RGBColor = { r: number; g: number; b: number };
-export type HSVColor = { h: number; s: number; v: number };
+export interface RGBColor {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface HSVColor {
+  h: number;
+  s: number;
+  v: number;
+}
 
 export function hsv2rgb({ h, s, v }: HSVColor): RGBColor {
   h /= 360;
@@ -21,13 +30,13 @@ export function hsv2rgb({ h, s, v }: HSVColor): RGBColor {
         return [c, 0, x];
     }
   })();
-  const [r, g, b] = components!.map(component => component + v - c);
+  const [r, g, b] = components!.map((component) => component + v - c);
   return { r, g, b };
 }
 
 export function rgb2css({ r, g, b }: RGBColor): string {
-  const [ri, gi, bi] = [r, g, b].map(c => Math.floor(255 * c));
+  const [ri, gi, bi] = [r, g, b].map((c) => Math.floor(255 * c));
   return `rgb(${ri}, ${gi}, ${bi})`;
 }
 
-export const hsv2css: (_: HSVColor) => string = hsv => rgb2css(hsv2rgb(hsv));
+export const hsv2css: (_: HSVColor) => string = (hsv) => rgb2css(hsv2rgb(hsv));

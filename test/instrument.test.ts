@@ -7,7 +7,7 @@ describe('Instruments', () => {
 });
 
 describe('Instrument', () => {
-  const guitar = Instruments['Guitar'];
+  const guitar = Instruments.Guitar;
 
   it('should have a string count', () => {
     expect(guitar.stringCount).toBe(6);
@@ -49,8 +49,7 @@ describe('Instrument', () => {
         strings[string] = true;
         frets[fret] = true;
         count += 1;
-
-        found || (found = string === 2 && fret === 3);
+        found = found || (string === 2 && fret === 3);
       });
       expect(count).toBe(6 * 13);
       expect(Object.keys(strings)).toHaveLength(6);
@@ -74,14 +73,14 @@ function toBeWithin(
   // this: jest.MatcherUtils,
   received: number,
   a: number,
-  b: number
+  b: number,
 ) {
   return {
     message: () => `expected ${received} to be within ${a}…${b}`,
-    pass: a <= received && received <= b
+    pass: a <= received && received <= b,
   };
 }
 
 expect.extend({
-  toBeWithin
+  toBeWithin,
 });

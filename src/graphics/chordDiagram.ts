@@ -1,10 +1,15 @@
 import * as _ from 'lodash';
-import { FretCount, FretNumbers, FretPosition, Instrument } from '../instrument';
+import {
+  FretCount,
+  FretNumbers,
+  FretPosition,
+  Instrument,
+} from '../instrument';
 import { Interval } from '../interval';
 import { GraphicsContext } from './graphics';
 import { hsv2css } from './utils';
 
-export type Style = {
+export interface Style {
   hGutter: number;
   vGutter: number;
   stringSpacing: number;
@@ -14,8 +19,9 @@ export type Style = {
   closedStringFontSize: number;
   chordDegreeColors: string[];
   intervalClassColors: string[];
-};
+}
 
+// tslint:disable-next-line variable-name
 export const SmallStyle = {
   hGutter: 5,
   vGutter: 5,
@@ -25,30 +31,31 @@ export const SmallStyle = {
   noteRadius: 1,
   closedStringFontsize: 4,
   chordDegreeColors: ['red', 'blue', 'green', 'orange'],
-  intervalClassColors: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(n =>
+  intervalClassColors: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) =>
     // i = (7 * n) % 12  # color by circle of fifth ascension
-    hsv2css({ h: (n * 360) / 12, s: 1, v: 1 })
-  )
+    hsv2css({ h: (n * 360) / 12, s: 1, v: 1 }),
+  ),
 };
 
+// tslint:disable-next-line variable-name
 export const DefaultStyle = {
   ...SmallStyle,
   stringSpacing: 12,
   fretHeight: 16,
   noteRadius: 3,
-  closedStringFontSize: 8
+  closedStringFontSize: 8,
 };
 
 function computeChordDiagramDimensions(
   instrument: Instrument,
-  style: Style = DefaultStyle
+  style: Style = DefaultStyle,
 ) {
   if (style == null) {
     style = DefaultStyle;
   }
   return {
     width: 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing,
-    height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount
+    height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount,
   };
 }
 
@@ -59,16 +66,16 @@ function computeChordDiagramDimensions(
 function drawChordDiagramStrings(
   ctx: GraphicsContext,
   instrument: Instrument,
-  options: { dimStrings?: number[] } = {}
+  options: { dimStrings?: number[] } = {},
 ) {
   const style = DefaultStyle;
-  instrument.stringNumbers.forEach(string => {
+  instrument.stringNumbers.forEach((string) => {
     const x = string * style.stringSpacing + style.hGutter;
     ctx.beginPath();
     ctx.moveTo(x, style.vGutter + style.aboveFretboard);
     ctx.lineTo(
       x,
-      style.vGutter + style.aboveFretboard + FretCount * style.fretHeight
+      style.vGutter + style.aboveFretboard + FretCount * style.fretHeight,
     );
     ctx.strokeStyle =
       options.dimStrings && options.dimStrings.indexOf(string) >= 0
@@ -81,18 +88,18 @@ function drawChordDiagramStrings(
 function drawChordDiagramFrets(
   ctx: GraphicsContext,
   instrument: Instrument,
-  param = { drawNut: true }
+  param = { drawNut: true },
 ) {
   const { drawNut } = param;
   const style = DefaultStyle;
   ctx.strokeStyle = 'black';
-  FretNumbers.forEach(fret => {
+  FretNumbers.forEach((fret) => {
     const y = style.vGutter + style.aboveFretboard + fret * style.fretHeight;
     ctx.beginPath();
     ctx.moveTo(style.vGutter - 0.5, y);
     ctx.lineTo(
       style.vGutter + 0.5 + (instrument.strings - 1) * style.stringSpacing,
-      y
+      y,
     );
     if (fret === 0 && drawNut) {
       ctx.lineWidth = 3;
@@ -105,11 +112,11 @@ function drawChordDiagramFrets(
 function drawChordDiagram(
   ctx: GraphicsContext,
   instrument: Instrument,
-  positions: { fret: number; string: number; intervalClass: Interval }[],
+  positions: Array<{ fret: number; string: number; intervalClass: Interval }>,
   options: {
     dimUnusedStrings?: boolean;
     dimStrings?: number[];
-    barres: { fret: number; firstString: number; stringCount: number }[];
+    barres: Array<{ fret: number; firstString: number; stringCount: number }>;
     drawClosedStrings: boolean;
     drawNut: boolean;
     dy: number;
@@ -119,14 +126,14 @@ function drawChordDiagram(
     drawClosedStrings: true,
     drawNut: true,
     dy: 0,
-    style: DefaultStyle
-  }
+    style: DefaultStyle,
+  },
 ) {
-  let { barres, dy, drawNut, style } = options;
+  const { barres, dy, style } = options;
+  let { drawNut } = options;
 
   let topFret = 0;
-  const frets = _
-    .chain(positions)
+  const frets = _.chain(positions)
     .map('fret')
     .without(0)
     .value();
@@ -140,7 +147,7 @@ function drawChordDiagram(
   if (options.dimUnusedStrings) {
     const usedStrings = _.map(positions, 'string');
     options.dimStrings = instrument.stringNumbers.filter(
-      string => usedStrings.indexOf(string) < 0
+      (string) => usedStrings.indexOf(string) < 0,
     );
   }
 
@@ -154,13 +161,13 @@ function drawChordDiagram(
         style.vGutter +
         style.aboveFretboard +
         (fret - 0.5) * style.fretHeight +
-        dy
+        dy,
     };
   }
 
   function drawFingerPosition(
     position: FretPosition,
-    options: { isRoot?: boolean; color?: string } = {}
+    options: { isRoot?: boolean; color?: string } = {},
   ) {
     const { isRoot, color } = options;
     const { x, y } = fingerCoordinates(position);
@@ -169,7 +176,7 @@ function drawChordDiagram(
     ctx.lineWidth = 1;
     ctx.beginPath();
     if (isRoot && position.fret) {
-      (r => ctx.rect(x - r, y - r, 2 * r, 2 * r))(style.noteRadius);
+      ((r) => ctx.rect(x - r, y - r, 2 * r, 2 * r))(style.noteRadius);
     } else {
       ctx.arc(x, y, style.noteRadius, 0, Math.PI * 2, false);
     }
@@ -186,7 +193,7 @@ function drawChordDiagram(
       const { x: x1, y } = fingerCoordinates({ string: firstString, fret });
       const { x: x2 } = fingerCoordinates({
         string: firstString + stringCount - 1,
-        fret
+        fret,
       });
       const w = x2 - x1;
       ctx.save();
@@ -215,26 +222,26 @@ function drawChordDiagram(
   }
 
   function drawFingerPositions() {
-    positions.forEach(position => {
+    positions.forEach((position) => {
       drawFingerPosition(position, {
         ...(options as { isRoot?: boolean; color?: string }),
         color: style.intervalClassColors[position.intervalClass.semitones],
-        isRoot: position.intervalClass.semitones === 0
+        isRoot: position.intervalClass.semitones === 0,
       });
     });
   }
 
   function drawClosedStrings() {
-    const fretted_strings = <boolean[]>[];
+    const frettedStrings = [] as boolean[];
     positions.forEach(({ string }) => {
-      fretted_strings[string] = true;
+      frettedStrings[string] = true;
     });
-    const closed_strings = instrument.stringNumbers.filter(
-      string => !fretted_strings[string]
+    const closedStrings = instrument.stringNumbers.filter(
+      (string) => !frettedStrings[string],
     );
     const r = style.noteRadius;
     ctx.fillStyle = 'black';
-    closed_strings.forEach(string => {
+    closedStrings.forEach((string) => {
       const { x, y } = fingerCoordinates({ string, fret: 0 });
       ctx.strokeStyle = 'black';
       ctx.beginPath();

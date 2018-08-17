@@ -11,7 +11,7 @@ const RomanNumeralModifiers: { [_: string]: string } = {
   '7': 'dom7',
   '+7': '+7',
   '°7': '°7',
-  ø7: 'ø7'
+  "ø7": 'ø7',
 };
 
 export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
@@ -35,7 +35,7 @@ export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
         return 'Minor';
       default:
         throw new Error(
-          `Roman numeral chords can't be mixed case in “${romanNumeral}”`
+          `Roman numeral chords can't be mixed case in “${romanNumeral}”`,
         );
     }
   })();

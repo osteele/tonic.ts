@@ -4,7 +4,7 @@ export function powerset<T>(array: T[]): T[][] {
   }
   const [x, ...xs] = array;
   const tail = powerset(xs);
-  return [...tail, ...tail.map(ys => [x, ...ys])];
+  return [...tail, ...tail.map((ys) => [x, ...ys])];
 }
 
 export function rotateArray<T>(array: T[], n: number): T[] {

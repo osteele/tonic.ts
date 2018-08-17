@@ -13,10 +13,10 @@ describe('Scales', () => {
     expect(Scales['Minor Pentatonic']).toBeTruthy();
     expect(Scales['Melodic Minor']).toBeTruthy();
     expect(Scales['Harmonic Minor']).toBeTruthy();
-    expect(Scales['Blues']).toBeTruthy();
-    expect(Scales['Freygish']).toBeTruthy();
+    expect(Scales.Blues).toBeTruthy();
+    expect(Scales.Freygish).toBeTruthy();
     expect(Scales['Whole Tone']).toBeTruthy();
-    expect(Scales['Octatonic']).toBeTruthy();
+    expect(Scales.Octatonic).toBeTruthy();
   });
 });
 
@@ -34,14 +34,14 @@ describe('Diatonic Major Scale', () => {
 
   it('should have seven intervals', () => {
     expect(scale.intervals).toHaveLength(7);
-    expect(scale.intervals.map(interval => interval.semitones)).toEqual([
+    expect(scale.intervals.map((interval) => interval.semitones)).toEqual([
       0,
       2,
       4,
       5,
       7,
       9,
-      11
+      11,
     ]);
   });
 
@@ -60,7 +60,7 @@ describe('Diatonic Major Scale', () => {
     it('should have seven pitches', () => {
       expect(eMajor.pitches).toHaveLength(7);
       const pitches = eMajor.pitches! as Pitch[];
-      const pitchNames = pitches.map(pitch => pitch.toString());
+      const pitchNames = pitches.map((pitch) => pitch.toString());
       expect(pitchNames).toEqual('E F♯ G♯ A B C♯ D♯'.split(/\s/));
     });
 
