@@ -5,13 +5,7 @@ rules:
   interface-name: [true, 'never-prefix']
   quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
   variable-name:
-    [
-      true,
-      'ban-keywords',
-      'check-format',
-      'allow-leading-underscore',
-      'allow-trailing-underscore',
-    ]
+    [true, 'ban-keywords', 'check-format', 'allow-leading-underscore']
   # FIXME
   max-classes-per-file: [true, 2]
   no-console: false

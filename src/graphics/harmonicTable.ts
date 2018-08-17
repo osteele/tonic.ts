@@ -59,7 +59,7 @@ function intervalClassVectors(
 
 function drawHarmonicTable(
   intervalClasses: number[],
-  options_: {
+  _options: {
     intervalClassColors?: string[];
     radius?: number;
     draw?: boolean;
@@ -67,7 +67,7 @@ function drawHarmonicTable(
     labelCells?: boolean;
   } = {},
 ) {
-  const options = { draw: true, ...defaultStyle, ...options_ };
+  const options = { draw: true, ...defaultStyle, ..._options };
   const colors = options.intervalClassColors;
   if (intervalClasses.indexOf(0) < 0) {
     intervalClasses = [0, ...intervalClasses];
