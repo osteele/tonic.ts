@@ -32,9 +32,15 @@ describe('Instrument', () => {
   });
 
   it('should define the pitch at each string and fret', () => {
-    expect(guitar.pitchAt({ string: 0, fret: 0 }).toString()).toBe('E2');
-    expect(guitar.pitchAt({ string: 0, fret: 1 }).toString()).toBe('F2');
-    expect(guitar.pitchAt({ string: 5, fret: 3 }).toString()).toBe('G4');
+    expect(guitar.pitchAt({ stringNumber: 0, fretNumber: 0 }).toString()).toBe(
+      'E2',
+    );
+    expect(guitar.pitchAt({ stringNumber: 0, fretNumber: 1 }).toString()).toBe(
+      'F2',
+    );
+    expect(guitar.pitchAt({ stringNumber: 5, fretNumber: 3 }).toString()).toBe(
+      'G4',
+    );
   });
 
   describe('eachFingerPosition', () =>
@@ -43,13 +49,13 @@ describe('Instrument', () => {
       let found = false;
       const strings: { [_: number]: boolean } = {};
       const frets: { [_: number]: boolean } = {};
-      guitar.forEachFingerPosition(({ string, fret }) => {
-        expect(string).toBeWithin(0, 5);
-        expect(fret).toBeWithin(0, 12);
-        strings[string] = true;
-        frets[fret] = true;
+      guitar.forEachFingerPosition(({ stringNumber, fretNumber }) => {
+        expect(stringNumber).toBeWithin(0, 5);
+        expect(fretNumber).toBeWithin(0, 12);
+        strings[stringNumber] = true;
+        frets[fretNumber] = true;
         count += 1;
-        found = found || (string === 2 && fret === 3);
+        found = found || (stringNumber === 2 && fretNumber === 3);
       });
       expect(count).toBe(6 * 13);
       expect(Object.keys(strings)).toHaveLength(6);

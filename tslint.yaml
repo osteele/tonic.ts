@@ -4,9 +4,10 @@ jsRules: {}
 rules:
   interface-name: [true, 'never-prefix']
   quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
-  variable-name: [
+  variable-name:
+    [
       true,
-      # 'ban-keywords', // TODO: enable
+      'ban-keywords',
       'check-format',
       'allow-leading-underscore',
       'allow-trailing-underscore',

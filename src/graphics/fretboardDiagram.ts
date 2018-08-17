@@ -37,8 +37,8 @@ function paddedFretboardHeight(instrument: Instrument, style = DefaultStyle) {
 
 function drawFretboardStrings(ctx: GraphicsContext, instrument: Instrument) {
   const style = DefaultStyle;
-  instrument.stringNumbers.forEach((string) => {
-    const y = string * style.stringSpacing + style.hGutter;
+  instrument.stringNumbers.forEach((stringNumber) => {
+    const y = stringNumber * style.stringSpacing + style.hGutter;
     ctx.beginPath();
     ctx.moveTo(style.hGutter, y);
     ctx.lineTo(
@@ -74,13 +74,13 @@ function drawFretboardFingerPosition(
   options: { isRoot?: boolean; color?: string } = {},
 ) {
   const style = DefaultStyle;
-  const { string, fret } = position;
+  const { stringNumber, fretNumber } = position;
   const color = options.color || (options.isRoot ? 'red' : 'white');
-  let x = style.hGutter + (fret - 0.5) * style.fretWidth;
-  if (fret === 0) {
+  let x = style.hGutter + (fretNumber - 0.5) * style.fretWidth;
+  if (fretNumber === 0) {
     x = style.hGutter;
   }
-  const y = style.vGutter + (5 - string) * style.stringSpacing;
+  const y = style.vGutter + (5 - stringNumber) * style.stringSpacing;
   ctx.beginPath();
   ctx.arc(x, y, 7, 0, 2 * Math.PI, false);
   ctx.fillStyle = color;

@@ -41,20 +41,22 @@ export class Instrument {
 
   public forEachFingerPosition(fn: (_: FretPosition) => any) {
     return this.stringNumbers.map((stringNumber) =>
-      __range__(0, this.fretCount || 0, true).map((fret) =>
-        fn({ string: stringNumber, fret }),
+      __range__(0, this.fretCount || 0, true).map((fretNumber) =>
+        fn({ stringNumber, fretNumber }),
       ),
     );
   }
 
-  public pitchAt({ string, fret }: FretPosition) {
-    return Pitch.fromMidiNumber(this.stringPitches[string].midiNumber + fret);
+  public pitchAt({ stringNumber, fretNumber }: FretPosition) {
+    return Pitch.fromMidiNumber(
+      this.stringPitches[stringNumber].midiNumber + fretNumber,
+    );
   }
 }
 
 export interface FretPosition {
-  readonly string: number;
-  readonly fret: number;
+  readonly fretNumber: number;
+  readonly stringNumber: number;
 }
 
 // Instruments, indexed by name

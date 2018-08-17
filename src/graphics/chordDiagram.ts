@@ -71,8 +71,8 @@ function drawChordDiagramStrings(
   options: { dimStrings?: number[] } = {},
 ) {
   const style = DefaultStyle;
-  instrument.stringNumbers.forEach((string) => {
-    const x = string * style.stringSpacing + style.hGutter;
+  instrument.stringNumbers.forEach((stringNumber) => {
+    const x = stringNumber * style.stringSpacing + style.hGutter;
     ctx.beginPath();
     ctx.moveTo(x, style.vGutter + style.aboveFretboard);
     ctx.lineTo(
@@ -80,7 +80,7 @@ function drawChordDiagramStrings(
       style.vGutter + style.aboveFretboard + FretCount * style.fretHeight,
     );
     ctx.strokeStyle =
-      options.dimStrings && options.dimStrings.indexOf(string) >= 0
+      options.dimStrings && options.dimStrings.indexOf(stringNumber) >= 0
         ? 'rgba(0,0,0,0.2)'
         : 'black';
     ctx.stroke();
@@ -114,11 +114,19 @@ function drawChordDiagramFrets(
 function drawChordDiagram(
   ctx: GraphicsContext,
   instrument: Instrument,
-  positions: Array<{ fret: number; string: number; intervalClass: Interval }>,
+  positions: Array<{
+    fretNumber: number;
+    stringNumber: number;
+    intervalClass: Interval;
+  }>,
   options: {
     dimUnusedStrings?: boolean;
     dimStrings?: number[];
-    barres: Array<{ fret: number; firstString: number; stringCount: number }>;
+    barres: Array<{
+      fretNumber: number;
+      firstString: number;
+      stringCount: number;
+    }>;
     drawClosedStrings: boolean;
     drawNut: boolean;
     dy: number;
@@ -149,20 +157,20 @@ function drawChordDiagram(
   if (options.dimUnusedStrings) {
     const usedStrings = _.map(positions, 'string');
     options.dimStrings = instrument.stringNumbers.filter(
-      (string) => usedStrings.indexOf(string) < 0,
+      (stringNumber) => usedStrings.indexOf(stringNumber) < 0,
     );
   }
 
-  function fingerCoordinates({ string, fret }: FretPosition) {
-    if (fret > 0) {
-      fret -= topFret;
+  function fingerCoordinates({ stringNumber, fretNumber }: FretPosition) {
+    if (fretNumber > 0) {
+      fretNumber -= topFret;
     }
     return {
-      x: style.hGutter + string * style.stringSpacing,
+      x: style.hGutter + stringNumber * style.stringSpacing,
       y:
         style.vGutter +
         style.aboveFretboard +
-        (fret - 0.5) * style.fretHeight +
+        (fretNumber - 0.5) * style.fretHeight +
         dy,
     };
   }
@@ -177,12 +185,12 @@ function drawChordDiagram(
     ctx.strokeStyle = color || (isRoot ? 'red' : 'black');
     ctx.lineWidth = 1;
     ctx.beginPath();
-    if (isRoot && position.fret) {
+    if (isRoot && position.fretNumber) {
       ((r) => ctx.rect(x - r, y - r, 2 * r, 2 * r))(style.noteRadius);
     } else {
       ctx.arc(x, y, style.noteRadius, 0, Math.PI * 2, false);
     }
-    if (position.fret > 0 || isRoot) {
+    if (position.fretNumber > 0 || isRoot) {
       ctx.fill();
     }
     return ctx.stroke();
@@ -190,12 +198,15 @@ function drawChordDiagram(
 
   function drawBarres() {
     ctx.fillStyle = 'black';
-    barres.forEach(({ fret, firstString, stringCount }) => {
+    barres.forEach(({ fretNumber, firstString, stringCount }) => {
       const eccentricity = 10;
-      const { x: x1, y } = fingerCoordinates({ string: firstString, fret });
+      const { x: x1, y } = fingerCoordinates({
+        fretNumber,
+        stringNumber: firstString,
+      });
       const { x: x2 } = fingerCoordinates({
-        fret,
-        string: firstString + stringCount - 1,
+        fretNumber,
+        stringNumber: firstString + stringCount - 1,
       });
       const w = x2 - x1;
       ctx.save();
@@ -235,16 +246,16 @@ function drawChordDiagram(
 
   function drawClosedStrings() {
     const frettedStrings = [] as boolean[];
-    positions.forEach(({ string }) => {
-      frettedStrings[string] = true;
+    positions.forEach(({ stringNumber }) => {
+      frettedStrings[stringNumber] = true;
     });
     const closedStrings = instrument.stringNumbers.filter(
-      (string) => !frettedStrings[string],
+      (stringNumber) => !frettedStrings[stringNumber],
     );
     const r = style.noteRadius;
     ctx.fillStyle = 'black';
-    closedStrings.forEach((string) => {
-      const { x, y } = fingerCoordinates({ string, fret: 0 });
+    closedStrings.forEach((stringNumber) => {
+      const { x, y } = fingerCoordinates({ stringNumber, fretNumber: 0 });
       ctx.strokeStyle = 'black';
       ctx.beginPath();
       ctx.moveTo(x - r, y - r);

@@ -33,7 +33,7 @@ export class Fingering {
     this.chord = chord;
     this.instrument = instrument;
     this.positions = [...positions].sort(
-      (a: FretPosition, b: FretPosition) => a.string - b.string,
+      (a: FretPosition, b: FretPosition) => a.stringNumber - b.stringNumber,
     );
     this.barres = barres;
     this.properties = {};
@@ -42,8 +42,8 @@ export class Fingering {
   // string representation of a fingering
   public computeFretString(): string {
     const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
-    this.positions.forEach(({ string, fret }: FretPosition) => {
-      fretArray[string] = fret;
+    this.positions.forEach(({ stringNumber, fretNumber }: FretPosition) => {
+      fretArray[stringNumber] = fretNumber;
     });
     return fretArray.map((x) => (x >= 0 ? x : 'x')).join('');
   }
@@ -81,8 +81,8 @@ export class Fingering {
 }
 
 export interface FingeringPosition {
-  readonly string: number;
-  readonly fret: number;
+  readonly stringNumber: number;
+  readonly fretNumber: number;
   readonly degreeIndex: number;
   readonly intervalClass: Interval;
 }
@@ -200,10 +200,12 @@ export function chordFingerings(
   function fretsPerString(): number[][] {
     let positions = fingerPositionsOnChord(chord, instrument);
     if (!options.allPositions) {
-      positions = positions.filter((pos) => pos.fret <= 4);
+      positions = positions.filter((pos) => pos.fretNumber <= 4);
     }
     const strings: number[][] = instrument.stringNumbers.map((_) => []);
-    positions.forEach(({ string, fret }) => strings[string].push(fret));
+    positions.forEach(({ stringNumber, fretNumber }) =>
+      strings[stringNumber].push(fretNumber),
+    );
     return strings;
   }
 
@@ -230,10 +232,15 @@ export function chordFingerings(
   // actually tests pitch classes, not pitches
   function containsAllChordPitches(fretArray: number[]) {
     const pitchClasses = [] as number[];
-    for (let string = 0; string < fretArray.length; string++) {
-      const fret = fretArray[string];
-      const pitchClass = instrument.pitchAt({ fret, string }).toPitchClass()
-        .semitones;
+    for (
+      let stringNumber = 0;
+      stringNumber < fretArray.length;
+      stringNumber++
+    ) {
+      const fretNumber = fretArray[stringNumber];
+      const pitchClass = instrument
+        .pitchAt({ fretNumber, stringNumber })
+        .toPitchClass().semitones;
       if (pitchClasses.indexOf(pitchClass) < 0) {
         pitchClasses.push(pitchClass);
       }
@@ -253,7 +260,7 @@ export function chordFingerings(
       .filter(maximumFretDistance);
     for (const fretArray of fretArrays) {
       const positions = fretArray
-        .map((fret, string) => ({ fret, string }))
+        .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
         .map((pos) => {
           const intervalClass = Interval.between(
             chord.root,
@@ -309,7 +316,7 @@ export function chordFingerings(
     fingering.fretString.match(/x$/) != null;
 
   const getFingerCount: FingeringProjection<number> = (fingering) => {
-    let n = fingering.positions.filter((pos) => pos.fret > 0).length;
+    let n = fingering.positions.filter((pos) => pos.fretNumber > 0).length;
     for (const barre of fingering.barres) {
       n -= barre.fingerReplacementCount - 1;
     }
@@ -373,7 +380,7 @@ export function chordFingerings(
     fingering.positions.length;
 
   const isRootPosition: FingeringPredicate = (fingering) =>
-    _.sortBy(fingering.positions, (pos) => pos.string)[0].degreeIndex === 0;
+    _.sortBy(fingering.positions, (pos) => pos.stringNumber)[0].degreeIndex === 0;
 
   const reverseSortKey: (
     _: FingeringProjection<number>,
@@ -386,7 +393,6 @@ export function chordFingerings(
     {
       key: reverseSortKey((fingering: Fingering) => fingering.barres.length),
       name: 'avoid barres',
-      key: reverseSortKey((fingering: Fingering) => fingering.barres.length),
     },
     { name: 'low finger count', key: reverseSortKey(getFingerCount) },
   ];
@@ -436,7 +442,7 @@ export function chordFingerings(
       // const frets = positions.map(({ fret }) => fret);
       Math.max(
         _.chain(positions)
-          .map('fret')
+          .map('fretNumber')
           .min()
           .value()! - 1,
         0,
