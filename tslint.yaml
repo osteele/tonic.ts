@@ -1,0 +1,20 @@
+defaultSeverity: 'error'
+extends: ['tslint:recommended']
+jsRules: {}
+rules:
+  interface-name: [true, 'never-prefix']
+  object-literal-sort-keys: false
+  quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
+  variable-name: false
+  # TODO:
+  # variable-name: [
+  #     true,
+  #     'ban-keywords', // TODO:
+  #     'check-format', // TODO:
+  #     'allow-leading-underscore',
+  #     'allow-trailing-underscore',
+  #   ]
+  # FIXME
+  max-classes-per-file: [true, 2]
+  no-console: false
+  no-shadowed-variable: false
