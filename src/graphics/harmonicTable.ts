@@ -4,11 +4,11 @@ import * as ChordDiagram from './chordDiagram';
 import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 
 const defaultStyle = {
-  intervalClassColors: ChordDiagram.defaultStyle.intervalClassColors,
-  radius: 50,
   center: true,
   fillCells: false,
+  intervalClassColors: ChordDiagram.defaultStyle.intervalClassColors,
   labelCells: false,
+  radius: 50,
 };
 
 // Enumerate these explicitly instead of computing them, so that we can
@@ -87,8 +87,9 @@ function drawHarmonicTable(
   const bounds = {
     left: Infinity,
     top: Infinity,
-    right: -Infinity,
+
     bottom: -Infinity,
+    right: -Infinity,
   };
   intervalClasses.forEach((intervalClass) => {
     const { x, y } = getCellCenter(intervalClass);
@@ -100,8 +101,8 @@ function drawHarmonicTable(
 
   if (!options.draw) {
     return {
-      width: bounds.right - bounds.left,
       height: bounds.bottom - bounds.top,
+      width: bounds.right - bounds.left,
     };
   }
 
@@ -177,10 +178,11 @@ function drawHarmonicTable(
         }
         const { x, y } = getCellCenter(intervalClass);
         drawText(label, {
-          font: '10pt Times',
-          fillStyle: 'black',
           x,
           y,
+
+          fillStyle: 'black',
+          font: '10pt Times',
           gravity: 'center',
         });
       });

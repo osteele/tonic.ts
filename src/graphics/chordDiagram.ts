@@ -25,11 +25,13 @@ export interface Style {
 export const SmallStyle = {
   hGutter: 5,
   vGutter: 5,
-  stringSpacing: 6,
-  fretHeight: 8,
+
   aboveFretboard: 8,
-  noteRadius: 1,
   closedStringFontsize: 4,
+  fretHeight: 8,
+  noteRadius: 1,
+  stringSpacing: 6,
+
   chordDegreeColors: ['red', 'blue', 'green', 'orange'],
   intervalClassColors: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) =>
     // i = (7 * n) % 12  # color by circle of fifth ascension
@@ -40,10 +42,10 @@ export const SmallStyle = {
 // tslint:disable-next-line variable-name
 export const DefaultStyle = {
   ...SmallStyle,
-  stringSpacing: 12,
+  closedStringFontSize: 8,
   fretHeight: 16,
   noteRadius: 3,
-  closedStringFontSize: 8,
+  stringSpacing: 12,
 };
 
 function computeChordDiagramDimensions(
@@ -54,8 +56,8 @@ function computeChordDiagramDimensions(
     style = DefaultStyle;
   }
   return {
-    width: 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing,
     height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount,
+    width: 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing,
   };
 }
 
@@ -192,8 +194,8 @@ function drawChordDiagram(
       const eccentricity = 10;
       const { x: x1, y } = fingerCoordinates({ string: firstString, fret });
       const { x: x2 } = fingerCoordinates({
-        string: firstString + stringCount - 1,
         fret,
+        string: firstString + stringCount - 1,
       });
       const w = x2 - x1;
       ctx.save();

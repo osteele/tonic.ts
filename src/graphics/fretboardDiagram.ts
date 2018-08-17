@@ -14,9 +14,10 @@ import { GraphicsContext } from './graphics';
 const DefaultStyle = {
   hGutter: 10,
   vGutter: 10,
-  stringSpacing: 20,
-  fretWidth: 45,
+
   fretOverhang: 0.3 * 45,
+  fretWidth: 45,
+  stringSpacing: 20,
 };
 
 function paddedFretboardWidth(instrument: Instrument, style = DefaultStyle) {

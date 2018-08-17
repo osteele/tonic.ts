@@ -58,6 +58,7 @@ export interface FretPosition {
 }
 
 // Instruments, indexed by name
+// tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
 export const Instruments: { [_: string]: Instrument } = [
   {

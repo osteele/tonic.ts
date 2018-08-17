@@ -145,10 +145,10 @@ function findBarres(fretArray: number[]): Barre[] {
       continue;
     }
     barres.push({
-      fret,
-      firstString: match.index!,
-      stringCount: run.length,
       fingerReplacementCount: run.match(/\=/g)!.length,
+      firstString: match.index!,
+      fret,
+      stringCount: run.length,
     });
   }
   return barres;
@@ -261,8 +261,8 @@ export function chordFingerings(
           );
           return {
             ...pos,
-            intervalClass,
             degreeIndex: chord.intervals.indexOf(intervalClass),
+            intervalClass,
           };
         });
       let sets = [[]] as Barre[][];
@@ -384,6 +384,7 @@ export function chordFingerings(
     { name: 'root position', key: isRootPosition },
     { name: 'high note count', key: highNoteCount },
     {
+      key: reverseSortKey((fingering: Fingering) => fingering.barres.length),
       name: 'avoid barres',
       key: reverseSortKey((fingering: Fingering) => fingering.barres.length),
     },
@@ -414,20 +415,23 @@ export function chordFingerings(
 
   const properties: { [_: string]: RegExp | FingeringProjection<any> } = {
     root: isRootPosition,
-    barres(f: Fingering) {
-      return f.barres.length;
-    },
-    fingers: getFingerCount,
     // TODO: restore this
     // inversion(f: Fingering) {
     //   return f.inversionLetter || '';
     // },
+
     bass: /^\d{3}x*$/,
     treble: /^x*\d{3}$/,
-    skipping: /\dx+\d/,
+    triad: ({ positions }) => positions.length === 3,
+
+    fingers: getFingerCount,
+    barres(f: Fingering) {
+      return f.barres.length;
+    },
     muting: /\dx/,
     open: /0/,
-    triad: ({ positions }) => positions.length === 3,
+    skipping: /\dx+\d/,
+
     position: ({ positions }) =>
       // const frets = positions.map(({ fret }) => fret);
       Math.max(

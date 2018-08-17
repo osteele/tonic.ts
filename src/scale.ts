@@ -131,6 +131,7 @@ function toPitchOrPitchClass(
   }
 }
 
+// tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
 export const Scales: { [_: string]: Scale } = ([
   {
