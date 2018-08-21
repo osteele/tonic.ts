@@ -30,7 +30,7 @@
     "prepublish": "yarn run build && tsc",
     "build": "rimraf dist && tsc",
     "doc": "typedoc --out docs/api src --mode modules --module commonjs",
-    "lint": "tslint src/**/*.ts test/**/*.ts",
+    "lint": "tslint --project .",
     "test": "jest --onlyChanged"
   },
   "husky": {

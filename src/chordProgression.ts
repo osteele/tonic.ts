@@ -4,15 +4,17 @@ import { Scale } from './scale';
 
 const chordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/);
 
+// tslint:disable object-literal-sort-keys quotemark
 const romanNumeralModifiers: { [_: string]: string } = {
-  '+': 'aug',
-  '°': 'dim',
-  '6': 'maj6',
-  '7': 'dom7',
-  '+7': '+7',
-  '°7': '°7',
-  "ø7": 'ø7',
+  "+": "aug",
+  "°": "dim",
+  "6": "maj6",
+  "7": "dom7",
+  "+7": "+7",
+  "°7": "°7",
+  "ø7": "ø7",
 };
+// tslint:enable
 
 export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
   const match = name.match(/^(♭?)(i+v?|vi*)(.*?)([acd]?)$/i);

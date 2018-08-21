@@ -168,8 +168,8 @@ export class Chord {
     }
     return new Chord({
       chordClass: this.chordClass,
-      root: this.root,
       inversion,
+      root: this.root,
     });
   }
 }
@@ -192,9 +192,9 @@ export const ChordClasses: ChordClass[] = [
   { name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], intervals: '036t' },
   { name: 'Diminished Maj 7th', abbrs: ['°Maj7'], intervals: '036e' },
   {
-    name: 'Minor-Major 7th',
     abbrs: ['min/maj7', 'min(maj7)'],
     intervals: '037e',
+    name: 'Minor-Major 7th',
   },
   { name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], intervals: '0479' },
   { name: 'Minor 6th', abbrs: ['m6', 'min6'], intervals: '0379' },
@@ -212,10 +212,10 @@ export const ChordClasses: ChordClass[] = [
     return Interval.fromSemitones(semitones);
   });
   return new ChordClass({
-    name,
-    fullName,
     abbrs,
+    fullName,
     intervals: intervalInstances,
+    name,
   });
 });
 
