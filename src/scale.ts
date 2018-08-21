@@ -24,7 +24,7 @@ export class Scale {
       [tonicName, scaleName] = match.slice(1);
     }
     if (!scaleName) {
-      scaleName = 'Diatonic Major';
+      scaleName = diatonicMajorScaleName;
     }
     let scale = Scales[scaleName];
     if (!scale) {
@@ -99,7 +99,7 @@ export class Scale {
       degrees.push(6);
     }
     const pitches = this.pitchClasses;
-    const tonic = this.tonic! as Pitch;
+    const tonic = this.tonic as Pitch;
     return pitches.map((_, i) => {
       const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
       const chordPitches = degrees.map((degree: number) =>
@@ -131,11 +131,14 @@ function toPitchOrPitchClass(
   }
 }
 
+const diatonicMajorScaleName = 'Diatonic Major';
+const majorPentatonicScaleName = 'Major Pentatonic';
+
 // tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
 export const Scales: { [_: string]: Scale } = ([
   {
-    name: 'Diatonic Major',
+    name: diatonicMajorScaleName,
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
     modeNames: 'Ionian Dorian Phrygian Lydian Mixolydian Aeolian Locrian'.split(
       /\s/,
@@ -143,14 +146,14 @@ export const Scales: { [_: string]: Scale } = ([
   },
   {
     name: 'Natural Minor',
-    parent: 'Diatonic Major',
+    parent: diatonicMajorScaleName,
     pitchClasses: [0, 2, 3, 5, 7, 8, 10],
   },
   {
-    name: 'Major Pentatonic',
+    name: majorPentatonicScaleName,
     pitchClasses: [0, 2, 4, 7, 9],
     modeNames: [
-      'Major Pentatonic',
+      majorPentatonicScaleName,
       'Suspended Pentatonic',
       'Man Gong',
       'Ritusen',
@@ -159,7 +162,7 @@ export const Scales: { [_: string]: Scale } = ([
   },
   {
     name: 'Minor Pentatonic',
-    parent: 'Major Pentatonic',
+    parent: majorPentatonicScaleName,
     pitchClasses: [0, 3, 5, 7, 10],
   },
   {
@@ -248,14 +251,13 @@ const FunctionNames = [
 ];
 
 function parseChordNumeral(name: string) {
-  const chord = {
+  return {
     degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)![1]) + 1,
     major: name === name.toUpperCase(),
     flat: name.match(/^[♭b]/),
     diminished: name.match(/°/),
     augmented: name.match(/\+/),
   };
-  return chord;
 }
 
 // FunctionQualities =

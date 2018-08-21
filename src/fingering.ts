@@ -285,7 +285,7 @@ export function chordFingerings(
     return fingerings;
   }
 
-  const chordNoteCount = chord.pitches.length;
+  // const chordNoteCount = chord.pitches.length;
 
   //
   // Filters
@@ -306,8 +306,8 @@ export function chordFingerings(
   type FingeringProjection<T> = (_: Fingering) => T;
   type FingeringPredicate = FingeringProjection<boolean>;
 
-  const hasAllNotes: FingeringPredicate = (fingering) =>
-    countDistinctNotes(fingering) === chordNoteCount;
+  // const hasAllNotes: FingeringPredicate = (fingering) =>
+  //   countDistinctNotes(fingering) === chordNoteCount;
 
   const mutedMedialStrings: FingeringPredicate = (fingering) =>
     fingering.fretString.match(/\dx+\d/) != null;

@@ -24,6 +24,8 @@ export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
   if (scale.tonic == null) {
     throw new Error('requires a scale with a tonic');
   }
+  // FIXME: use `accidental`
+  // tslint:disable-next-line no-dead-store
   const [accidental, romanNumeral, modifiers, inversion] = match.slice(1);
   const degree = chordRomanNumerals.indexOf(romanNumeral.toUpperCase());
   if (!(degree >= 0)) {
