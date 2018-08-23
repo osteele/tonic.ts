@@ -5,4 +5,5 @@ export * from './midi';
 export * from './names';
 export * from './pitch';
 export * from './pitchClass';
+export * from './pitchLike';
 export * from './scale';

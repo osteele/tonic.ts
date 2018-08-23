@@ -4,7 +4,6 @@ describe('Scale.fromRomanNumeral', () => {
   const scale = Scale.fromString('Diatonic Major').at('E4');
 
   it('should create major chords', () => {
-    // Chord.fromRomanNumeral('I', scale)
     expect(scale.fromRomanNumeral('I')).toEqual(Chord.fromString('E4 Major'));
     expect(scale.fromRomanNumeral('II')).toEqual(Chord.fromString('F♯4 Major'));
     expect(scale.fromRomanNumeral('IV')).toEqual(Chord.fromString('A4 Major'));
@@ -23,13 +22,21 @@ describe('Scale.fromRomanNumeral', () => {
     expect(scale.fromRomanNumeral('iv°')).toEqual(Chord.fromString('A4°'));
   });
 
-  // it.skip('should create inversions');
-});
-// expect(Chord.fromRomanNumeral('ib', scale)).toEqual(Chord.fromString('E4 Minor'))
-// expect(Chord.fromRomanNumeral('ic', scale)).toEqual(Chord.fromString('F♯4 Minor'))
-// expect(Chord.fromRomanNumeral('id', scale)).toEqual(Chord.fromString('C♯5 Minor'))
+  it.skip('should create inversions', () => {
+    expect(scale.fromRomanNumeral('ib')).toEqual(Chord.fromString('E4 Minor'));
+    expect(scale.fromRomanNumeral('ic')).toEqual(Chord.fromString('F♯4 Minor'));
+    expect(scale.fromRomanNumeral('id')).toEqual(Chord.fromString('C♯5 Minor'));
+  });
 
-describe('Chord.progression', () =>
+  it.skip('should accept pitch classes', () => {
+    const scale = Scale.fromString('Diatonic Major').at('E');
+    expect(scale.fromRomanNumeral('I')).toEqual(Chord.fromString('E Major'));
+    expect(scale.fromRomanNumeral('II')).toEqual(Chord.fromString('F♯ Major'));
+    expect(scale.fromRomanNumeral('IV')).toEqual(Chord.fromString('A Major'));
+  });
+});
+
+describe('Scale.progression', () =>
   it('should produce a sequence of chords', () => {
     const scale = Scale.fromString('Diatonic Major').at('E4');
     const chords = scale.progression('I ii iii IV');

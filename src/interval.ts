@@ -2,6 +2,7 @@ import { semitonesToAccidentalString } from './accidentals';
 import { normalizePitchClass, PitchClassNumber } from './names';
 import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
+import { PitchLike } from './pitchLike';
 
 // tslint:disable-next-line variable-name
 export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
@@ -44,26 +45,23 @@ export class Interval {
     return new Interval(semitones);
   }
 
-  public static between(pitch1: Pitch, pitch2: Pitch): Interval;
-  public static between(pitch1: PitchClass, pitch2: PitchClass): Interval;
-  public static between(pitch1: number, pitch2: number): Interval;
-  public static between(pitch1: any, pitch2: any) {
+  public static between(a: PitchLike, b: PitchLike): Interval;
+  public static between(a: number, b: number): Interval;
+  public static between(a: any, b: any) {
     let semitones = 0;
-    if (pitch1 instanceof Pitch && pitch2 instanceof Pitch) {
-      semitones = pitch2.midiNumber - pitch1.midiNumber;
-    } else if (pitch1 instanceof PitchClass && pitch2 instanceof PitchClass) {
-      semitones = normalizePitchClass(pitch2.semitones - pitch1.semitones);
-    } else if (typeof pitch1 === 'number' && typeof pitch2 === 'number') {
-      semitones = pitch2 - pitch1;
+    if (a instanceof Pitch && b instanceof Pitch) {
+      semitones = b.midiNumber - a.midiNumber;
+    } else if (a instanceof PitchClass && b instanceof PitchClass) {
+      semitones = normalizePitchClass(b.semitones - a.semitones);
+    } else if (typeof a === 'number' && typeof b === 'number') {
+      semitones = b - a;
     } else {
-      throw new Error(
-        `Can't take the interval between ${pitch1} and ${pitch2}`,
-      );
+      throw new Error(`Can't take the interval between ${a} and ${b}`);
     }
     if (!(0 <= semitones && semitones < 12)) {
       semitones = normalizePitchClass(semitones);
     }
-    // throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
+    // TODO: throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
     return Interval.fromSemitones(semitones);
   }
   public readonly semitones: number;

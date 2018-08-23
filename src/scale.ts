@@ -2,11 +2,10 @@ import { Chord } from './chord';
 import { chordFromRomanNumeral } from './chordProgression';
 import { Interval } from './interval';
 import { normalizePitchClass } from './names';
-import { Pitch } from './pitch';
-import { PitchClass } from './pitchClass';
+import { asPitchLike, PitchLike } from './pitchLike';
 
 // A scale is a named collection, either of intervals or notes.
-export class Scale<T> {
+export class Scale<T extends PitchLike | null> {
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
   //     throw new Error('only implemented for scales with tonics');
@@ -16,9 +15,7 @@ export class Scale<T> {
   //     : FlatNoteNames;
   // }
 
-  public static fromString(
-    name: string,
-  ): Scale<null> | Scale<Pitch> | Scale<PitchClass> {
+  public static fromString(name: string): Scale<PitchLike | null> {
     if (scaleMap.has(name)) {
       return scaleMap.get(name)!;
     }
@@ -39,11 +36,11 @@ export class Scale<T> {
 
   public readonly name: string;
   public readonly pitchClasses: number[];
-  public readonly parent: Scale<T> | null;
+  public readonly parent: Scale<T | null> | null;
   public readonly modes: Array<Scale<T>> = [];
-  public readonly tonic: Pitch | PitchClass | null;
+  public readonly tonic: T;
   public readonly intervals: Interval[];
-  public readonly pitches: Pitch[] | PitchClass[] | null;
+  public readonly pitches: T[];
   constructor({
     name,
     pitchClasses,
@@ -55,7 +52,7 @@ export class Scale<T> {
     pitchClasses: number[];
     parent?: Scale<T> | string | null;
     modeNames?: string[];
-    tonic?: Pitch | string | null;
+    tonic?: T;
   }) {
     this.name = name;
     this.parent = typeof parent === 'string' ? scaleMap.get(parent)! : parent;
@@ -63,16 +60,11 @@ export class Scale<T> {
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
     );
-    this.tonic = typeof tonic === 'string' ? asPitchOrPitchClass(tonic) : tonic;
-    if (this.tonic instanceof Pitch) {
+    this.tonic = tonic as T;
+    if (this.tonic) {
       this.pitches = this.intervals.map((interval: Interval) =>
-        (this.tonic! as Pitch).add(interval),
-      );
-    }
-    if (this.tonic instanceof PitchClass) {
-      this.pitches = this.intervals.map((interval: Interval) =>
-        (this.tonic! as PitchClass).add(interval),
-      );
+        (this.tonic as PitchLike).transposeBy(interval),
+      ) as T[];
     }
     this.modes = modeNames.map(
       (modeName, i) =>
@@ -84,16 +76,21 @@ export class Scale<T> {
     );
   }
 
-  public at(tonic: Pitch | string): Scale<Pitch> {
+  /// Return a scale of the same scale class, at the specified tonic.
+  public at(tonic: string): Scale<PitchLike>;
+  public at<T extends PitchLike>(tonic: T): Scale<T>;
+  public at(tonic: PitchLike | string): Scale<PitchLike> {
     return new Scale({
       name: this.name,
       pitchClasses: this.pitchClasses,
-      tonic,
+      tonic: asPitchLike(tonic),
     });
   }
 
-  public chords(options: { sevenths?: boolean } = {}): Array<Chord<Pitch>> {
-    if (this.tonic == null) {
+  // TODO: can this return Array<Chord<T & PitchLike>>
+  public chords(options: { sevenths?: boolean } = {}): Array<Chord<PitchLike>> {
+    const tonic = this.tonic;
+    if (!tonic) {
       throw new Error('only implemented for scales with tonics');
     }
     const degrees = [0, 2, 4];
@@ -101,35 +98,25 @@ export class Scale<T> {
       degrees.push(6);
     }
     const pitches = this.pitchClasses;
-    const tonic = this.tonic as Pitch;
     return pitches.map((_, i) => {
       const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
       const chordPitches = degrees.map((degree: number) =>
-        tonic.add(Interval.fromSemitones(modePitches[degree])),
+        tonic.transposeBy(Interval.fromSemitones(modePitches[degree])),
       );
       return Chord.fromPitches(chordPitches)!;
     });
   }
-
-  public fromRomanNumeral(name: string): Chord<Pitch> {
-    return chordFromRomanNumeral(name, this);
-  }
-
-  public progression(names: string): Array<Chord<Pitch>> {
+  public progression(names: string): Array<Chord<PitchLike>> {
+    if (this.tonic == null) {
+      throw new Error('only implemented for scales with tonics');
+    }
     return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
   }
-}
-
-function asPitchOrPitchClass(
-  pitch: Pitch | PitchClass | string,
-): Pitch | PitchClass {
-  if (typeof pitch !== 'string') {
-    return pitch;
-  }
-  try {
-    return PitchClass.fromString(pitch);
-  } catch (error) {
-    return Pitch.fromString(pitch);
+  public fromRomanNumeral(name: string): Chord<PitchLike> {
+    if (this.tonic == null) {
+      throw new Error('only implemented for scales with tonics');
+    }
+    return chordFromRomanNumeral(name, this as Scale<PitchLike>);
   }
 }
 

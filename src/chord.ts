@@ -1,6 +1,7 @@
 import { Interval } from './interval';
 import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
+import { parsePitchLike, PitchLike } from './pitchLike';
 import { rotateArray } from './utils';
 
 const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
@@ -58,7 +59,12 @@ export class ChordClass {
   }
 
   /// Return a chord with these intervals relative to `root`.
-  public at(root: Pitch | string): Chord<Pitch> {
+  public at<T extends PitchLike>(root: T): Chord<T>;
+  public at(root: string): Chord<PitchLike>;
+  public at<T extends PitchLike | string>(
+    _root: Pitch | PitchClass | string,
+  ): Chord<PitchLike> {
+    const root = typeof _root === 'string' ? parsePitchLike(_root) : _root;
     return new Chord({ chordClass: this, root });
   }
 }
@@ -67,7 +73,7 @@ export class ChordClass {
 // - a torsor (e.g. Major)
 // - a scale degree (e.g. I)
 // - a tonicized scale (e.g. C Major)
-export class Chord<T> {
+export class Chord<T extends PitchLike> {
   /// Return either a `Chord` or a `ChordClass`, depending on whether `name`
   /// specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
   /// chord class (e.g. "Major").
@@ -86,33 +92,31 @@ export class Chord<T> {
 
   /// Return the Chord that matches a set of pitches. The first pitch should be
   /// the root.
-  public static fromPitches(pitches: Pitch[]): Chord<Pitch> | null {
+  public static fromPitches<T extends PitchLike>(pitches: T[]): Chord<T> {
     const root = pitches[0];
-    const intervals = pitches.map((pitch: Pitch) =>
-      Interval.between(root, pitch),
-    );
+    const intervals = pitches.map((pitch) => Interval.between(root, pitch));
     return ChordClass.fromIntervals(intervals).at(root);
   }
 
   public readonly chordClass: ChordClass;
-  public readonly root: Pitch;
+  public readonly root: T;
   public readonly inversion: number;
   /// The preferred abbreviation.
   public readonly abbr: string;
   public readonly abbrs: string[];
   public readonly intervals: Interval[];
-  public readonly pitches: Pitch[];
+  public readonly pitches: T[];
   constructor({
     chordClass,
     root,
     inversion = 0,
   }: {
     chordClass: ChordClass;
-    root: Pitch | string;
+    root: T;
     inversion?: number;
   }) {
     this.chordClass = chordClass;
-    this.root = typeof root === 'string' ? Pitch.fromString(root) : root;
+    this.root = root;
     this.inversion = inversion;
 
     this.abbrs = this.chordClass.abbrs.map((abbr: string) =>
@@ -121,8 +125,8 @@ export class Chord<T> {
     this.abbr = this.abbrs[0];
     this.intervals = this.chordClass.intervals;
     this.pitches = this.chordClass.intervals.map((interval: Interval) =>
-      this.root.asPitch().transposeBy(interval),
-    );
+      this.root.transposeBy(interval),
+    ) as T[];
 
     // degrees = (1 + 2 * pitchClass.semitones for pitchClass in [0..@pitchClasses.length])
     // degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]
@@ -164,7 +168,7 @@ export class Chord<T> {
   // enharmonicizeTo: (scale) ->
   //   @_clone root: @root.enharmonicizeTo(scale)
 
-  public invert(inversionKey: number | string): Chord<Pitch> {
+  public invert(inversionKey: number | string): Chord<T> {
     let inversion: number;
     if (typeof inversionKey === 'string') {
       const ix = inversionNames.indexOf(inversionKey);

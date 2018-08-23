@@ -25,6 +25,10 @@ export class PitchClass {
     return PitchClass.fromSemitones(this.semitones + other.semitones);
   }
 
+  public transposeBy(other: Interval): PitchClass {
+    return this.add(other);
+  }
+
   // enharmonicizeTo: (scale) ->
   //   for name, semitones in scale.noteNames()
   //     return new PitchClass {name, semitones} if semitones == @semitones
