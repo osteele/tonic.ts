@@ -6,7 +6,7 @@ import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
 
 // A scale is a named collection, either of intervals or notes.
-export class Scale {
+export class Scale<T> {
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
   //     throw new Error('only implemented for scales with tonics');
@@ -16,35 +16,31 @@ export class Scale {
   //     : FlatNoteNames;
   // }
 
-  public static fromString(name: string): Scale {
-    let scale = scaleMap.get(name);
-    if (scale) {
-      return scale;
+  public static fromString(
+    name: string,
+  ): Scale<null> | Scale<Pitch> | Scale<PitchClass> {
+    if (scaleMap.has(name)) {
+      return scaleMap.get(name)!;
     }
-    let tonicName = null;
-    let scaleName = null;
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
-    if (match) {
-      [tonicName, scaleName] = match.slice(1);
-    }
-    scale = scaleMap.get(scaleName || diatonicMajorScaleName);
+    const [tonicName, scaleName] = match ? match.slice(1) : [null, name];
+    const scale = scaleMap.get(
+      scaleName || (tonicName ? defaultScaleName : name),
+    );
     if (!scale) {
       throw new Error(`No scale named ${scaleName}`);
     }
-    if (tonicName) {
-      scale = scale.at(tonicName);
-    }
-    return scale;
+    return tonicName ? scale.at(tonicName) : scale;
   }
 
-  public static get scales() {
-    return scaleMap.keys();
+  public static get scales(): IterableIterator<Scale<null>> {
+    return scaleMap.values();
   }
 
   public readonly name: string;
   public readonly pitchClasses: number[];
-  public readonly parent: Scale | null;
-  public readonly modes: Scale[] = [];
+  public readonly parent: Scale<T> | null;
+  public readonly modes: Array<Scale<T>> = [];
   public readonly tonic: Pitch | PitchClass | null;
   public readonly intervals: Interval[];
   public readonly pitches: Pitch[] | PitchClass[] | null;
@@ -57,7 +53,7 @@ export class Scale {
   }: {
     name: string;
     pitchClasses: number[];
-    parent?: Scale | string | null;
+    parent?: Scale<T> | string | null;
     modeNames?: string[];
     tonic?: Pitch | string | null;
   }) {
@@ -88,7 +84,7 @@ export class Scale {
     );
   }
 
-  public at(tonic: Pitch | string): Scale {
+  public at(tonic: Pitch | string): Scale<Pitch> {
     return new Scale({
       name: this.name,
       pitchClasses: this.pitchClasses,
@@ -96,7 +92,7 @@ export class Scale {
     });
   }
 
-  public chords(options: { sevenths?: boolean } = {}): Chord[] {
+  public chords(options: { sevenths?: boolean } = {}): Array<Chord<Pitch>> {
     if (this.tonic == null) {
       throw new Error('only implemented for scales with tonics');
     }
@@ -115,11 +111,11 @@ export class Scale {
     });
   }
 
-  public fromRomanNumeral(name: string): Chord {
+  public fromRomanNumeral(name: string): Chord<Pitch> {
     return chordFromRomanNumeral(name, this);
   }
 
-  public progression(names: string): Chord[] {
+  public progression(names: string): Array<Chord<Pitch>> {
     return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
   }
 }
@@ -139,6 +135,7 @@ function asPitchOrPitchClass(
 
 const diatonicMajorScaleName = 'Diatonic Major';
 const majorPentatonicScaleName = 'Major Pentatonic';
+const defaultScaleName = diatonicMajorScaleName;
 
 // tslint:disable: object-literal-sort-keys
 const scaleMap = ([
@@ -226,9 +223,8 @@ const scaleMap = ([
     modeNames,
   });
   dict.set(scale.name, scale);
-  dict.set(scale.name.replace(/\s/g, ''), scale);
   return dict;
-}, new Map<string, Scale>());
+}, new Map<string, Scale<null>>());
 // tslint:enable: object-literal-sort-keys
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {

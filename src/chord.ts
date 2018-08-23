@@ -1,5 +1,6 @@
 import { Interval } from './interval';
 import { Pitch } from './pitch';
+import { PitchClass } from './pitchClass';
 import { rotateArray } from './utils';
 
 const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
@@ -57,7 +58,7 @@ export class ChordClass {
   }
 
   /// Return a chord with these intervals relative to `root`.
-  public at(root: Pitch | string): Chord {
+  public at(root: Pitch | string): Chord<Pitch> {
     return new Chord({ chordClass: this, root });
   }
 }
@@ -66,11 +67,13 @@ export class ChordClass {
 // - a torsor (e.g. Major)
 // - a scale degree (e.g. I)
 // - a tonicized scale (e.g. C Major)
-export class Chord {
+export class Chord<T> {
   /// Return either a `Chord` or a `ChordClass`, depending on whether `name`
   /// specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
   /// chord class (e.g. "Major").
-  public static fromString(name: string): Chord | ChordClass {
+  public static fromString(
+    name: string,
+  ): Chord<Pitch> | Chord<PitchClass> | ChordClass {
     const match = name.match(chordNameRegex);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);
@@ -83,7 +86,7 @@ export class Chord {
 
   /// Return the Chord that matches a set of pitches. The first pitch should be
   /// the root.
-  public static fromPitches(pitches: Pitch[]): Chord | null {
+  public static fromPitches(pitches: Pitch[]): Chord<Pitch> | null {
     const root = pitches[0];
     const intervals = pitches.map((pitch: Pitch) =>
       Interval.between(root, pitch),
@@ -161,7 +164,7 @@ export class Chord {
   // enharmonicizeTo: (scale) ->
   //   @_clone root: @root.enharmonicizeTo(scale)
 
-  public invert(inversionKey: number | string): Chord {
+  public invert(inversionKey: number | string): Chord<Pitch> {
     let inversion: number;
     if (typeof inversionKey === 'string') {
       const ix = inversionNames.indexOf(inversionKey);

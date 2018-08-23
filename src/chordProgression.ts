@@ -52,7 +52,7 @@ export function chordFromRomanNumeral(name: string, scale: Scale): Chord {
   }
   // TODO: 9, 13, sharp, natural
   // FIXME: remove the cast
-  let chord = ChordClass.fromString(chordType).at(scale.pitches![
+  let chord = ChordClass.fromString(chordType).at(scale.pitches[
     degree
   ] as Pitch);
   if (inversion) {

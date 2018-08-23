@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import { Chord } from './chord';
 import { FretPosition, Instrument } from './instrument';
 import { Interval } from './interval';
+import { Pitch } from './pitch';
 import { powerset } from './utils';
 
 // These are "fingerings" and not "voicings" because they also include barre information.
@@ -13,7 +14,7 @@ export class Fingering {
     return this._fretString;
   }
   public readonly positions: FingeringPosition[];
-  public readonly chord: Chord;
+  public readonly chord: Chord<Pitch>;
   public readonly barres: Barre[];
   public readonly instrument: Instrument;
   public readonly properties: { [_: string]: any };
@@ -26,7 +27,7 @@ export class Fingering {
     instrument,
   }: {
     positions: FingeringPosition[];
-    chord: Chord;
+    chord: Chord<Pitch>;
     barres: Barre[];
     instrument: Instrument;
   }) {
@@ -164,7 +165,7 @@ function collectBarreSets(fretArray: number[]) {
 //
 
 function fingerPositionsOnChord(
-  chord: Chord,
+  chord: Chord<Pitch>,
   instrument: Instrument,
 ): FretPosition[] {
   const { root, intervals } = chord;
@@ -180,7 +181,7 @@ function fingerPositionsOnChord(
 
 // TODO add options for strumming vs. fingerstyle; muting; stretch
 export function chordFingerings(
-  chord: Chord,
+  chord: Chord<Pitch>,
   instrument: Instrument,
   options = { filter: true, allPositions: false, fingerPicking: false },
 ): Fingering[] {
@@ -462,7 +463,7 @@ export function chordFingerings(
   return fingerings;
 }
 
-export function bestFingeringFor(chord: Chord, instrument: Instrument) {
+export function bestFingeringFor(chord: Chord<Pitch>, instrument: Instrument) {
   return chordFingerings(chord, instrument)[0];
 }
 
