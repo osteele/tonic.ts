@@ -6,32 +6,37 @@ const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
 const inversionNames = 'acd'.split(/./);
 
-// An instance of ChordClass represents the intervals of the chord,
-// without the root. For example, Dom7. It represents the quality, suspensions, and additions.
+/// An instance of `ChordClass` represents the intervals of the chord, without
+/// the root. For example, Dom7. It represents the quality, suspensions, and
+/// additions. A `ChordClass` is to a `Chord` as a `PitchClass` is to a `Pitch`.
 export class ChordClass {
+  /// Return the ChordClass that matches a set of intervals.
   public static fromIntervals(intervals: Interval[]): ChordClass {
     const semitones = intervals.map((interval: Interval) => interval.semitones);
     const key = semitones
       .sort((a: number, b: number) => (a > b ? 1 : b > a ? -1 : 0))
       .join(',');
-    const chordClass = Chords.get(key);
+    const chordClass = chordMap.get(key);
     if (!chordClass) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
     }
     return chordClass;
   }
 
+  /// Return a `ChordClass` identified by name, e.g. "Major".
   public static fromString(name: string): ChordClass {
-    const chord = Chords.get(name);
+    const chord = chordMap.get(name);
     if (!chord) {
       throw new Error(`“${name}” is not a chord name`);
     }
     return chord;
   }
+
   public readonly name: string;
-  public readonly fullName: string;
-  public readonly abbr: string;
+  public readonly fullName: string | null;
+  public readonly abbr: string | null;
   public readonly abbrs: string[];
+  /// Intervals relative to the root.
   public readonly intervals: Interval[];
   constructor({
     name,
@@ -40,17 +45,18 @@ export class ChordClass {
     intervals,
   }: {
     name: string;
-    fullName: string;
-    abbrs: string[];
+    fullName?: string;
+    abbrs?: string[];
     intervals: Interval[];
   }) {
     this.name = name;
-    this.fullName = fullName;
-    this.abbrs = abbrs;
+    this.fullName = fullName ? fullName : null;
+    this.abbrs = abbrs || [];
     this.intervals = intervals;
     this.abbr = this.abbrs[0];
   }
 
+  /// Return a chord with these intervals relative to `root`.
   public at(root: Pitch | string): Chord {
     return new Chord({ chordClass: this, root });
   }
@@ -61,6 +67,9 @@ export class ChordClass {
 // - a scale degree (e.g. I)
 // - a tonicized scale (e.g. C Major)
 export class Chord {
+  /// Return either a `Chord` or a `ChordClass`, depending on whether `name`
+  /// specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
+  /// chord class (e.g. "Major").
   public static fromString(name: string): Chord | ChordClass {
     const match = name.match(chordNameRegex);
     if (!match) {
@@ -72,18 +81,20 @@ export class Chord {
     return rootName ? chordClass.at(Pitch.fromString(rootName)) : chordClass;
   }
 
-  public static fromPitches(pitches: Pitch[]): Chord {
+  /// Return the Chord that matches a set of pitches. The first pitch should be
+  /// the root.
+  public static fromPitches(pitches: Pitch[]): Chord | null {
     const root = pitches[0];
     const intervals = pitches.map((pitch: Pitch) =>
       Interval.between(root, pitch),
     );
     return ChordClass.fromIntervals(intervals).at(root);
   }
+
   public readonly chordClass: ChordClass;
   public readonly root: Pitch;
   public readonly inversion: number;
-  public readonly name: string;
-  public readonly fullName: string;
+  /// The preferred abbreviation.
   public readonly abbr: string;
   public readonly abbrs: string[];
   public readonly intervals: Interval[];
@@ -101,8 +112,6 @@ export class Chord {
     this.root = typeof root === 'string' ? Pitch.fromString(root) : root;
     this.inversion = inversion;
 
-    this.name = `${this.root.toString()} ${this.chordClass.name}`;
-    this.fullName = `${this.root.toString()} ${this.chordClass.fullName}`;
     this.abbrs = this.chordClass.abbrs.map((abbr: string) =>
       `${this.root.toString()} ${abbr}`.replace(/\s+$/, ''),
     );
@@ -121,6 +130,15 @@ export class Chord {
       this.pitches = rotateArray(this.pitches, this.inversion);
     }
   }
+
+  get name() {
+    return `${this.root.toString()} ${this.chordClass.name}`;
+  }
+
+  get fullName() {
+    return `${this.root.toString()} ${this.chordClass.fullName}`;
+  }
+
   // @pitchClasses = rotateArray(@pitchClasses, @inversion)
 
   // @components = for interval, index in intervals
@@ -133,16 +151,6 @@ export class Chord {
   //     name = "A#{degree}" if Number(IntervalNames[semitones - 1].match(/\d+/)?[0]) == degree
   //     name = "d#{degree}" if Number(IntervalNames[semitones + 1].match(/\d+/)?[0]) == degree
   //   name
-
-  // _clone(extend) {
-  //   const attrs = {
-  //     inversion: this.inversion,
-  //     chordClass: this.chordClass,
-  //     root: this.root
-  //   };
-  //   for (let key in extend) { const value = extend[key]; attrs[key] = value; }
-  //   return new Chord(attrs);
-  // }
 
   // at: (root) ->
   //   @_clone root: root
@@ -219,9 +227,7 @@ const chordClassArray: ChordClass[] = [
 // `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
 // represented as comma-separated semitone numbers, e.g. '0,4,7' to represent a
 // major triad.
-//
-// tslint:disable-next-line variable-name
-export const Chords = chordClassArray.reduce((dict, chordClass) => {
+const chordMap = chordClassArray.reduce((dict, chordClass) => {
   const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
   [chordClass.name, chordClass.fullName, ...chordClass.abbrs, pitchKey].forEach(
     (key: string) => {

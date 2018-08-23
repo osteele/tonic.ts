@@ -1,18 +1,18 @@
 import { Intervals, Pitch } from '../src';
-import { Chord, ChordClass, Chords } from '../src/chord';
+import { Chord, ChordClass } from '../src/chord';
 
 describe('ChordClasses', () => {
   it.skip('should be indexed by chord name', () => {
-    expect(Chords.get('Major')).toBeTruthy();
-    expect(Chords.get('Minor')).toBeTruthy();
-    expect(Chords.get('Augmented')).toBeTruthy();
-    expect(Chords.get('Diminished')).toBeTruthy();
+    expect(Chord.fromString('Major')).toBeTruthy();
+    expect(Chord.fromString('Minor')).toBeTruthy();
+    expect(Chord.fromString('Augmented')).toBeTruthy();
+    expect(Chord.fromString('Diminished')).toBeTruthy();
   });
 
   it.skip('should be indexed by chord abbreviation', () => {
-    expect(Chords.get('M')).toBeTruthy();
-    expect(Chords.get('aug')).toBeTruthy();
-    expect(Chords.get('°')).toBeTruthy();
+    expect(Chord.fromString('M')).toBeTruthy();
+    expect(Chord.fromString('aug')).toBeTruthy();
+    expect(Chord.fromString('°')).toBeTruthy();
   });
 
   it.skip('should index chord classes by interval sequence', () => {
@@ -83,7 +83,7 @@ describe('Chord', () => {
 });
 
 describe('Major Chord Class', () => {
-  const chordClass = Chords.get('Major');
+  const chordClass = Chord.fromString('Major') as ChordClass;
 
   it('should exist', () => expect(chordClass).toBeTruthy());
 
@@ -164,7 +164,7 @@ describe('Major Chord Class', () => {
 });
 
 describe('Minor Chord', () => {
-  const chordClass = Chords.get('Minor');
+  const chordClass = Chord.fromString('Minor') as ChordClass;
 
   describe('at C', () => {
     const chord = chordClass.at('C');

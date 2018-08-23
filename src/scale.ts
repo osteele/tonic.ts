@@ -105,7 +105,7 @@ export class Scale {
       const chordPitches = degrees.map((degree: number) =>
         tonic.add(Interval.fromSemitones(modePitches[degree])),
       );
-      return Chord.fromPitches(chordPitches);
+      return Chord.fromPitches(chordPitches)!;
     });
   }
 
