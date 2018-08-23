@@ -1,29 +1,29 @@
-import { Pitch } from '../src/pitch';
-import { ScaleDegreeNames, Scales } from '../src/scale';
+import { Pitch, Scale, ScaleDegreeNames } from '../src';
+// import { ScaleDegreeNames } from '../src/scale';
 
 describe('Scales', () => {
   it('should have the right number of scales', () => {
-    expect(Scales.size).toBe(17);
+    expect(Array.from(Scale.scales)).toHaveLength(17);
   });
   it('should contains various blues and diatonic scales', () => {
-    expect(Scales.get('Diatonic Major')).toBeTruthy();
-    expect(Scales.get('Natural Minor')).toBeTruthy();
-    expect(Scales.get('Major Pentatonic')).toBeTruthy();
-    expect(Scales.get('Diatonic Major')).toBeTruthy();
-    expect(Scales.get('Minor Pentatonic')).toBeTruthy();
-    expect(Scales.get('Melodic Minor')).toBeTruthy();
-    expect(Scales.get('Harmonic Minor')).toBeTruthy();
-    expect(Scales.get('Blues')).toBeTruthy();
-    expect(Scales.get('Freygish')).toBeTruthy();
-    expect(Scales.get('Whole Tone')).toBeTruthy();
-    expect(Scales.get('Octatonic')).toBeTruthy();
+    expect(Scale.fromString('Diatonic Major')).toBeTruthy();
+    expect(Scale.fromString('Natural Minor')).toBeTruthy();
+    expect(Scale.fromString('Major Pentatonic')).toBeTruthy();
+    expect(Scale.fromString('Diatonic Major')).toBeTruthy();
+    expect(Scale.fromString('Minor Pentatonic')).toBeTruthy();
+    expect(Scale.fromString('Melodic Minor')).toBeTruthy();
+    expect(Scale.fromString('Harmonic Minor')).toBeTruthy();
+    expect(Scale.fromString('Blues')).toBeTruthy();
+    expect(Scale.fromString('Freygish')).toBeTruthy();
+    expect(Scale.fromString('Whole Tone')).toBeTruthy();
+    expect(Scale.fromString('Octatonic')).toBeTruthy();
   });
 });
 
 // describe('Scale', () => it('#fromString should a scale'));
 
 describe('Diatonic Major Scale', () => {
-  const scale = Scales.get('Diatonic Major');
+  const scale = Scale.fromString('Diatonic Major');
 
   it('should exist', () => expect(scale).toBeTruthy());
 

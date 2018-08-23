@@ -83,7 +83,7 @@ describe('Chord', () => {
 });
 
 describe('Major Chord Class', () => {
-  const chordClass = Chord.fromString('Major') as ChordClass;
+  const chordClass = ChordClass.fromString('Major');
 
   it('should exist', () => expect(chordClass).toBeTruthy());
 
@@ -164,7 +164,7 @@ describe('Major Chord Class', () => {
 });
 
 describe('Minor Chord', () => {
-  const chordClass = Chord.fromString('Minor') as ChordClass;
+  const chordClass = ChordClass.fromString('Minor');
 
   describe('at C', () => {
     const chord = chordClass.at('C');

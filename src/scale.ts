@@ -17,16 +17,17 @@ export class Scale {
   // }
 
   public static fromString(name: string): Scale {
+    let scale = scaleMap.get(name);
+    if (scale) {
+      return scale;
+    }
     let tonicName = null;
     let scaleName = null;
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
     if (match) {
       [tonicName, scaleName] = match.slice(1);
     }
-    if (!scaleName) {
-      scaleName = diatonicMajorScaleName;
-    }
-    let scale = Scales.get(scaleName);
+    scale = scaleMap.get(scaleName || diatonicMajorScaleName);
     if (!scale) {
       throw new Error(`No scale named ${scaleName}`);
     }
@@ -35,6 +36,11 @@ export class Scale {
     }
     return scale;
   }
+
+  public static get scales() {
+    return scaleMap.keys();
+  }
+
   public readonly name: string;
   public readonly pitchClasses: number[];
   public readonly parent: Scale | null;
@@ -56,7 +62,7 @@ export class Scale {
     tonic?: Pitch | string | null;
   }) {
     this.name = name;
-    this.parent = typeof parent === 'string' ? Scales.get(parent)! : parent;
+    this.parent = typeof parent === 'string' ? scaleMap.get(parent)! : parent;
     this.pitchClasses = pitchClasses;
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
@@ -135,8 +141,7 @@ const diatonicMajorScaleName = 'Diatonic Major';
 const majorPentatonicScaleName = 'Major Pentatonic';
 
 // tslint:disable: object-literal-sort-keys
-// tslint:disable-next-line variable-name
-export const Scales = ([
+const scaleMap = ([
   {
     name: diatonicMajorScaleName,
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -224,6 +229,7 @@ export const Scales = ([
   dict.set(scale.name.replace(/\s/g, ''), scale);
   return dict;
 }, new Map<string, Scale>());
+// tslint:enable: object-literal-sort-keys
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;
@@ -246,11 +252,11 @@ const FunctionNames = [
 
 function parseChordNumeral(name: string) {
   return {
-    degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)![1]) + 1,
-    major: name === name.toUpperCase(),
-    flat: name.match(/^[♭b]/),
-    diminished: name.match(/°/),
     augmented: name.match(/\+/),
+    degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)![1]) + 1,
+    diminished: name.match(/°/),
+    flat: name.match(/^[♭b]/),
+    major: name === name.toUpperCase(),
   };
 }
 
