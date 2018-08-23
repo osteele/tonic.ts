@@ -32,7 +32,7 @@
     "build": "rimraf dist && tsc",
     "doc": "typedoc --out docs/api src --mode modules --module commonjs",
     "lint": "tslint --project .",
-    "lint:complete": "tslint --project . -c tslint-complete.yaml",
+    "lint:strict": "tslint --project . -c tslint-strict.yaml",
     "test": "jest --onlyChanged"
   },
   "husky": {
