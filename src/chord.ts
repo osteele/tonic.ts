@@ -2,11 +2,9 @@ import { Interval } from './interval';
 import { Pitch } from './pitch';
 import { rotateArray } from './utils';
 
-// tslint:disable-next-line variable-name
-const ChordNameRe = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
+const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
-// tslint:disable-next-line variable-name
-const InversionNames = 'acd'.split(/./);
+const inversionNames = 'acd'.split(/./);
 
 // An instance of ChordClass represents the intervals of the chord,
 // without the root. For example, Dom7. It represents the quality, suspensions, and additions.
@@ -64,7 +62,7 @@ export class ChordClass {
 // - a tonicized scale (e.g. C Major)
 export class Chord {
   public static fromString(name: string): Chord | ChordClass {
-    const match = name.match(ChordNameRe);
+    const match = name.match(chordNameRegex);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);
     }
@@ -111,7 +109,7 @@ export class Chord {
     this.abbr = this.abbrs[0];
     this.intervals = this.chordClass.intervals;
     this.pitches = this.chordClass.intervals.map((interval: Interval) =>
-      this.root.toPitch().transposeBy(interval),
+      this.root.asPitch().transposeBy(interval),
     );
 
     // degrees = (1 + 2 * pitchClass.semitones for pitchClass in [0..@pitchClasses.length])
@@ -158,7 +156,7 @@ export class Chord {
   public invert(inversionKey: number | string): Chord {
     let inversion: number;
     if (typeof inversionKey === 'string') {
-      const ix = InversionNames.indexOf(inversionKey);
+      const ix = inversionNames.indexOf(inversionKey);
       if (ix < 0) {
         throw new Error(`Unknown inversion “${inversionKey}”`);
       }

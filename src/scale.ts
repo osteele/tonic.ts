@@ -61,7 +61,7 @@ export class Scale {
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
     );
-    this.tonic = typeof tonic === 'string' ? toPitchOrPitchClass(tonic) : tonic;
+    this.tonic = typeof tonic === 'string' ? asPitchOrPitchClass(tonic) : tonic;
     if (this.tonic instanceof Pitch) {
       this.pitches = this.intervals.map((interval: Interval) =>
         (this.tonic! as Pitch).add(interval),
@@ -118,7 +118,7 @@ export class Scale {
   }
 }
 
-function toPitchOrPitchClass(
+function asPitchOrPitchClass(
   pitch: Pitch | PitchClass | string,
 ): Pitch | PitchClass {
   if (typeof pitch !== 'string') {

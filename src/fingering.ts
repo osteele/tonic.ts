@@ -189,7 +189,7 @@ export function chordFingerings(
     throw new Error(`No root for ${chord}`);
   }
   // if (chord.root instanceof PitchClass) {
-  //   chord = chord.at(chord.root.toPitch());
+  //   chord = chord.at(chord.root.asPitch());
   // }
 
   //
@@ -240,7 +240,7 @@ export function chordFingerings(
       const fretNumber = fretArray[stringNumber];
       const pitchClass = instrument
         .pitchAt({ fretNumber, stringNumber })
-        .toPitchClass().semitones;
+        .asPitchClass().semitones;
       if (pitchClasses.indexOf(pitchClass) < 0) {
         pitchClasses.push(pitchClass);
       }

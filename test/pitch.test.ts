@@ -386,8 +386,8 @@ describe('Pitch', () => {
         .toString(),
     ).toBe('D4'));
 
-  // test.skip('#toPitch should itself');
-  // test.skip('#toPitchClass should its pitch class');
+  // test.skip('#asPitch should itself');
+  // test.skip('#asPitchClass should its pitch class');
 });
 
 describe('PitchClass', () => {
@@ -421,8 +421,8 @@ describe('PitchClass', () => {
         .toString(),
     ).toBe('D'));
 
-  // test.skip('#toPitch should return a pitch within the specified octave');
-  // test.skip('#toPitchClass should itself');
+  // test.skip('#asPitch should return a pitch within the specified octave');
+  // test.skip('#asPitchClass should itself');
 });
 
 describe('Pitches', () =>
