@@ -26,7 +26,7 @@ export class Scale {
     if (!scaleName) {
       scaleName = diatonicMajorScaleName;
     }
-    let scale = Scales[scaleName];
+    let scale = Scales.get(scaleName);
     if (!scale) {
       throw new Error(`No scale named ${scaleName}`);
     }
@@ -56,7 +56,7 @@ export class Scale {
     tonic?: Pitch | string | null;
   }) {
     this.name = name;
-    this.parent = typeof parent === 'string' ? Scales[parent] : parent;
+    this.parent = typeof parent === 'string' ? Scales.get(parent)! : parent;
     this.pitchClasses = pitchClasses;
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
@@ -136,7 +136,7 @@ const majorPentatonicScaleName = 'Major Pentatonic';
 
 // tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
-export const Scales: { [_: string]: Scale } = ([
+export const Scales = ([
   {
     name: diatonicMajorScaleName,
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -213,23 +213,17 @@ export const Scales: { [_: string]: Scale } = ([
   parent?: string;
   pitchClasses: number[];
   modeNames?: string[];
-}>).reduce(
-  (
-    acc: { [_: string]: Scale },
-    { name, parent = null, pitchClasses, modeNames },
-  ) => {
-    const scale = new Scale({
-      name,
-      parent: parent && acc[parent],
-      pitchClasses,
-      modeNames,
-    });
-    acc[scale.name] = scale;
-    acc[scale.name.replace(/\s/g, '')] = scale;
-    return acc;
-  },
-  {},
-);
+}>).reduce((dict, { name, parent = null, pitchClasses, modeNames }) => {
+  const scale = new Scale({
+    name,
+    parent: parent && dict.get(parent)!,
+    pitchClasses,
+    modeNames,
+  });
+  dict.set(scale.name, scale);
+  dict.set(scale.name.replace(/\s/g, ''), scale);
+  return dict;
+}, new Map<string, Scale>());
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;

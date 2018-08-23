@@ -1,7 +1,7 @@
 import { Chord, Scales } from '../src';
 
 describe('Scale.fromRomanNumeral', () => {
-  const scale = Scales.DiatonicMajor.at('E4');
+  const scale = Scales.get('Diatonic Major').at('E4');
 
   it('should create major chords', () => {
     // Chord.fromRomanNumeral('I', scale)
@@ -31,7 +31,7 @@ describe('Scale.fromRomanNumeral', () => {
 
 describe('Chord.progression', () =>
   it('should produce a sequence of chords', () => {
-    const scale = Scales.DiatonicMajor.at('E4');
+    const scale = Scales.get('Diatonic Major').at('E4');
     const chords = scale.progression('I ii iii IV');
     expect(chords).toHaveLength(4);
   }));

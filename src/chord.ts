@@ -16,7 +16,7 @@ export class ChordClass {
     const key = semitones
       .sort((a: number, b: number) => (a > b ? 1 : b > a ? -1 : 0))
       .join(',');
-    const chordClass = ChordClassMap[key];
+    const chordClass = Chords.get(key);
     if (!chordClass) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
     }
@@ -24,7 +24,7 @@ export class ChordClass {
   }
 
   public static fromString(name: string): ChordClass {
-    const chord = ChordClassMap[name];
+    const chord = Chords.get(name);
     if (!chord) {
       throw new Error(`“${name}” is not a chord name`);
     }
@@ -174,8 +174,7 @@ export class Chord {
   }
 }
 
-// tslint:disable-next-line variable-name
-export const ChordClasses: ChordClass[] = [
+const chordClassArray: ChordClass[] = [
   { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
   { name: 'Minor', abbrs: ['m'], intervals: '037' },
   { name: 'Augmented', abbrs: ['+', 'aug'], intervals: '048' },
@@ -219,17 +218,17 @@ export const ChordClasses: ChordClass[] = [
   });
 });
 
-// `ChordClassMap` is indexed by name, abbreviation, and pitch classes
+// `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
+// represented as comma-separated semitone numbers, e.g. '0,4,7' to represent a
+// major triad.
+//
 // tslint:disable-next-line variable-name
-export const ChordClassMap: { [_: string]: ChordClass } = ChordClasses.reduce(
-  (acc: { [_: string]: ChordClass }, chordClass) => {
-    [chordClass.name, chordClass.fullName, ...chordClass.abbrs].forEach(
-      (name: string) => {
-        acc[name] = chordClass;
-      },
-    );
-    acc[chordClass.intervals.map((i) => i.semitones).join(',')] = chordClass;
-    return acc;
-  },
-  {},
-);
+export const Chords = chordClassArray.reduce((dict, chordClass) => {
+  const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
+  [chordClass.name, chordClass.fullName, ...chordClass.abbrs, pitchKey].forEach(
+    (key: string) => {
+      dict.set(key, chordClass);
+    },
+  );
+  return dict;
+}, new Map<string, ChordClass>());
