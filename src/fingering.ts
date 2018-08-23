@@ -36,7 +36,7 @@ export class Fingering {
       (a: FretPosition, b: FretPosition) => a.stringNumber - b.stringNumber,
     );
     this.barres = barres;
-    this.properties = {};
+    this.properties = Object.create(null);
   }
 
   // string representation of a fingering
