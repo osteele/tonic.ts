@@ -38,7 +38,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn lint --fix && yarn test --bail",
-      "pre-push": "yarn test --all"
+      "pre-push": "yarn test --all && yarn build"
     }
   }
 }
