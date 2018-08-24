@@ -1,7 +1,7 @@
-import { Chord, ScalePattern } from '../src';
+import { Chord, Scale } from '../src';
 
 describe('Scale.fromRomanNumeral', () => {
-  const scale = ScalePattern.fromString('Diatonic Major').at('E4');
+  const scale = Scale.fromString('Diatonic Major').at('E4');
 
   it('should create major chords', () => {
     expect(scale.fromRomanNumeral('I')).toEqual(Chord.fromString('E4 Major'));
@@ -29,7 +29,7 @@ describe('Scale.fromRomanNumeral', () => {
   });
 
   it.skip('should accept pitch classes', () => {
-    const scale = ScalePattern.fromString('Diatonic Major').at('E');
+    const scale = Scale.fromString('Diatonic Major').at('E');
     expect(scale.fromRomanNumeral('I')).toEqual(Chord.fromString('E Major'));
     expect(scale.fromRomanNumeral('II')).toEqual(Chord.fromString('F♯ Major'));
     expect(scale.fromRomanNumeral('IV')).toEqual(Chord.fromString('A Major'));
@@ -38,7 +38,7 @@ describe('Scale.fromRomanNumeral', () => {
 
 describe('Scale.progression', () =>
   it('should produce a sequence of chords', () => {
-    const scale = ScalePattern.fromString('Diatonic Major').at('E4');
+    const scale = Scale.fromString('Diatonic Major').at('E4');
     const chords = scale.progression('I ii iii IV');
     expect(chords).toHaveLength(4);
   }));

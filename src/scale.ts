@@ -4,6 +4,18 @@ import { Interval } from './interval';
 import { normalizePitchClass } from './names';
 import { asPitchLike, PitchLike } from './pitchLike';
 
+interface GenericScaleConstructorOptions {
+  name: string;
+  pitchClasses: number[];
+  parent?: Scale | string | null;
+  modeNames?: string[];
+}
+
+interface ScaleConstructorOptions<T extends PitchLike>
+  extends GenericScaleConstructorOptions {
+  tonic: T;
+}
+
 // A scale is a named collection, either of intervals or notes.
 class GenericScale<T extends PitchLike | null> {
   // noteNames(): string[] {
@@ -17,92 +29,45 @@ class GenericScale<T extends PitchLike | null> {
 
   public readonly name: string;
   public readonly pitchClasses: number[];
-  public readonly parent: ScalePattern | null;
-  public readonly modes: ScalePattern[] = [];
-  public readonly tonic: T;
+  public readonly parent: Scale | null;
+  public readonly modes: Scale[] = [];
   public readonly intervals: Interval[];
-  public readonly pitches: T[];
   constructor({
     name,
     pitchClasses,
     parent = null,
     modeNames = [],
-    tonic = null,
-  }: {
-    name: string;
-    pitchClasses: number[];
-    parent?: ScalePattern | string | null;
-    modeNames?: string[];
-    tonic?: T;
-  }) {
+  }: GenericScaleConstructorOptions) {
     this.name = name;
     this.parent = typeof parent === 'string' ? scaleMap.get(parent)! : parent;
     this.pitchClasses = pitchClasses;
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
     );
-    this.tonic = tonic as T;
-    if (this.tonic) {
-      this.pitches = this.intervals.map((interval: Interval) =>
-        (this.tonic as PitchLike).transposeBy(interval),
-      ) as T[];
-    }
     this.modes = modeNames.map(
       (modeName, i) =>
-        new ScalePattern({
+        new Scale({
           name: modeName,
-          parent: this as ScalePattern,
+          parent: this as Scale,
           pitchClasses: rotatePitchClasses(pitchClasses, i),
         }),
     );
   }
 
-  /// Return a scale of the same scale class, at the specified tonic.
-  public at(tonic: string): Scale<PitchLike>;
-  public at<T extends PitchLike>(tonic: T): Scale<T>;
-  public at(tonic: PitchLike | string): Scale<PitchLike> {
-    return new Scale({
+  /// Return a specific scale of the same scale class, at the specified tonic.
+  public at(tonic: string): SpecificScale<PitchLike>;
+  public at<T extends PitchLike>(tonic: T): SpecificScale<T>;
+  public at(tonic: PitchLike | string): SpecificScale<PitchLike> {
+    return new SpecificScale({
       name: this.name,
       pitchClasses: this.pitchClasses,
       tonic: asPitchLike(tonic),
     });
   }
-
-  // TODO: can this return Array<Chord<T & PitchLike>>
-  public chords(options: { sevenths?: boolean } = {}): Array<Chord<PitchLike>> {
-    const tonic = this.tonic;
-    if (!tonic) {
-      throw new Error('only implemented for scales with tonics');
-    }
-    const degrees = [0, 2, 4];
-    if (options.sevenths) {
-      degrees.push(6);
-    }
-    const pitches = this.pitchClasses;
-    return pitches.map((_, i) => {
-      const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
-      const chordPitches = degrees.map((degree: number) =>
-        tonic.transposeBy(Interval.fromSemitones(modePitches[degree])),
-      );
-      return Chord.fromPitches(chordPitches)!;
-    });
-  }
-  public progression(names: string): Array<Chord<PitchLike>> {
-    if (this.tonic == null) {
-      throw new Error('only implemented for scales with tonics');
-    }
-    return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
-  }
-  public fromRomanNumeral(name: string): Chord<PitchLike> {
-    if (this.tonic == null) {
-      throw new Error('only implemented for scales with tonics');
-    }
-    return chordFromRomanNumeral(name, this as Scale<PitchLike>);
-  }
 }
 
-export class ScalePattern extends GenericScale<null> {
-  public static fromString(name: string): ScalePattern {
+export class Scale extends GenericScale<null> {
+  public static fromString(name: string): Scale {
     const scale = scaleMap.get(name);
     if (!scale) {
       throw new Error(`No scale named ${name}`);
@@ -110,13 +75,13 @@ export class ScalePattern extends GenericScale<null> {
     return scale;
   }
 
-  public static get scales(): IterableIterator<ScalePattern> {
+  public static get scales(): IterableIterator<Scale> {
     return scaleMap.values();
   }
 }
 
-export class Scale<T extends PitchLike> extends GenericScale<T> {
-  public static fromString(name: string): Scale<PitchLike> {
+export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
+  public static fromString(name: string): SpecificScale<PitchLike> {
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
     if (match) {
       const [tonicName, scaleName] = match.slice(1);
@@ -126,6 +91,42 @@ export class Scale<T extends PitchLike> extends GenericScale<T> {
       }
     }
     throw new Error(`No scale named ${name}`);
+  }
+
+  public readonly tonic: T;
+  public readonly pitches: T[];
+
+  constructor(options: ScaleConstructorOptions<T>) {
+    super(options);
+    this.tonic = options.tonic;
+    this.pitches = this.intervals.map((interval) =>
+      options.tonic.transposeBy(interval),
+    ) as T[];
+  }
+
+  // TODO: can this return Array<Chord<T & PitchLike>>
+  public chords(options: { sevenths?: boolean } = {}): Array<Chord<PitchLike>> {
+    const tonic = this.tonic;
+    const degrees = [0, 2, 4];
+    if (options.sevenths) {
+      degrees.push(6);
+    }
+    const pitches = this.pitchClasses;
+    return pitches.map((_, i) => {
+      const modePitches = [...pitches.slice(i), ...pitches.slice(0, i)];
+      const chordPitches = degrees.map((degree) =>
+        tonic.transposeBy(Interval.fromSemitones(modePitches[degree])),
+      );
+      return Chord.fromPitches(chordPitches)!;
+    });
+  }
+
+  public progression(names: string): Array<Chord<T>> {
+    return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
+  }
+
+  public fromRomanNumeral(name: string): Chord<T> {
+    return chordFromRomanNumeral(name, this);
   }
 }
 
@@ -212,7 +213,7 @@ const scaleMap = ([
   pitchClasses: number[];
   modeNames?: string[];
 }>).reduce((dict, { name, parent = null, pitchClasses, modeNames }) => {
-  const scale = new ScalePattern({
+  const scale = new Scale({
     name,
     parent: parent && dict.get(parent)!,
     pitchClasses,
@@ -220,7 +221,7 @@ const scaleMap = ([
   });
   dict.set(scale.name, scale);
   return dict;
-}, new Map<string, ScalePattern>());
+}, new Map<string, Scale>());
 // tslint:enable: object-literal-sort-keys
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {

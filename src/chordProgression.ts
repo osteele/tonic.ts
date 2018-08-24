@@ -1,6 +1,6 @@
 import { Chord, ChordClass } from './chord';
 import { PitchLike } from './pitchLike';
-import { Scale } from './scale';
+import { SpecificScale } from './scale';
 
 const chordRomanNumerals = 'I II III IV V VI VII'.split(/\s+/);
 
@@ -18,7 +18,7 @@ const romanNumeralModifiers: { [_: string]: string } = {
 
 export function chordFromRomanNumeral<T extends PitchLike>(
   name: string,
-  scale: Scale<T>,
+  scale: SpecificScale<T>,
 ): Chord<T> {
   const match = name.match(/^(♭?)(i+v?|vi*)(.*?)([acd]?)$/i);
   if (!match) {
