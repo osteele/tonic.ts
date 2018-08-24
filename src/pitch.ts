@@ -6,8 +6,9 @@ import {
   pitchToScientificNotation,
 } from './names';
 import { PitchClass } from './pitchClass';
+import { PitchLike } from './pitchLike';
 
-export class Pitch {
+export class Pitch implements PitchLike {
   public static fromMidiNumber(midiNumber: number): Pitch {
     return new Pitch(midiNumber);
   }

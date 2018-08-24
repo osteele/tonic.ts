@@ -23,5 +23,10 @@ describe('asPitchLike', () => {
   it('throws exceptions', () => {
     expect(() => expect(asPitchLike('invalid')).toThrow());
   });
-  // it.skip('is idempotent on pitches', () => expect(asPitchLike('E4')).toBeInstanceOf(Pitch));
+  it('is idempotent on Pitch and PitchClass', () => {
+    const pitch = Pitch.fromString('E4');
+    const pitchClass = Pitch.fromString('E');
+    expect(asPitchLike(pitch)).toBe(pitch);
+    expect(asPitchLike(pitchClass)).toBe(pitchClass);
+  });
 });

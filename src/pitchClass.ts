@@ -1,8 +1,9 @@
+import { PitchLike } from './index';
 import { Interval } from './interval';
 import { normalizePitchClass, NoteNames, parsePitchClass } from './names';
 import { Pitch } from './pitch';
 
-export class PitchClass {
+export class PitchClass implements PitchLike {
   public static fromSemitones(semitones: number): PitchClass {
     semitones = normalizePitchClass(semitones);
     return new PitchClass(semitones);
