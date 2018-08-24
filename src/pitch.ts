@@ -8,6 +8,9 @@ import {
 import { PitchClass } from './pitchClass';
 import { PitchLike } from './pitchLike';
 
+/** `Pitch` represents musical pitches such as "E4" and "F♯5". It converts
+ * between string and instance representations.
+ */
 export class Pitch implements PitchLike {
   public static fromMidiNumber(midiNumber: number): Pitch {
     return new Pitch(midiNumber);

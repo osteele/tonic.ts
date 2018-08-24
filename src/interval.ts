@@ -26,11 +26,12 @@ export const LongIntervalNames = [
   'Octave',
 ];
 
-// An Interval is the signed distance between two notes.
-// Intervals that represent the same semitone span *and* accidental are interned.
-// Thus, two instance of M3 are ===, but sharp P4 and flat P5 are distinct from
-// each other and from TT.
-//
+/** An Interval is the signed distance between two notes.
+ *
+ * Intervals that represent the same semitone span *and* accidental are interned.
+ * Thus, two instance of M3 are ===, but sharp P4 and flat P5 are distinct from
+ * each other and from TT.
+ */
 // FIXME these are interval classes, not intervals
 export class Interval {
   public static fromSemitones(semitones: number, accidentals = 0): Interval {

@@ -5,9 +5,11 @@ import { Interval } from './interval';
 import { Pitch } from './pitch';
 import { powerset } from './utils';
 
-// These are "fingerings" and not "voicings" because they also include barre information.
+/** These are "fingerings" and not "voicings" because they also include barre
+ * information.
+ */
 export class Fingering {
-  /// Return best fingering, sorted by default properties.
+  /** Return best fingering, sorted by default properties. */
   public static best(
     chord: Chord<Pitch> | string,
     instrument: Instrument,
@@ -15,7 +17,7 @@ export class Fingering {
     return Fingering.all(chord, instrument)[0];
   }
 
-  /// Return fingerings, sorted by default properties.
+  /** Return fingerings, sorted by default properties. */
   public static all(
     _chord: Chord<Pitch> | string,
     instrument: Instrument,

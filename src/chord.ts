@@ -8,11 +8,12 @@ const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
 const inversionNames = 'acd'.split(/./);
 
-/// An instance of `ChordClass` represents the intervals of the chord, without
-/// the root. For example, Dom7. It represents the quality, suspensions, and
-/// additions. A `ChordClass` is to a `Chord` as a `PitchClass` is to a `Pitch`.
+/** An instance of `ChordClass` represents the intervals of the chord, without
+ * the root. For example, Dom7. It represents the quality, suspensions, and
+ * additions. A `ChordClass` is to a `Chord` as a `PitchClass` is to a `Pitch`.
+ */
 export class ChordClass {
-  /// Return the ChordClass that matches a set of intervals.
+  /** Return the ChordClass that matches a set of intervals. */
   public static fromIntervals(intervals: Interval[]): ChordClass {
     const semitones = intervals.map((interval: Interval) => interval.semitones);
     const key = semitones
@@ -25,7 +26,7 @@ export class ChordClass {
     return chordClass;
   }
 
-  /// Return a `ChordClass` identified by name, e.g. "Major".
+  /** Return a `ChordClass` identified by name, e.g. "Major". */
   public static fromString(name: string): ChordClass {
     const chord = ChordClass.chordMap.get(name);
     if (!chord) {
@@ -43,7 +44,7 @@ export class ChordClass {
   public readonly fullName: string | null;
   public readonly abbr: string | null;
   public readonly abbrs: string[];
-  /// Intervals relative to the root.
+  /** Intervals relative to the root. */
   public readonly intervals: Interval[];
   constructor({
     name,
@@ -63,7 +64,7 @@ export class ChordClass {
     this.abbr = this.abbrs[0];
   }
 
-  /// Return a chord with these intervals relative to `root`.
+  /** Return a chord with these intervals relative to `root`. */
   public at<T extends PitchLike>(root: T): Chord<T>;
   public at(root: string): Chord<PitchLike>;
   public at<T extends PitchLike | string>(
@@ -74,14 +75,15 @@ export class ChordClass {
   }
 }
 
-// A chord may be:
-// - a torsor (e.g. Major)
-// - a scale degree (e.g. I)
-// - a tonicized scale (e.g. C Major)
+/** A set of intervals from a root. A chord has a name, a set of intervals, a
+ * set pitches (or pitch classes), and an inversion. For example, "E Major" and
+ * "C Minor" name chords.
+ */
 export class Chord<T extends PitchLike> {
-  /// Return either a `Chord` or a `ChordClass`, depending on whether `name`
-  /// specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
-  /// chord class (e.g. "Major").
+  /** Return either a `Chord` or a `ChordClass`, depending on whether `name`
+   * specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
+   * chord class (e.g. "Major").
+   */
   public static fromString(
     name: string,
   ): Chord<Pitch> | Chord<PitchClass> | ChordClass {
@@ -95,8 +97,9 @@ export class Chord<T extends PitchLike> {
     return rootName ? chordClass.at(Pitch.fromString(rootName)) : chordClass;
   }
 
-  /// Return the Chord that matches a set of pitches. The first pitch should be
-  /// the root.
+  /** Return the Chord that matches a set of pitches. The first pitch should be
+   * the root.
+   */
   public static fromPitches<T extends PitchLike>(pitches: T[]): Chord<T> {
     const root = pitches[0];
     const intervals = pitches.map((pitch) => Interval.between(root, pitch));
@@ -106,7 +109,7 @@ export class Chord<T extends PitchLike> {
   public readonly chordClass: ChordClass;
   public readonly root: T;
   public readonly inversion: number;
-  /// The preferred abbreviation.
+  /** The preferred abbreviation. */
   public readonly abbr: string;
   public readonly abbrs: string[];
   public readonly intervals: Interval[];

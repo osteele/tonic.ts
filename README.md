@@ -28,7 +28,7 @@ slowly evolving towards a library of re-usable API.
 * `Chord<PitchLike>` is a set of intervals from a root. A chord has a name, a
   set of intervals, a set pitches (or pitch classes), and an inversion. For
   example, "E Major" and "C Minor" name chords.
-* `ChordPattern` is an equivalence class of Chords, modded out by their tonics.
+* `ChordClass` is an equivalence class of Chords, modded out by their tonics.
   For example, "Major" and "Minor" are chord patterns.
 * `Scale` is a named sequence of intervals from an (unspecified) tonic. For
   example, "Diatonic Major" names a scale.
@@ -38,7 +38,7 @@ slowly evolving towards a library of re-usable API.
 `Chord` and `SpecificScale` are generic classes, that can be instantiated at
 either `Pitch` or `PitchClass`.
 
-A `ChordPattern` is to a `Chord` (and its *root*) as a `Scale` is to a
+A `ChordClass` is to a `Chord` (and its *root*) as a `Scale` is to a
 `SpecificScale` (and its *tonic*). The class name hide this symmetry, but
 they're the names from the domain of music theory.
 
@@ -49,7 +49,7 @@ JavaScript, there's better alternatives (link TBD) for that.
 
 There's a function (TBD) to calculate the guitar (or other fretted polyphonic stringed instrument) fingerings that voice a chord.
 
-Fingerings are ranked and sorted according to voicing and playability metrics:
+Fingerings are ranked and sorted according to voicing and play-ability metrics:
 number of open strings, distance between closed frets, presence of barres.
 
 These are "fingerings", rather than "voicings", because two instances may have
@@ -74,7 +74,7 @@ Fingerboard web app uses, if I recall.)
 ## Road Map
 
 * [x] Test coverage for music theory objects
-* [ ] Generated docs
+* [ ] Publish generated docs
 * [ ] Better docs and coverage for guitar chord calculator
 * [ ] Restore, and test, pitch constellation and chord diagram rendering.
 

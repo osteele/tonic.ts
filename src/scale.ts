@@ -29,8 +29,9 @@ class GenericScale<T extends PitchLike | null> {
 
   public readonly name: string;
   public readonly pitchClasses: number[];
-  /// For a minor scale, this is the relative major. For a mode, it's the
-  /// deriving scale.
+  /** For a minor scale, this is the relative major. For a mode, it's the
+   * deriving scale.
+   */
   public readonly parent: Scale | null;
   public readonly modes: Scale[] = [];
   public readonly intervals: Interval[];
@@ -57,7 +58,7 @@ class GenericScale<T extends PitchLike | null> {
     );
   }
 
-  /// Return a specific scale of the same scale class, at the specified tonic.
+  /** Return a specific scale of the same scale class, at the specified tonic. */
   public at(tonic: string): SpecificScale<PitchLike>;
   public at<T extends PitchLike>(tonic: T): SpecificScale<T>;
   public at(tonic: PitchLike | string): SpecificScale<PitchLike> {
@@ -69,6 +70,9 @@ class GenericScale<T extends PitchLike | null> {
   }
 }
 
+/** `Scale` is a named sequence of intervals from an (unspecified) tonic. For
+ * example, "Diatonic Major" names a scale.
+ */
 export class Scale extends GenericScale<null> {
   public static fromString(name: string): Scale {
     const scale = Scale.scaleMap.get(name);
@@ -89,6 +93,9 @@ export class Scale extends GenericScale<null> {
   private static readonly scaleMap = new Map<string, Scale>();
 }
 
+/** `SpecificScale<PitchLike>` is a scale that starts at a specific pitch or pitch
+ * class.
+ */
 export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
   public static fromString(name: string): SpecificScale<PitchLike> {
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);

@@ -30,7 +30,7 @@
   "scripts": {
     "prepublish": "yarn run build && tsc",
     "build": "rimraf dist && tsc",
-    "doc": "typedoc --out docs/api src --mode modules --module commonjs",
+    "doc": "typedoc --out docs/api --mode file --excludePrivate --excludeProtected --excludeExternals --exclude \"**/graphics/*.ts\" src",
     "lint": "tslint --project .",
     "lint:strict": "tslint --project . -c tslint-strict.yaml",
     "test": "jest --onlyChanged"
