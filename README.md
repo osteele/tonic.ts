@@ -13,8 +13,6 @@ slowly evolving towards a library of re-usable API.
 
 ## Features
 
-This code provides the following types.
-
 ### Music Theory Types
 
 * `Pitch` represents musical pitches such as "E4" and "F♯5". It converts between
@@ -27,14 +25,15 @@ This code provides the following types.
 * `Interval` represents a musical interval such as a minor third or a perfect
   fifth. The difference between two pitch-like instances of the same type is an
   Interval. A pitch-like instance can be transposed by an interval.
-* `Chord` is a set of intervals from a root. A chord has a name, a set of
-  intervals, a set pitches (or pitch classes), and an inversion. For example, "E
-  Major" and "C Minor" name chords.
+* `Chord<PitchLike>` is a set of intervals from a root. A chord has a name, a
+  set of intervals, a set pitches (or pitch classes), and an inversion. For
+  example, "E Major" and "C Minor" name chords.
 * `ChordPattern` is an equivalence class of Chords, modded out by their tonics.
   For example, "Major" and "Minor" are chord patterns.
 * `Scale` is a named sequence of intervals from an (unspecified) tonic. For
   example, "Diatonic Major" names a scale.
-* `SpecificScale` is a scale that starts at a specific pitch or pitch class.
+* `SpecificScale<PitchLike>` is a scale that starts at a specific pitch or pitch
+  class.
 
 `Chord` and `SpecificScale` are generic classes, that can be instantiated at
 either `Pitch` or `PitchClass`.
@@ -46,7 +45,7 @@ they're the names from the domain of music theory.
 The API makes use of TypeScript generics. Although it can be used from straight
 JavaScript, there's better alternatives (link TBD) for that.
 
-### Chord calculator
+### Chord Diagram Calculator
 
 There's a function (TBD) to calculate the guitar (or other fretted polyphonic stringed instrument) fingerings that voice a chord.
 

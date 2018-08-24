@@ -1,11 +1,10 @@
-import { Chord, Interval } from '../src';
-import { bestFingeringFor } from '../src/fingering';
+import { Interval } from '../src';
+import { Fingering } from '../src/fingering';
 import { Instruments } from '../src/instrument';
 
 describe('Fingering', () => {
-  const chord = Chord.fromString('E Major') as Chord;
   const instrument = Instruments.Guitar;
-  const fingering = bestFingeringFor(chord, instrument);
+  const fingering = Fingering.best('E Major', instrument);
 
   // it('should have an array of barres', () =>
   //   fingering.barres.should.be.an.Array);
@@ -22,15 +21,38 @@ describe('Fingering', () => {
     // it.skip('should be an array);
     // it.skip('should have fret and string properties');
   });
+
+  it('should define properties', () => {
+    expect(fingering.properties.root).toBe(true);
+    expect(fingering.properties.barres).toBe(0);
+    expect(fingering.properties.fingers).toBe(3);
+    expect(fingering.properties.skipping).toBe(false);
+    expect(fingering.properties.muting).toBe(false);
+    expect(fingering.properties.open).toBe(true);
+    expect(fingering.properties.triad).toBe(false);
+    expect(fingering.properties.position).toBe(0);
+    expect(fingering.properties.strings).toBe(6);
+  });
 });
 // fingering.positions[0].should.have.properties 'fret', 'string', 'intervalClass'
 
 describe('bestFingeringFor', () => {
+  it('should yield best fingerings for open chords', () => {
+    const instrument = Instruments.Guitar;
+    // FIXME: option to leave the 6 off DMaj, CMaj, Amin, Dmin
+    expect(Fingering.best('E Major', instrument).fretString).toBe('022100');
+    expect(Fingering.best('A Major', instrument).fretString).toBe('002220');
+    expect(Fingering.best('D Major', instrument).fretString).toBe('200232');
+    expect(Fingering.best('C Major', instrument).fretString).toBe('032010');
+    expect(Fingering.best('G Major', instrument).fretString).toBe('320003');
+
+    expect(Fingering.best('A Minor', instrument).fretString).toBe('002210');
+    expect(Fingering.best('D Minor', instrument).fretString).toBe('100231');
+    expect(Fingering.best('E Minor', instrument).fretString).toBe('022000');
+  });
+
   describe('E Major', () => {
-    const fingering = bestFingeringFor(
-      Chord.fromString('E Major') as Chord,
-      Instruments.Guitar,
-    );
+    const fingering = Fingering.best('E Major', Instruments.Guitar);
 
     it('should have fingers at 022100', () => {
       expect(fingering.positions).toHaveLength(6);
@@ -73,18 +95,6 @@ describe('bestFingeringFor', () => {
 
     it('should have no barres', () => {
       expect(fingering.barres).toHaveLength(0);
-    });
-
-    it('properties', () => {
-      expect(fingering.properties.root).toBe(true); // 'root'
-      expect(fingering.properties.barres).toBe(0); // 'barres'
-      expect(fingering.properties.fingers).toBe(3); // 'fingers'
-      expect(fingering.properties.skipping).toBe(false); // 'skipping'
-      expect(fingering.properties.muting).toBe(false); // 'muting'
-      expect(fingering.properties.open).toBe(true); // 'open'
-      expect(fingering.properties.triad).toBe(false); // 'triad'
-      expect(fingering.properties.position).toBe(0); // 'position'
-      expect(fingering.properties.strings).toBe(6); // 'strings'
     });
   });
 });

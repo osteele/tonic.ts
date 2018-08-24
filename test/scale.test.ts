@@ -1,10 +1,4 @@
-import {
-  Pitch,
-  PitchClass,
-  Scale,
-  ScaleDegreeNames,
-  SpecificScale,
-} from '../src';
+import { Pitch, PitchClass, Scale, SpecificScale } from '../src';
 
 describe('ScalePattern', () => {
   it('scales length', () => {

@@ -7,10 +7,30 @@ import { powerset } from './utils';
 
 // These are "fingerings" and not "voicings" because they also include barre information.
 export class Fingering {
-  public readonly positions: FingeringPosition[];
+  /// Return best fingering, sorted by default properties.
+  public static best(
+    chord: Chord<Pitch> | string,
+    instrument: Instrument,
+  ): Fingering {
+    return Fingering.all(chord, instrument)[0];
+  }
+
+  /// Return fingerings, sorted by default properties.
+  public static all(
+    _chord: Chord<Pitch> | string,
+    instrument: Instrument,
+  ): Fingering[] {
+    const chord =
+      typeof _chord === 'string'
+        ? (Chord.fromString(_chord) as Chord<Pitch>)
+        : _chord;
+    return chordFingerings(chord, instrument);
+  }
+
   public readonly chord: Chord<Pitch>;
-  public readonly barres: Barre[];
   public readonly instrument: Instrument;
+  public readonly positions: FingeringPosition[];
+  public readonly barres: Barre[];
   public readonly properties: { [_: string]: any };
 
   private _fretString: string | null = null;
@@ -42,7 +62,7 @@ export class Fingering {
   }
 
   // string representation of a fingering
-  public computeFretString(): string {
+  private computeFretString(): string {
     const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
     this.positions.forEach(({ stringNumber, fretNumber }: FretPosition) => {
       fretArray[stringNumber] = fretNumber;
@@ -181,7 +201,7 @@ function fingerPositionsOnChord(
 }
 
 // TODO add options for strumming vs. fingerstyle; muting; stretch
-export function chordFingerings(
+function chordFingerings(
   chord: Chord<Pitch>,
   instrument: Instrument,
   options = { filter: true, allPositions: false, fingerPicking: false },
@@ -462,18 +482,4 @@ export function chordFingerings(
   });
 
   return fingerings;
-}
-
-export function bestFingeringFor(chord: Chord<Pitch>, instrument: Instrument) {
-  return chordFingerings(chord, instrument)[0];
-}
-
-function __range__(left: number, right: number, inclusive: boolean) {
-  const range = [];
-  const ascending = left < right;
-  const end = !inclusive ? right : ascending ? right + 1 : right - 1;
-  for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
-    range.push(i);
-  }
-  return range;
 }
