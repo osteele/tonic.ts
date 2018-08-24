@@ -66,7 +66,7 @@ function drawHarmonicTable(
     fillCells?: boolean;
     labelCells?: boolean;
   } = {},
-) {
+): { width: number; height: number } {
   const options = { draw: true, ...defaultStyle, ..._options };
   const colors = options.intervalClassColors;
   if (intervalClasses.indexOf(0) < 0) {
@@ -99,11 +99,13 @@ function drawHarmonicTable(
     bounds.bottom = Math.max(bounds.bottom, y + hexRadius);
   });
 
+  const dimensions = {
+    height: bounds.bottom - bounds.top,
+    width: bounds.right - bounds.left,
+  };
+
   if (!options.draw) {
-    return {
-      height: bounds.bottom - bounds.top,
-      width: bounds.right - bounds.left,
-    };
+    return dimensions;
   }
 
   withGraphicsContext((ctx: GraphicsContext) => {
@@ -188,6 +190,8 @@ function drawHarmonicTable(
       });
     }
   });
+
+  return dimensions;
 }
 
 export { drawHarmonicTable as draw };

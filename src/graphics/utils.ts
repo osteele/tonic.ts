@@ -27,6 +27,7 @@ export function hsv2rgb({ h, s, v }: HSVColor): RGBColor {
       case 4:
         return [x, 0, c];
       case 5:
+      default:
         return [c, 0, x];
     }
   })();

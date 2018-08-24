@@ -237,8 +237,10 @@ const chordClassArray: ChordClass[] = [
 const chordMap = chordClassArray.reduce((dict, chordClass) => {
   const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
   [chordClass.name, chordClass.fullName, ...chordClass.abbrs, pitchKey].forEach(
-    (key: string) => {
-      dict.set(key, chordClass);
+    (key) => {
+      if (key) {
+        dict.set(key, chordClass);
+      }
     },
   );
   return dict;

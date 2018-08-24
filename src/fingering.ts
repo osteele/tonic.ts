@@ -7,19 +7,13 @@ import { powerset } from './utils';
 
 // These are "fingerings" and not "voicings" because they also include barre information.
 export class Fingering {
-  get fretString(): string {
-    if (!this._fretString) {
-      this._fretString = this.computeFretString();
-    }
-    return this._fretString;
-  }
   public readonly positions: FingeringPosition[];
   public readonly chord: Chord<Pitch>;
   public readonly barres: Barre[];
   public readonly instrument: Instrument;
   public readonly properties: { [_: string]: any };
 
-  private _fretString: string | null;
+  private _fretString: string | null = null;
   constructor({
     positions,
     chord,
@@ -38,6 +32,13 @@ export class Fingering {
     );
     this.barres = barres;
     this.properties = Object.create(null);
+  }
+
+  get fretString(): string {
+    if (!this._fretString) {
+      this._fretString = this.computeFretString();
+    }
+    return this._fretString;
   }
 
   // string representation of a fingering
@@ -173,7 +174,7 @@ function fingerPositionsOnChord(
   instrument.forEachFingerPosition((pos) => {
     const interval = Interval.between(root, instrument.pitchAt(pos));
     if (intervals.indexOf(interval) >= 0) {
-      return positions.push(pos);
+      positions.push(pos);
     }
   });
   return positions;

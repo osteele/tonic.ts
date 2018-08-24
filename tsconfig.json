@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noUnusedLocals": false,
     "target": "es6",
     "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
     "strictNullChecks": true,
     "declaration": true,
     "outDir": "./dist"
