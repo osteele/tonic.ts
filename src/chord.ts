@@ -18,7 +18,7 @@ export class ChordClass {
     const key = semitones
       .sort((a: number, b: number) => (a > b ? 1 : b > a ? -1 : 0))
       .join(',');
-    const chordClass = chordMap.get(key);
+    const chordClass = ChordClass.chordMap.get(key);
     if (!chordClass) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
     }
@@ -27,12 +27,17 @@ export class ChordClass {
 
   /// Return a `ChordClass` identified by name, e.g. "Major".
   public static fromString(name: string): ChordClass {
-    const chord = chordMap.get(name);
+    const chord = ChordClass.chordMap.get(name);
     if (!chord) {
       throw new Error(`“${name}” is not a chord name`);
     }
     return chord;
   }
+
+  // `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
+  // represented as comma-separated semitone numbers, e.g. '0,4,7' to represent a
+  // major triad.
+  protected static readonly chordMap = new Map<string, ChordClass>();
 
   public readonly name: string;
   public readonly fullName: string | null;
@@ -187,6 +192,22 @@ export class Chord<T extends PitchLike> {
   }
 }
 
+class ChordClassAccessor extends ChordClass {
+  public static addChord(chordClass: ChordClass) {
+    const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
+    [
+      chordClass.name,
+      chordClass.fullName,
+      ...chordClass.abbrs,
+      pitchKey,
+    ].forEach((key) => {
+      if (key) {
+        ChordClass.chordMap.set(key, chordClass);
+      }
+    });
+  }
+}
+
 const chordClassArray: ChordClass[] = [
   { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
   { name: 'Minor', abbrs: ['m'], intervals: '037' },
@@ -231,17 +252,4 @@ const chordClassArray: ChordClass[] = [
   });
 });
 
-// `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
-// represented as comma-separated semitone numbers, e.g. '0,4,7' to represent a
-// major triad.
-const chordMap = chordClassArray.reduce((dict, chordClass) => {
-  const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
-  [chordClass.name, chordClass.fullName, ...chordClass.abbrs, pitchKey].forEach(
-    (key) => {
-      if (key) {
-        dict.set(key, chordClass);
-      }
-    },
-  );
-  return dict;
-}, new Map<string, ChordClass>());
+chordClassArray.forEach(ChordClassAccessor.addChord);

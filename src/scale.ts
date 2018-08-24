@@ -29,6 +29,8 @@ class GenericScale<T extends PitchLike | null> {
 
   public readonly name: string;
   public readonly pitchClasses: number[];
+  /// For a minor scale, this is the relative major. For a mode, it's the
+  /// deriving scale.
   public readonly parent: Scale | null;
   public readonly modes: Scale[] = [];
   public readonly intervals: Interval[];
@@ -39,7 +41,8 @@ class GenericScale<T extends PitchLike | null> {
     modeNames = [],
   }: GenericScaleConstructorOptions) {
     this.name = name;
-    this.parent = typeof parent === 'string' ? scaleMap.get(parent)! : parent;
+    this.parent =
+      typeof parent === 'string' ? Scale.fromString(parent) : parent;
     this.pitchClasses = pitchClasses;
     this.intervals = this.pitchClasses.map(
       (semitones: number) => new Interval(semitones),
@@ -68,16 +71,22 @@ class GenericScale<T extends PitchLike | null> {
 
 export class Scale extends GenericScale<null> {
   public static fromString(name: string): Scale {
-    const scale = scaleMap.get(name);
+    const scale = Scale.scaleMap.get(name);
     if (!scale) {
       throw new Error(`No scale named ${name}`);
     }
     return scale;
   }
 
-  public static get scales(): IterableIterator<Scale> {
-    return scaleMap.values();
+  public static addScale(scale: Scale) {
+    Scale.scaleMap.set(scale.name, scale);
   }
+
+  public static get scales(): IterableIterator<Scale> {
+    return Scale.scaleMap.values();
+  }
+
+  private static readonly scaleMap = new Map<string, Scale>();
 }
 
 export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
@@ -85,7 +94,7 @@ export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
     if (match) {
       const [tonicName, scaleName] = match.slice(1);
-      const scale = scaleMap.get(scaleName || defaultScaleName);
+      const scale = Scale.fromString(scaleName || defaultScaleName);
       if (scale) {
         return scale.at(tonicName);
       }
@@ -104,7 +113,6 @@ export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
     ) as T[];
   }
 
-  // TODO: can this return Array<Chord<T & PitchLike>>
   public chords(options: { sevenths?: boolean } = {}): Array<Chord<PitchLike>> {
     const tonic = this.tonic;
     const degrees = [0, 2, 4];
@@ -135,7 +143,7 @@ const majorPentatonicScaleName = 'Major Pentatonic';
 const defaultScaleName = diatonicMajorScaleName;
 
 // tslint:disable: object-literal-sort-keys
-const scaleMap = ([
+const scaleMap = [
   {
     name: diatonicMajorScaleName,
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -207,21 +215,7 @@ const scaleMap = ([
     name: 'Octatonic',
     pitchClasses: [0, 2, 3, 5, 6, 8, 9, 11],
   },
-] as Array<{
-  name: string;
-  parent?: string;
-  pitchClasses: number[];
-  modeNames?: string[];
-}>).reduce((dict, { name, parent = null, pitchClasses, modeNames }) => {
-  const scale = new Scale({
-    name,
-    parent: parent && dict.get(parent)!,
-    pitchClasses,
-    modeNames,
-  });
-  dict.set(scale.name, scale);
-  return dict;
-}, new Map<string, Scale>());
+].forEach((options) => Scale.addScale(new Scale(options)));
 // tslint:enable: object-literal-sort-keys
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
@@ -258,6 +252,6 @@ function parseChordNumeral(name: string) {
 //   minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
 
 // tslint:disable-next-line variable-name
-export const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
+const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
   .split(/\s/)
   .map((d) => d.replace(/(\d)/, '$1\u0302'));
