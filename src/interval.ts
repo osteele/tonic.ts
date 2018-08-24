@@ -33,8 +33,8 @@ export const LongIntervalNames = [
 //
 // FIXME these are interval classes, not intervals
 export class Interval {
-  public static fromSemitones(semitones: number): Interval {
-    return new Interval(semitones);
+  public static fromSemitones(semitones: number, accidentals = 0): Interval {
+    return new Interval(semitones, accidentals);
   }
 
   public static fromString(name: string): Interval {
@@ -45,9 +45,9 @@ export class Interval {
     return new Interval(semitones);
   }
 
-  public static between(a: PitchLike, b: PitchLike): Interval;
+  public static between<T extends PitchLike>(a: T, b: T): Interval;
   public static between(a: number, b: number): Interval;
-  public static between(a: any, b: any) {
+  public static between<T extends PitchLike | number>(a: T, b: T) {
     let semitones = 0;
     if (a instanceof Pitch && b instanceof Pitch) {
       semitones = b.midiNumber - a.midiNumber;
@@ -61,25 +61,27 @@ export class Interval {
     if (!(0 <= semitones && semitones < 12)) {
       semitones = normalizePitchClass(semitones);
     }
-    // TODO: throw new Error("I haven't decided what to do about this case: #{pitch2} - #{pitch1} = #{semitones}")
     return Interval.fromSemitones(semitones);
   }
-  public readonly semitones: number;
-  public readonly accidentals: number;
-  constructor(semitones: number, accidentals = 0) {
-    this.semitones = semitones;
-    this.accidentals = accidentals;
-    const dict =
-      intervalBySemitone[this.semitones] ||
-      (intervalBySemitone[this.semitones] = {});
-    if (dict[this.accidentals]) {
-      // FIXME: can ts intern this way?
-      return dict[this.accidentals];
+
+  private static bySemitone = new Array<Map<number, Interval>>();
+
+  constructor(
+    public readonly semitones: number,
+    public readonly accidentals = 0,
+  ) {
+    let dict = Interval.bySemitone[semitones];
+    if (!dict) {
+      dict = new Map<number, Interval>();
+      Interval.bySemitone[semitones] = dict;
     }
-    dict[this.accidentals] = this;
+    const interval = dict.get(accidentals);
+    if (interval) {
+      return interval;
+    }
+    dict.set(accidentals, this);
   }
 
-  // TODO: what is the ts equivalent of toString?
   public toString(): string {
     let s = IntervalNames[this.semitones];
     if (this.accidentals) {

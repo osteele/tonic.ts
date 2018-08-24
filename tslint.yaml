@@ -7,6 +7,6 @@ rules:
   variable-name:
     [true, 'ban-keywords', 'check-format', 'allow-leading-underscore']
   # FIXME
-  max-classes-per-file: [true, 2]
+  max-classes-per-file: [true, 3]
   no-console: false
   no-shadowed-variable: false

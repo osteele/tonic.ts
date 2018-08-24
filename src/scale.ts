@@ -5,7 +5,7 @@ import { normalizePitchClass } from './names';
 import { asPitchLike, PitchLike } from './pitchLike';
 
 // A scale is a named collection, either of intervals or notes.
-export class Scale<T extends PitchLike | null> {
+class GenericScale<T extends PitchLike | null> {
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
   //     throw new Error('only implemented for scales with tonics');
@@ -15,29 +15,10 @@ export class Scale<T extends PitchLike | null> {
   //     : FlatNoteNames;
   // }
 
-  public static fromString(name: string): Scale<PitchLike | null> {
-    if (scaleMap.has(name)) {
-      return scaleMap.get(name)!;
-    }
-    const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
-    const [tonicName, scaleName] = match ? match.slice(1) : [null, name];
-    const scale = scaleMap.get(
-      scaleName || (tonicName ? defaultScaleName : name),
-    );
-    if (!scale) {
-      throw new Error(`No scale named ${scaleName}`);
-    }
-    return tonicName ? scale.at(tonicName) : scale;
-  }
-
-  public static get scales(): IterableIterator<Scale<null>> {
-    return scaleMap.values();
-  }
-
   public readonly name: string;
   public readonly pitchClasses: number[];
-  public readonly parent: Scale<T | null> | null;
-  public readonly modes: Array<Scale<T>> = [];
+  public readonly parent: ScalePattern | null;
+  public readonly modes: ScalePattern[] = [];
   public readonly tonic: T;
   public readonly intervals: Interval[];
   public readonly pitches: T[];
@@ -50,7 +31,7 @@ export class Scale<T extends PitchLike | null> {
   }: {
     name: string;
     pitchClasses: number[];
-    parent?: Scale<T> | string | null;
+    parent?: ScalePattern | string | null;
     modeNames?: string[];
     tonic?: T;
   }) {
@@ -68,9 +49,9 @@ export class Scale<T extends PitchLike | null> {
     }
     this.modes = modeNames.map(
       (modeName, i) =>
-        new Scale({
+        new ScalePattern({
           name: modeName,
-          parent: this,
+          parent: this as ScalePattern,
           pitchClasses: rotatePitchClasses(pitchClasses, i),
         }),
     );
@@ -117,6 +98,34 @@ export class Scale<T extends PitchLike | null> {
       throw new Error('only implemented for scales with tonics');
     }
     return chordFromRomanNumeral(name, this as Scale<PitchLike>);
+  }
+}
+
+export class ScalePattern extends GenericScale<null> {
+  public static fromString(name: string): ScalePattern {
+    const scale = scaleMap.get(name);
+    if (!scale) {
+      throw new Error(`No scale named ${name}`);
+    }
+    return scale;
+  }
+
+  public static get scales(): IterableIterator<ScalePattern> {
+    return scaleMap.values();
+  }
+}
+
+export class Scale<T extends PitchLike> extends GenericScale<T> {
+  public static fromString(name: string): Scale<PitchLike> {
+    const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
+    if (match) {
+      const [tonicName, scaleName] = match.slice(1);
+      const scale = scaleMap.get(scaleName || defaultScaleName);
+      if (scale) {
+        return scale.at(tonicName);
+      }
+    }
+    throw new Error(`No scale named ${name}`);
   }
 }
 
@@ -203,7 +212,7 @@ const scaleMap = ([
   pitchClasses: number[];
   modeNames?: string[];
 }>).reduce((dict, { name, parent = null, pitchClasses, modeNames }) => {
-  const scale = new Scale({
+  const scale = new ScalePattern({
     name,
     parent: parent && dict.get(parent)!,
     pitchClasses,
@@ -211,7 +220,7 @@ const scaleMap = ([
   });
   dict.set(scale.name, scale);
   return dict;
-}, new Map<string, Scale<null>>());
+}, new Map<string, ScalePattern>());
 // tslint:enable: object-literal-sort-keys
 
 function rotatePitchClasses(pitchClasses: number[], i: number) {
