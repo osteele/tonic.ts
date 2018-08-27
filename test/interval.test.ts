@@ -1,10 +1,10 @@
 import {
   Interval,
   intervalClassDifference,
-  IntervalNames,
   Intervals,
   LongIntervalNames,
   Pitch,
+  ShortIntervalNames,
 } from '../src';
 
 describe('Interval', () => {
@@ -23,7 +23,27 @@ describe('Interval', () => {
     expect(Interval.fromString('M7').semitones).toBe(11);
     expect(Interval.fromString('P8').semitones).toBe(12);
 
-    // TODO: augmented and diminished
+    expect(Interval.fromString('A1').semitones).toBe(1);
+    expect(Interval.fromString('A2').semitones).toBe(3);
+    expect(Interval.fromString('A3').semitones).toBe(5);
+    expect(Interval.fromString('A4').semitones).toBe(6);
+    expect(Interval.fromString('A5').semitones).toBe(8);
+    expect(Interval.fromString('A6').semitones).toBe(10);
+    expect(Interval.fromString('A7').semitones).toBe(12);
+    expect(Interval.fromString('d2').semitones).toBe(0);
+    expect(Interval.fromString('d3').semitones).toBe(2);
+    expect(Interval.fromString('d4').semitones).toBe(4);
+    expect(Interval.fromString('d5').semitones).toBe(6);
+    expect(Interval.fromString('d6').semitones).toBe(7);
+    expect(Interval.fromString('d7').semitones).toBe(9);
+    expect(Interval.fromString('d8').semitones).toBe(11);
+
+    expect(Interval.fromString('Unison').semitones).toBe(0);
+    expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
+    // TODO: expect(Interval.fromString('unison').semitones).toBe(0);
+
+    // Semitone, half tone, half step
+    // Tone, whole tone, whole step
   });
 
   it('toString', () => {
@@ -31,6 +51,8 @@ describe('Interval', () => {
     expect(Interval.fromSemitones(1).toString()).toBe('m2');
     expect(Interval.fromSemitones(4).toString()).toBe('M3');
     expect(Interval.fromSemitones(12).toString()).toBe('P8');
+
+    // TODO: dim, aug
   });
 
   it('should be interned', () => {
@@ -61,22 +83,43 @@ describe('Interval', () => {
       expect(Interval.between(F4, C4)).toBe(P5));
   });
 
-  it.skip('invert', () => {
-    const { P1, P5, m2, m3, M3, P4 } = Intervals;
-    expect(M3.inversion).toBe(m3);
-    expect(m3.inversion).toBe(M3);
-    expect(P4.inversion).toBe(P5);
-    expect(TT.inversion).toBe(TT);
-    // TODO: augmented and diminished
+  it('invert', () => {
+    const { P1, P5, m2, m3, M3, m6, M6, M7, P4, P8, TT } = Intervals;
+    expect(P1.inverse).toBe(P8);
+    expect(m2.inverse).toBe(M7);
+    expect(M3.inverse).toBe(m6);
+    expect(m3.inverse).toBe(M6);
+    expect(P4.inverse).toBe(P5);
+    expect(TT.inverse).toBe(TT);
+
+    const d2 = Interval.fromString('d2');
+    const A7 = Interval.fromString('A7');
+    expect(d2.inverse).toBe(A7);
+  });
+
+  it('natural', () => {
+    const { M3 } = Intervals;
+    expect(Interval.fromString('A3').natural).toBe(M3);
+    // FIXME: expect(Interval.fromString('d3').natural).toBe(M3);
+  });
+  it('augment', () => {
+    const { M3 } = Intervals;
+    expect(M3.augment).toBe(Interval.fromString('A3'));
+    // TODO: M2.augment
+  });
+  it.skip('diminish', () => {
+    const { m3 } = Intervals;
+    expect(m3.diminish).toBe(Interval.fromString('d3'));
+    // TODO: M3.diminish
   });
 });
 
 describe('IntervalNames', () => {
   it('should have 13 intervals', () => {
-    expect(IntervalNames).toHaveLength(13);
+    expect(ShortIntervalNames).toHaveLength(13);
   });
-  it('should start with P1', () => expect(IntervalNames[0]).toBe('P1'));
-  it('should end with P8', () => expect(IntervalNames[12]).toBe('P8'));
+  it('should start with P1', () => expect(ShortIntervalNames[0]).toBe('P1'));
+  it('should end with P8', () => expect(ShortIntervalNames[12]).toBe('P8'));
 });
 
 describe('LongIntervalNames', () => {

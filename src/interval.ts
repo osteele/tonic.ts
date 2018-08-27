@@ -5,7 +5,7 @@ import { PitchClass } from './pitchClass';
 import { PitchLike } from './pitchLike';
 
 // tslint:disable-next-line variable-name
-export const IntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
+export const ShortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
   /\s/,
 );
 
@@ -26,6 +26,28 @@ export const LongIntervalNames = [
   'Octave',
 ];
 
+const majorSemitones = new Array<number>(8);
+const minorSemitones = new Array<number>(8);
+const perfectSemitones = new Array<number>(8);
+ShortIntervalNames.forEach((name, semitones) => {
+  const m = name.match(/(.)(\d)/);
+  if (m) {
+    const ar =
+      ({ P: perfectSemitones, M: majorSemitones, m: minorSemitones } as {
+        [_: string]: number[];
+      })[m[1]] || [];
+    const num = +m[2];
+    ar[num] = semitones;
+  }
+});
+
+const lowerCaseQualities: { [_: string]: number } = {
+  a: 1,
+  augmented: 1,
+  d: -1,
+  diminished: -1,
+};
+
 /** An Interval is the signed distance between two pitches or pitch classes.
  *
  * Intervals that represent the same semitone span *and* accidental are
@@ -39,11 +61,26 @@ export class Interval {
   }
 
   public static fromString(name: string): Interval {
-    const semitones = IntervalNames.indexOf(name);
-    if (!(semitones >= 0)) {
+    let semitones = ShortIntervalNames.indexOf(name);
+    if (semitones >= 0) {
+      return Interval.fromSemitones(semitones);
+    }
+    semitones = LongIntervalNames.indexOf(name);
+    if (semitones >= 0) {
+      return Interval.fromSemitones(semitones);
+    }
+    const m =
+      name.match(/^([Ad])\s*(\d+)$/) ||
+      name.match(/^(augmented|diminished)\s*(\d+)$/i);
+    const num = m ? +m[2] : -1;
+    if (!(1 <= num && num <= 8)) {
       throw new Error(`No interval named ${name}`);
     }
-    return new Interval(semitones);
+    const accidentals = lowerCaseQualities[m![1].toLowerCase()];
+    semitones =
+      (accidentals < 0 ? minorSemitones : majorSemitones)[num] ||
+      perfectSemitones[num];
+    return new Interval(semitones, accidentals);
   }
 
   public static between<T extends PitchLike>(a: T, b: T): Interval;
@@ -72,15 +109,39 @@ export class Interval {
    *   constructed interval is diminished or augmented from this by
    *   `accidentals`.
    */
-  constructor(readonly semitones: number, readonly accidentals = 0) {
-    return this.interned(semitones, accidentals, this);
+  constructor(
+    private readonly naturalSemitones: number,
+    readonly accidentals = 0,
+  ) {
+    return this.interned(naturalSemitones, accidentals, this);
+  }
+
+  get inverse(): Interval {
+    return Interval.fromSemitones(
+      12 - this.naturalSemitones,
+      -this.accidentals,
+    );
+  }
+
+  get natural(): Interval {
+    return Interval.fromSemitones(this.naturalSemitones);
+  }
+  get augment(): Interval {
+    return Interval.fromSemitones(this.naturalSemitones, this.accidentals + 1);
+  }
+  get diminish(): Interval {
+    return Interval.fromSemitones(this.naturalSemitones, this.accidentals - 1);
+  }
+
+  get semitones(): number {
+    return this.naturalSemitones + this.accidentals;
   }
 
   // TODO: add properties number, quality (enum P M m A d; and doubles)
   // TODO: add methods natural, augment, diminish
 
   public toString(): string {
-    let s = IntervalNames[this.semitones];
+    let s = ShortIntervalNames[this.naturalSemitones];
     if (this.accidentals) {
       s = semitonesToAccidentalString(this.accidentals) + s;
     }
@@ -88,7 +149,9 @@ export class Interval {
   }
 
   public add(other: Interval): Interval {
-    return Interval.fromSemitones(this.semitones + other.semitones);
+    return Interval.fromSemitones(
+      this.naturalSemitones + other.naturalSemitones,
+    );
   }
 
   private interned<T extends Interval | null>(
@@ -121,13 +184,13 @@ export function asInterval(n: Interval | number): Interval {
   return n instanceof Interval ? n : new Interval(n);
 }
 
-export interface IntervalMap {
+interface IntervalMap {
   [_: string]: Interval;
 }
 
-// TODO: change these to constants in a namespace
+// TODO: change these to constants in a namespace?
 // tslint:disable-next-line variable-name
-export const Intervals: IntervalMap = IntervalNames.reduce(
+export const Intervals: IntervalMap = ShortIntervalNames.reduce(
   (acc: IntervalMap, name, semitones) => {
     acc[name] = new Interval(semitones);
     return acc;

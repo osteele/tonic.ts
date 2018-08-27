@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { IntervalNames } from '../interval';
+import { ShortIntervalNames } from '../interval';
 import * as ChordDiagram from './chordDiagram';
 import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 
@@ -174,7 +174,7 @@ function drawHarmonicTable(
 
     if (options.labelCells) {
       intervalClasses.forEach((intervalClass) => {
-        let label = IntervalNames[intervalClass];
+        let label = ShortIntervalNames[intervalClass];
         if (intervalClass === 0) {
           label = 'R';
         }
