@@ -26,11 +26,11 @@ export const LongIntervalNames = [
   'Octave',
 ];
 
-/** An Interval is the signed distance between two notes.
+/** An Interval is the signed distance between two pitches or pitch classes.
  *
- * Intervals that represent the same semitone span *and* accidental are interned.
- * Thus, two instance of M3 are ===, but sharp P4 and flat P5 are distinct from
- * each other and from TT.
+ * Intervals that represent the same semitone span *and* accidental are
+ * interned. Thus, two instance of M3 are ===, but augmented P4 and diminished
+ * P5 are distinct from each other and from TT.
  */
 // FIXME these are interval classes, not intervals
 export class Interval {
@@ -49,6 +49,7 @@ export class Interval {
   public static between<T extends PitchLike>(a: T, b: T): Interval;
   public static between(a: number, b: number): Interval;
   public static between<T extends PitchLike | number>(a: T, b: T) {
+    // FIXME: preserve the quality
     let semitones = 0;
     if (a instanceof Pitch && b instanceof Pitch) {
       semitones = b.midiNumber - a.midiNumber;
@@ -67,21 +68,16 @@ export class Interval {
 
   private static bySemitone = new Array<Map<number, Interval>>();
 
-  constructor(
-    public readonly semitones: number,
-    public readonly accidentals = 0,
-  ) {
-    let dict = Interval.bySemitone[semitones];
-    if (!dict) {
-      dict = new Map<number, Interval>();
-      Interval.bySemitone[semitones] = dict;
-    }
-    const interval = dict.get(accidentals);
-    if (interval) {
-      return interval;
-    }
-    dict.set(accidentals, this);
+  /*** `semitones` is the semitones of the corresponding natural interval. The
+   *   constructed interval is diminished or augmented from this by
+   *   `accidentals`.
+   */
+  constructor(readonly semitones: number, readonly accidentals = 0) {
+    return this.interned(semitones, accidentals, this);
   }
+
+  // TODO: add properties number, quality (enum P M m A d; and doubles)
+  // TODO: add methods natural, augment, diminish
 
   public toString(): string {
     let s = IntervalNames[this.semitones];
@@ -92,12 +88,34 @@ export class Interval {
   }
 
   public add(other: Interval): Interval {
-    return new Interval(this.semitones + other.semitones);
+    return Interval.fromSemitones(this.semitones + other.semitones);
+  }
+
+  private interned<T extends Interval | null>(
+    semitones: number,
+    accidentals: number,
+    instance: T,
+  ): T;
+  private interned<T extends Interval | null>(
+    semitones: number,
+    accidentals: number,
+    instance: Interval | null,
+  ): Interval | null {
+    let dict = Interval.bySemitone[semitones];
+    if (!dict) {
+      dict = new Map<number, Interval>();
+      Interval.bySemitone[semitones] = dict;
+    }
+    const interval = dict.get(accidentals);
+    if (interval) {
+      return interval;
+    }
+    if (instance) {
+      dict.set(accidentals, this);
+    }
+    return instance;
   }
 }
-
-// new Interval interns into this
-const intervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
 export function asInterval(n: Interval | number): Interval {
   return n instanceof Interval ? n : new Interval(n);

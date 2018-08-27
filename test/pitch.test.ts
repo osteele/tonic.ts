@@ -1,29 +1,18 @@
 import {
   FlatNoteNames,
   Interval,
-  intervalClassDifference,
-  IntervalNames,
-  LongIntervalNames,
   NoteNames,
   Pitch,
-  PitchClass,
   Pitches,
   SharpNoteNames,
 } from '../src';
 import { semitonesToAccidentalString } from '../src/accidentals';
 import { midi2name, name2midi } from '../src/midi';
 import {
-  getPitchClassName,
   getPitchName,
-  normalizePitchClass,
-  parsePitchClass,
   pitchFromScientificNotation,
   pitchToPitchClass,
 } from '../src/names';
-
-//
-// Constants
-//
 
 describe('FlatNoteNames', () => {
   it('should have 12 notes', () => {
@@ -57,28 +46,6 @@ describe('NoteNames', () =>
   it('should equal SharpNoteNames', () =>
     expect(NoteNames).toEqual(SharpNoteNames)));
 
-describe('IntervalNames', () => {
-  it('should have 13 intervals', () => {
-    expect(IntervalNames).toHaveLength(13);
-  });
-  it('should start with P1', () => expect(IntervalNames[0]).toBe('P1'));
-  it('should end with P8', () => expect(IntervalNames[12]).toBe('P8'));
-});
-
-describe('LongIntervalNames', () => {
-  it('should have 13 intervals', () => {
-    expect(LongIntervalNames).toHaveLength(13);
-  });
-  it('should start with Unison', () =>
-    expect(LongIntervalNames[0]).toBe('Unison'));
-  it('should end with Octave', () =>
-    expect(LongIntervalNames[12]).toBe('Octave'));
-});
-
-//
-// Functions
-//
-
 describe('semitonesToAccidentalString', () =>
   it('should turn semitones into strings', () => {
     expect(semitonesToAccidentalString(0)).toBe('');
@@ -93,26 +60,6 @@ describe('semitonesToAccidentalString', () =>
     expect(semitonesToAccidentalString(4)).toBe('𝄪𝄪');
     expect(semitonesToAccidentalString(5)).toBe('♯𝄪𝄪');
   }));
-
-describe('getPitchClassName', () => {
-  it('should return natural names', () => {
-    expect(getPitchClassName(0)).toBe('C');
-    expect(getPitchClassName(2)).toBe('D');
-    expect(getPitchClassName(4)).toBe('E');
-    expect(getPitchClassName(5)).toBe('F');
-    expect(getPitchClassName(7)).toBe('G');
-    expect(getPitchClassName(9)).toBe('A');
-    expect(getPitchClassName(11)).toBe('B');
-  });
-
-  it('should return sharp names', () => {
-    expect(getPitchClassName(1)).toBe('C♯');
-    expect(getPitchClassName(3)).toBe('D♯');
-    expect(getPitchClassName(6)).toBe('F♯');
-    expect(getPitchClassName(8)).toBe('G♯');
-    expect(getPitchClassName(10)).toBe('A♯');
-  });
-});
 
 // aka pitchNumberToName
 describe('getPitchName', () => {
@@ -180,45 +127,6 @@ describe('pitchFromScientificNotation', () => {
 // expect(pitchFromScientificNotation('C𝄫4')).toBe(58);
 // expect(pitchFromScientificNotation('C𝄪4')).toBe(62);
 
-describe('normalizePitchClass', () => {
-  it('should return an integer in 0..11', () => {
-    expect(normalizePitchClass(0)).toBe(0);
-    expect(normalizePitchClass(11)).toBe(11);
-    expect(normalizePitchClass(-1)).toBe(11);
-    expect(normalizePitchClass(-13)).toBe(11);
-    expect(normalizePitchClass(12)).toBe(0);
-    expect(normalizePitchClass(13)).toBe(1);
-    expect(normalizePitchClass(25)).toBe(1);
-  });
-});
-
-// aka pitchNameToNumber
-describe('parsePitchClass', () => {
-  it('should parse naturals', () => {
-    expect(parsePitchClass('C')).toBe(0);
-    expect(parsePitchClass('D')).toBe(2);
-    expect(parsePitchClass('E')).toBe(4);
-    expect(parsePitchClass('F')).toBe(5);
-    expect(parsePitchClass('G')).toBe(7);
-    expect(parsePitchClass('A')).toBe(9);
-    expect(parsePitchClass('B')).toBe(11);
-  });
-
-  it('should parse sharps', () => {
-    expect(parsePitchClass('C#')).toBe(1);
-    expect(parsePitchClass('C♯')).toBe(1);
-  });
-
-  it('should parse flats', () => {
-    expect(parsePitchClass('Cb')).toBe(11);
-    expect(parsePitchClass('C♭')).toBe(11);
-  });
-
-  // test.skip('should parse double sharps and flats');
-});
-// expect(parsePitchClass('C𝄪')).toBe(2)
-// expect(parsePitchClass('C𝄫')).toBe(10)
-
 describe('pitchToPitchClass', () => {
   it('should return an integer in [0...12]', () => {
     expect(pitchToPitchClass(0)).toBe(0);
@@ -229,13 +137,6 @@ describe('pitchToPitchClass', () => {
     expect(pitchToPitchClass(-13)).toBe(11);
   });
 });
-
-describe('intervalClassDifference', () =>
-  it('should return an integer in [0...12]', () => {
-    expect(intervalClassDifference(0, 5)).toBe(5);
-    expect(intervalClassDifference(5, 0)).toBe(7);
-    expect(intervalClassDifference(0, 12)).toBe(0);
-  }));
 
 describe('midi2name', () =>
   it('should return a pitch name', () => {
@@ -258,81 +159,6 @@ describe('name2midi', () =>
     expect(name2midi('C2')).toBe(36);
     expect(name2midi('G9')).toBe(127);
   }));
-
-//
-// Objects
-//
-
-describe('Interval', () => {
-  it('should implement fromString', () => {
-    expect(Interval.fromString('P1').semitones).toBe(0);
-    expect(Interval.fromString('m2').semitones).toBe(1);
-    expect(Interval.fromString('M2').semitones).toBe(2);
-    expect(Interval.fromString('m3').semitones).toBe(3);
-    expect(Interval.fromString('M3').semitones).toBe(4);
-    expect(Interval.fromString('P4').semitones).toBe(5);
-    expect(Interval.fromString('TT').semitones).toBe(6);
-    expect(Interval.fromString('P5').semitones).toBe(7);
-    expect(Interval.fromString('m6').semitones).toBe(8);
-    expect(Interval.fromString('M6').semitones).toBe(9);
-    expect(Interval.fromString('m7').semitones).toBe(10);
-    expect(Interval.fromString('M7').semitones).toBe(11);
-    expect(Interval.fromString('P8').semitones).toBe(12);
-  });
-
-  it('should implement toString', () => {
-    expect(Interval.fromSemitones(0).toString()).toBe('P1');
-    expect(Interval.fromSemitones(1).toString()).toBe('m2');
-    expect(Interval.fromSemitones(4).toString()).toBe('M3');
-    expect(Interval.fromSemitones(12).toString()).toBe('P8');
-  });
-
-  it('should be interned', () => {
-    expect(Interval.fromString('P1')).toBe(Interval.fromString('P1'));
-    expect(Interval.fromString('M2')).toBe(Interval.fromString('M2'));
-    expect(Interval.fromString('P1')).not.toBe(Interval.fromString('M2'));
-  });
-
-  describe('add', () =>
-    it('should add to an interval', () =>
-      expect(
-        Interval.fromString('m2').add(Interval.fromString('M2')).semitones,
-      ).toBe(3)));
-
-  describe('between', () => {
-    it('should return the interval between two pitches', () => {
-      expect(
-        Interval.between(
-          Pitch.fromString('E4'),
-          Pitch.fromString('E4'),
-        ).toString(),
-      ).toBe('P1');
-      expect(
-        Interval.between(
-          Pitch.fromString('E4'),
-          Pitch.fromString('F4'),
-        ).toString(),
-      ).toBe('m2');
-      expect(
-        Interval.between(
-          Pitch.fromString('E4'),
-          Pitch.fromString('G4'),
-        ).toString(),
-      ).toBe('m3');
-    });
-    it('should use modular arithmetic', () =>
-      expect(
-        Interval.between(
-          Pitch.fromString('F4'),
-          Pitch.fromString('C4'),
-        ).toString(),
-      ).toBe('P5'));
-  });
-});
-
-describe('Intervals', () => {
-  // test.skip('should be an array of Interval')
-});
 
 describe('Pitch', () => {
   it('should parse scientific notation', () => {
@@ -388,41 +214,6 @@ describe('Pitch', () => {
 
   // test.skip('#asPitch should itself');
   // test.skip('#asPitchClass should its pitch class');
-});
-
-describe('PitchClass', () => {
-  it('#fromString should construct a pitch class', () => {
-    expect(PitchClass.fromString('C').semitones).toBe(0);
-    expect(PitchClass.fromString('E').semitones).toBe(4);
-    expect(PitchClass.fromString('G').semitones).toBe(7);
-    expect(PitchClass.fromString('C♭').semitones).toBe(11);
-    expect(PitchClass.fromString('C♯').semitones).toBe(1);
-  });
-
-  // test.skip('#fromSemitones should construct a pitch class');
-
-  // test.skip('#enharmonicizeTo should return the enharmonic equivalent within a scale');
-
-  it('#toString should return the name of the pitch class', () => {
-    expect(PitchClass.fromSemitones(0).toString()).toBe('C');
-    expect(PitchClass.fromSemitones(2).toString()).toBe('D');
-    expect(PitchClass.fromSemitones(4).toString()).toBe('E');
-  });
-
-  it('should normalize its input', () => {
-    expect(PitchClass.fromSemitones(12).toString()).toBe('C');
-    expect(PitchClass.fromSemitones(14).toString()).toBe('D');
-  });
-
-  it('should add to an interval', () =>
-    expect(
-      PitchClass.fromString('C')
-        .add(Interval.fromString('M2'))
-        .toString(),
-    ).toBe('D'));
-
-  // test.skip('#asPitch should return a pitch within the specified octave');
-  // test.skip('#asPitchClass should itself');
 });
 
 describe('Pitches', () =>
