@@ -1,60 +1,58 @@
 import { Intervals, Pitch } from '../src';
 import { Chord, ChordClass } from '../src/chord';
 
-describe('ChordClasses', () => {
-  it.skip('should be indexed by chord name', () => {
-    expect(Chord.fromString('Major')).toBeTruthy();
-    expect(Chord.fromString('Minor')).toBeTruthy();
-    expect(Chord.fromString('Augmented')).toBeTruthy();
-    expect(Chord.fromString('Diminished')).toBeTruthy();
+const { P1, m3, M3, P5 } = Intervals;
+
+describe('fromString', () => {
+  it('should convert from chord class names', () => {
+    expect(ChordClass.fromString('Major')).toBeTruthy();
+    expect(ChordClass.fromString('Minor')).toBeTruthy();
+    expect(ChordClass.fromString('Augmented')).toBeTruthy();
+    expect(ChordClass.fromString('Diminished')).toBeTruthy();
+
+    let chordClass = ChordClass.fromString('Major');
+    expect(chordClass).toBeInstanceOf(ChordClass);
+    expect(chordClass.name).toBe('Major');
+
+    chordClass = ChordClass.fromString('Minor');
+    expect(chordClass).toBeInstanceOf(ChordClass);
+    expect(chordClass.name).toBe('Minor');
   });
 
-  it.skip('should be indexed by chord abbreviation', () => {
-    expect(Chord.fromString('M')).toBeTruthy();
-    expect(Chord.fromString('aug')).toBeTruthy();
-    expect(Chord.fromString('°')).toBeTruthy();
-  });
-
-  it.skip('should index chord classes by interval sequence', () => {
-    // let intervals = [0, 3, 7];
-    // let chordClass = ChordClasses[intervals];
-    // expect(chordClass).toBeTruthy();
-    // expect(chordClass.name).toBe('Minor');
-    // intervals = [0, 4, 7];
-    // chordClass = ChordClasses[intervals];
-    // expect(chordClass).toBeTruthy();
-    // expect(chordClass.name).toBe('Major');
+  it('fromString should recognize abbreviations', () => {
+    expect(ChordClass.fromString('M')).toBeTruthy();
+    expect(ChordClass.fromString('aug')).toBeTruthy();
+    expect(ChordClass.fromString('°')).toBeTruthy();
   });
 });
 
-describe('ChordClass', () => {
-  describe('#fromString', () =>
-    it('should convert from chord class names', () => {
-      let chordClass = ChordClass.fromString('Major');
-      expect(chordClass).toBeInstanceOf(ChordClass);
-      expect(chordClass.name).toBe('Major');
+describe('fromIntervals', () => {
+  it('should find the chord class from an array of semitones', () => {
+    let chordClass = ChordClass.fromIntervals([0, 3, 7]);
+    expect(chordClass).toBeInstanceOf(ChordClass);
+    expect(chordClass.name).toBe('Minor');
 
-      chordClass = ChordClass.fromString('Minor');
-      expect(chordClass).toBeInstanceOf(ChordClass);
-      expect(chordClass.name).toBe('Minor');
-    }));
+    chordClass = ChordClass.fromIntervals([0, 4, 7]);
+    expect(chordClass).toBeInstanceOf(ChordClass);
+    expect(chordClass.name).toBe('Major');
+  });
 
-  describe('#fromIntervals', () => {
-    const { P1, m3, M3, P5 } = Intervals;
-    it('should find the chord class from an array of intervals', () => {
-      let chordClass = ChordClass.fromIntervals([P1, M3, P5]);
-      expect(chordClass.name).toBe('Major');
+  it('should find the chord class from an array of intervals', () => {
+    let chordClass = ChordClass.fromIntervals([P1, M3, P5]);
+    expect(chordClass.name).toBe('Major');
 
-      chordClass = ChordClass.fromIntervals([P1, m3, P5]);
-      expect(chordClass.name).toBe('Minor');
-    });
+    chordClass = ChordClass.fromIntervals([P1, m3, P5]);
+    expect(chordClass.name).toBe('Minor');
+  });
 
-    // it.skip('should recognize inversions');
+  it('should recognize inversions', () => {
+    const chordClass = ChordClass.fromIntervals([M3, P1, P5]);
+    expect(chordClass.name).toBe('Major');
   });
 });
 
 describe('Chord', () => {
-  describe('#fromString', () => {
+  describe('fromString', () => {
     it('should convert from scientific pitch chord names', () => {
       expect(Chord.fromString('E4')).toBeInstanceOf(Chord);
       expect(Chord.fromString('E4Major')).toBeInstanceOf(Chord);
@@ -72,7 +70,7 @@ describe('Chord', () => {
     });
   });
 
-  describe('#fromPitches', () =>
+  describe('fromPitches', () =>
     it('should find the chord from an array of pitches', () => {
       const pitches = 'A3 C#4 E4'
         .split(/\s/)

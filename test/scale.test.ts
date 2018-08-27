@@ -137,8 +137,8 @@ describe('Scale', () => {
 
 describe('ScaleDegreeNames', () =>
   it.skip('is an array of strings', () => {
-    expect(ScaleDegreeNames).toHaveLength(10);
-    expect(ScaleDegreeNames[0]).toBe('String');
+    // expect(ScaleDegreeNames).toHaveLength(10);
+    // expect(ScaleDegreeNames[0]).toBe('String');
   }));
 
 // expect(chords).toEqual('E4 F♯4m G4m A'.split(/\s/).map(Chord.fromString))

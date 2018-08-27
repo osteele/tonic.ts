@@ -99,10 +99,15 @@ export class Interval {
 // new Interval interns into this
 const intervalBySemitone: { [_: number]: { [_: number]: Interval } } = {};
 
+export function asInterval(n: Interval | number): Interval {
+  return n instanceof Interval ? n : new Interval(n);
+}
+
 export interface IntervalMap {
   [_: string]: Interval;
 }
 
+// TODO: change these to constants in a namespace
 // tslint:disable-next-line variable-name
 export const Intervals: IntervalMap = IntervalNames.reduce(
   (acc: IntervalMap, name, semitones) => {

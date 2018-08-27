@@ -1,4 +1,4 @@
-import { Interval } from './interval';
+import { asInterval, Interval } from './interval';
 import { Pitch } from './pitch';
 import { PitchClass } from './pitchClass';
 import { parsePitchLike, PitchLike } from './pitchLike';
@@ -6,33 +6,34 @@ import { rotateArray } from './utils';
 
 const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
-const inversionNames = 'acd'.split(/./);
+const inversionNames = ['a', 'c', 'd'];
 
 /** An instance of `ChordClass` represents the intervals of the chord, without
- * the root. For example, Dom7. It represents the quality, suspensions, and
- * additions. A `ChordClass` is to a `Chord` as a `PitchClass` is to a `Pitch`.
+ * the root. For example, Major, or Dom7. It represents the quality,
+ * suspensions, and additions. A `ChordClass` is to a `Chord` as a `PitchClass`
+ * is to a `Pitch`.
  */
 export class ChordClass {
   /** Return the ChordClass that matches a set of intervals. */
-  public static fromIntervals(intervals: Interval[]): ChordClass {
-    const semitones = intervals.map((interval: Interval) => interval.semitones);
-    const key = semitones
-      .sort((a: number, b: number) => (a > b ? 1 : b > a ? -1 : 0))
-      .join(',');
-    const chordClass = ChordClass.chordMap.get(key);
-    if (!chordClass) {
+  public static fromIntervals(intervals: Interval[] | number[]): ChordClass {
+    const semitones = (intervals as Array<Interval | number>)
+      .map(asInterval)
+      .map((int: Interval) => int.semitones);
+    const key = semitones.sort().join(',');
+    const instance = ChordClass.chordMap.get(key);
+    if (!instance) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
     }
-    return chordClass;
+    return instance;
   }
 
   /** Return a `ChordClass` identified by name, e.g. "Major". */
   public static fromString(name: string): ChordClass {
-    const chord = ChordClass.chordMap.get(name);
-    if (!chord) {
+    const instance = ChordClass.chordMap.get(name);
+    if (!instance) {
       throw new Error(`“${name}” is not a chord name`);
     }
-    return chord;
+    return instance;
   }
 
   // `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
@@ -71,7 +72,7 @@ export class ChordClass {
     _root: Pitch | PitchClass | string,
   ): Chord<PitchLike> {
     const root = typeof _root === 'string' ? parsePitchLike(_root) : _root;
-    return new Chord({ chordClass: this, root });
+    return new Chord(this, root);
   }
 }
 
@@ -106,27 +107,16 @@ export class Chord<T extends PitchLike> {
     return ChordClass.fromIntervals(intervals).at(root);
   }
 
-  public readonly chordClass: ChordClass;
-  public readonly root: T;
-  public readonly inversion: number;
   /** The preferred abbreviation. */
   public readonly abbr: string;
   public readonly abbrs: string[];
   public readonly intervals: Interval[];
   public readonly pitches: T[];
-  constructor({
-    chordClass,
-    root,
-    inversion = 0,
-  }: {
-    chordClass: ChordClass;
-    root: T;
-    inversion?: number;
-  }) {
-    this.chordClass = chordClass;
-    this.root = root;
-    this.inversion = inversion;
-
+  constructor(
+    readonly chordClass: ChordClass,
+    readonly root: T,
+    readonly inversion = 0,
+  ) {
     this.abbrs = this.chordClass.abbrs.map((abbr: string) =>
       `${this.root.toString()} ${abbr}`.replace(/\s+$/, ''),
     );
@@ -187,11 +177,7 @@ export class Chord<T extends PitchLike> {
     } else {
       inversion = inversionKey;
     }
-    return new Chord({
-      chordClass: this.chordClass,
-      inversion,
-      root: this.root,
-    });
+    return new Chord(this.chordClass, this.root, inversion);
   }
 }
 

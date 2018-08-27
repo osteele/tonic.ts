@@ -24,7 +24,7 @@ export class Pitch implements PitchLike {
   }
 
   public readonly name: string;
-  constructor(public readonly midiNumber: number, name?: string) {
+  constructor(readonly midiNumber: number, name?: string) {
     this.name = name || pitchToScientificNotation(midiNumber);
     this.midiNumber = midiNumber;
   }

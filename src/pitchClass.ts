@@ -17,7 +17,7 @@ export class PitchClass implements PitchLike {
   }
 
   public readonly name: string;
-  constructor(public readonly semitones: number, name?: string) {
+  constructor(readonly semitones: number, name?: string) {
     this.name = name || NoteNames[semitones];
   }
 
