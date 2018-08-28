@@ -40,10 +40,19 @@ describe('Interval', () => {
 
     expect(Interval.fromString('Unison').semitones).toBe(0);
     expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
-    // TODO: expect(Interval.fromString('unison').semitones).toBe(0);
 
     // Semitone, half tone, half step
     // Tone, whole tone, whole step
+  });
+
+  it('number', () => {
+    expect(Interval.fromString('P1').number).toBe(1);
+    expect(Interval.fromString('m2').number).toBe(2);
+    expect(Interval.fromString('M2').number).toBe(2);
+    expect(Interval.fromString('d2').number).toBe(2);
+    expect(Interval.fromString('A2').number).toBe(2);
+    expect(Interval.fromString('TT').number).toBe(null);
+    expect(Interval.fromString('P8').number).toBe(8);
   });
 
   it('toString', () => {
@@ -53,6 +62,8 @@ describe('Interval', () => {
     expect(Interval.fromSemitones(12).toString()).toBe('P8');
 
     // TODO: dim, aug
+    // expect(Interval.fromString('d3').toString()).toBe('d3');
+    // expect(Interval.fromString('A3').toString()).toBe('A3');
   });
 
   it('should be interned', () => {
@@ -83,7 +94,7 @@ describe('Interval', () => {
       expect(Interval.between(F4, C4)).toBe(P5));
   });
 
-  it('invert', () => {
+  it('inverse', () => {
     const { P1, P5, m2, m3, M3, m6, M6, M7, P4, P8, TT } = Intervals;
     expect(P1.inverse).toBe(P8);
     expect(m2.inverse).toBe(M7);
@@ -97,20 +108,22 @@ describe('Interval', () => {
     expect(d2.inverse).toBe(A7);
   });
 
-  it('natural', () => {
-    const { M3 } = Intervals;
-    expect(Interval.fromString('A3').natural).toBe(M3);
-    // FIXME: expect(Interval.fromString('d3').natural).toBe(M3);
-  });
   it('augment', () => {
     const { M3 } = Intervals;
     expect(M3.augment).toBe(Interval.fromString('A3'));
     // TODO: M2.augment
   });
-  it.skip('diminish', () => {
+
+  it('diminish', () => {
     const { m3 } = Intervals;
     expect(m3.diminish).toBe(Interval.fromString('d3'));
     // TODO: M3.diminish
+  });
+
+  it('natural', () => {
+    const { M3 } = Intervals;
+    expect(Interval.fromString('A3').natural).toBe(M3);
+    // FIXME: expect(Interval.fromString('d3').natural).toBe(M3);
   });
 });
 
