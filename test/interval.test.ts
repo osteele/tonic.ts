@@ -1,6 +1,7 @@
 import {
   Interval,
   intervalClassDifference,
+  IntervalQuality,
   Intervals,
   LongIntervalNames,
   Pitch,
@@ -41,8 +42,8 @@ describe('Interval', () => {
     expect(Interval.fromString('Unison').semitones).toBe(0);
     expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
 
-    // Semitone, half tone, half step
-    // Tone, whole tone, whole step
+    // TODO: semitone, half tone, half step
+    // TODO: tone, whole tone, whole step
   });
 
   it('number', () => {
@@ -53,6 +54,15 @@ describe('Interval', () => {
     expect(Interval.fromString('A2').number).toBe(2);
     expect(Interval.fromString('TT').number).toBe(null);
     expect(Interval.fromString('P8').number).toBe(8);
+  });
+
+  it('quality', () => {
+    expect(Interval.fromString('P1').quality).toBe(IntervalQuality.Perfect);
+    expect(Interval.fromString('m2').quality).toBe(IntervalQuality.Minor);
+    expect(Interval.fromString('M2').quality).toBe(IntervalQuality.Major);
+    expect(Interval.fromString('d2').quality).toBe(IntervalQuality.Diminished);
+    expect(Interval.fromString('A2').quality).toBe(IntervalQuality.Augmented);
+    expect(Interval.fromString('TT').quality).toBe(null);
   });
 
   it('toString', () => {

@@ -3,7 +3,6 @@ import { normalizePitchClass, PitchClassNumber } from './notation';
 import { Pitch } from './Pitch';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
-
 // tslint:disable-next-line variable-name
 export const ShortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
   /\s/,
@@ -25,6 +24,37 @@ export const LongIntervalNames = [
   'Major 7th',
   'Octave',
 ];
+
+export enum IntervalQuality {
+  DoublyDiminished,
+  Diminished,
+  Minor,
+  Perfect,
+  Major,
+  Augmented,
+  DoublyAugmented,
+}
+
+const accidentalsToQuality = [
+  IntervalQuality.DoublyDiminished,
+  IntervalQuality.Diminished,
+  null,
+  IntervalQuality.Augmented,
+  IntervalQuality.DoublyAugmented,
+];
+const abbrList: Array<[IntervalQuality, string]> = [
+  [IntervalQuality.Major, 'M'],
+  [IntervalQuality.Minor, 'm'],
+  [IntervalQuality.Perfect, 'P'],
+  [IntervalQuality.Augmented, 'A'],
+  [IntervalQuality.Diminished, 'd'],
+  [IntervalQuality.DoublyAugmented, 'AA'],
+  [IntervalQuality.DoublyDiminished, 'dd'],
+];
+// const qualityAbbrs = new Map<IntervalQuality, string>(abbrList);
+const abbrevToQuality = new Map<string, IntervalQuality>(
+  abbrList.map(([abbr, q]) => [q, abbr]),
+);
 
 const majorSemitones = new Array<number>(8);
 const minorSemitones = new Array<number>(8);
@@ -125,6 +155,17 @@ export class Interval {
   get number(): number | null {
     const m = ShortIntervalNames[this.naturalSemitones].match(/\d+/);
     return m && Number(m[0]);
+  }
+
+  /** Accidentals greater than double-augmented and double-diminished, and the
+   * tritone, have a null quality.
+   */
+  get quality(): IntervalQuality | null {
+    if (this.accidentals === 0) {
+      const m = ShortIntervalNames[this.naturalSemitones].match(/./);
+      return (m && abbrevToQuality.get(m[0])) || null;
+    }
+    return accidentalsToQuality[this.accidentals + 2];
   }
 
   /** The number of semitones. For example, A1 and m2 have one semitone. */
