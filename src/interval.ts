@@ -1,8 +1,8 @@
 import { semitonesToAccidentalString } from './accidentals';
-import { normalizePitchClass, PitchClassNumber } from './names';
-import { Pitch } from './pitch';
-import { PitchClass } from './pitchClass';
-import { PitchLike } from './pitchLike';
+import { normalizePitchClass, PitchClassNumber } from './notation';
+import { Pitch } from './Pitch';
+import { PitchClass } from './PitchClass';
+import { PitchLike } from './PitchLike';
 
 // tslint:disable-next-line variable-name
 export const ShortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(

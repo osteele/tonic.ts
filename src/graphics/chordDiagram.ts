@@ -4,8 +4,8 @@ import {
   FretNumbers,
   FretPosition,
   Instrument,
-} from '../instrument';
-import { Interval } from '../interval';
+} from '../Instrument';
+import { Interval } from '../Interval';
 import { GraphicsContext } from './graphics';
 import { hsv2css } from './utils';
 

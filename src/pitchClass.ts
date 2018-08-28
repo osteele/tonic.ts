@@ -1,7 +1,7 @@
-import { PitchLike } from './index';
-import { Interval } from './interval';
-import { normalizePitchClass, NoteNames, parsePitchClass } from './names';
-import { Pitch } from './pitch';
+import { Interval } from './Interval';
+import { normalizePitchClass, NoteNames, parsePitchClass } from './notation';
+import { Pitch } from './Pitch';
+import { PitchLike } from './PitchLike';
 
 /** `PitchClass` represents a pitch class: a musical pitch modulo its octave. For
  * example, the pitch class "E" represents "E0", "E1", "E2", etc.

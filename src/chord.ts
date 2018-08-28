@@ -1,8 +1,8 @@
 import { ChordClass } from './ChordClass';
-import { Interval } from './interval';
-import { Pitch } from './pitch';
-import { PitchClass } from './pitchClass';
-import { PitchLike } from './pitchLike';
+import { Interval } from './Interval';
+import { Pitch } from './Pitch';
+import { PitchClass } from './PitchClass';
+import { PitchLike } from './PitchLike';
 import { rotateArray } from './utils';
 
 const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;

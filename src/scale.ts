@@ -1,8 +1,8 @@
-import { Chord } from './chord';
-import { chordFromRomanNumeral } from './chordProgression';
-import { Interval } from './interval';
-import { normalizePitchClass } from './names';
-import { asPitchLike, PitchLike } from './pitchLike';
+import { Chord } from './Chord';
+import { chordFromRomanNumeral } from './chordProgressions';
+import { Interval } from './Interval';
+import { normalizePitchClass } from './notation';
+import { asPitchLike, PitchLike } from './PitchLike';
 
 interface GenericScaleConstructorOptions {
   name: string;

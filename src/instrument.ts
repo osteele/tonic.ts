@@ -1,4 +1,4 @@
-import { Pitch } from './pitch';
+import { Pitch } from './Pitch';
 
 export class Instrument {
   public readonly name: string;

@@ -3,7 +3,7 @@ import {
   FretNumbers,
   FretPosition,
   Instrument,
-} from '../instrument';
+} from '../Instrument';
 import { GraphicsContext } from './graphics';
 
 //

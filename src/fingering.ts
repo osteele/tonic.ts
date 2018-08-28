@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { Chord } from './chord';
-import { FretPosition, Instrument } from './instrument';
-import { Interval } from './interval';
-import { Pitch } from './pitch';
+import { Chord } from './Chord';
+import { FretPosition, Instrument } from './Instrument';
+import { Interval } from './Interval';
+import { Pitch } from './Pitch';
 import { powerset } from './utils';
 
 /** These are "fingerings" and not "voicings" because they also include barre

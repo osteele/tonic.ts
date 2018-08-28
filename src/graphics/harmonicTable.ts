@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { ShortIntervalNames } from '../interval';
+import { ShortIntervalNames } from '../Interval';
 import * as ChordDiagram from './chordDiagram';
 import { drawText, GraphicsContext, withGraphicsContext } from './graphics';
 

@@ -1,12 +1,4 @@
-import {
-  asInterval,
-  Chord,
-  Interval,
-  parsePitchLike,
-  Pitch,
-  PitchClass,
-  PitchLike,
-} from './index';
+import { asInterval, Chord, Interval, parsePitchLike, Pitch, PitchClass, PitchLike } from './index';
 
 export interface ChordClassConstructorOptions {
   name: string;

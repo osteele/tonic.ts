@@ -12,7 +12,7 @@ import {
   getPitchName,
   pitchFromScientificNotation,
   pitchToPitchClass,
-} from '../src/names';
+} from '../src/notation';
 
 describe('FlatNoteNames', () => {
   it('should have 12 notes', () => {

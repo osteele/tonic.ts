@@ -1,6 +1,6 @@
-import { Interval } from './interval';
-import { Pitch } from './pitch';
-import { PitchClass } from './pitchClass';
+import { Interval } from './Interval';
+import { Pitch } from './Pitch';
+import { PitchClass } from './PitchClass';
 
 /** Pitch and PitchClass implement this type. Chord and SpecificScale are
  * parameterized over it.

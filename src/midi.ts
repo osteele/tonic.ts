@@ -1,5 +1,5 @@
 import { AccidentalValues } from './accidentals';
-import { NoteNames } from './names';
+import { NoteNames } from './notation';
 
 export type MidiNumber = number;
 

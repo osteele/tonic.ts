@@ -1,12 +1,12 @@
-import { Interval } from './interval';
+import { Interval } from './Interval';
 import {
   pitchFromHelmholtzNotation,
   pitchFromScientificNotation,
   pitchToPitchClass,
   pitchToScientificNotation,
-} from './names';
-import { PitchClass } from './pitchClass';
-import { PitchLike } from './pitchLike';
+} from './notation';
+import { PitchClass } from './PitchClass';
+import { PitchLike } from './PitchLike';
 
 /** `Pitch` represents musical pitches such as "E4" and "F♯5". It converts
  * between string and instance representations.
