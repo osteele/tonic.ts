@@ -1,5 +1,4 @@
-import { Intervals, Pitch, PitchClass } from '../src';
-import { Chord, ChordClass } from '../src/chord';
+import { Chord, ChordClass, Intervals, Pitch, PitchClass } from '../src';
 
 const { P1, m3, M3, P5 } = Intervals;
 

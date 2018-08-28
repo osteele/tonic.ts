@@ -1,4 +1,5 @@
-import { Chord, ChordClass } from './chord';
+import { Chord } from './chord';
+import { ChordClass } from './ChordClass';
 import { PitchLike } from './pitchLike';
 import { SpecificScale } from './scale';
 
