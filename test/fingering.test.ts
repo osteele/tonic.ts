@@ -11,6 +11,7 @@ describe('Fingering', () => {
 
   it('should have a fretString', () => {
     expect(fingering.fretString).toMatch(/^[\dx]{6}$/);
+    expect(fingering.fretString).toBe('022100');
   });
 
   // it.skip('should have an inversion');
@@ -39,16 +40,20 @@ describe('Fingering', () => {
 describe('bestFingeringFor', () => {
   it('should yield best fingerings for open chords', () => {
     const instrument = Instruments.Guitar;
-    // FIXME: option to leave the 6 off DMaj, CMaj, Amin, Dmin
     expect(Fingering.best('E Major', instrument).fretString).toBe('022100');
+    // FIXME: should be x02220
     expect(Fingering.best('A Major', instrument).fretString).toBe('002220');
+    // FIXME: should be xx0232
     expect(Fingering.best('D Major', instrument).fretString).toBe('200232');
-    expect(Fingering.best('C Major', instrument).fretString).toBe('032010');
     expect(Fingering.best('G Major', instrument).fretString).toBe('320003');
+    // FIXME: should be x32010
+    expect(Fingering.best('C Major', instrument).fretString).toBe('032010');
 
-    expect(Fingering.best('A Minor', instrument).fretString).toBe('002210');
-    expect(Fingering.best('D Minor', instrument).fretString).toBe('100231');
     expect(Fingering.best('E Minor', instrument).fretString).toBe('022000');
+    // FIXME: should be xx02210
+    expect(Fingering.best('A Minor', instrument).fretString).toBe('002210');
+    // FIXME: should be xx0231
+    expect(Fingering.best('D Minor', instrument).fretString).toBe('100231');
   });
 
   describe('E Major', () => {

@@ -208,7 +208,6 @@ function chordFingerings(
   instrument: Instrument,
   options = { filter: true, allPositions: false, fingerPicking: false },
 ): Fingering[] {
-  const warn = false;
   if (chord.root == null) {
     throw new Error(`No root for ${chord}`);
   }
@@ -327,14 +326,12 @@ function chordFingerings(
     return intervalClasses.length;
   }
 
-  // Construct the filter set
-
   //
   // Generate, filter, and sort
   //
 
   let fingerings = generateFingerings();
-  fingerings = filterFingerings(fingerings, options);
+  fingerings = selectFingerings(fingerings, options);
   fingerings = sortFingerings(fingerings);
 
   const properties: { [_: string]: RegExp | FingeringProjection<any> } = {
@@ -348,7 +345,7 @@ function chordFingerings(
     treble: /^x*\d{3}$/,
     triad: ({ positions }) => positions.length === 3,
 
-    fingers: getFingerCount,
+    fingers: fingerCount,
     barres(f: Fingering) {
       return f.barres.length;
     },
@@ -381,7 +378,7 @@ function chordFingerings(
 }
 
 //
-// Filter
+// Predicates and other projections
 //
 
 type FingeringProjection<T> = (_: Fingering) => T;
@@ -400,7 +397,7 @@ const mutedTrebleStrings: FingeringPredicate = (fingering) =>
 
 /// How many fingers does the fingering require? For an un-barred fingering,
 /// this is just the number of fretted strings.
-const getFingerCount: FingeringProjection<number> = (fingering) => {
+const fingerCount: FingeringProjection<number> = (fingering) => {
   let n = fingering.positions.filter((pos) => pos.fretNumber > 0).length;
   for (const barre of fingering.barres) {
     n -= barre.fingerReplacementCount - 1;
@@ -410,45 +407,56 @@ const getFingerCount: FingeringProjection<number> = (fingering) => {
 
 /// Does the fingering require four fingers or fewer?
 const fourFingersOrFewer: (_: Fingering) => boolean = (fingering) =>
-  getFingerCount(fingering) <= 4;
+  fingerCount(fingering) <= 4;
 
-// filter by all the filters in the list, except ignore those that wouldn't pass anything
-function filterFingerings(
+// FIXME count pitch classes, not sounded strings
+const noteCount: FingeringProjection<number> = (fingering) =>
+  fingering.positions.length;
+
+const isRootPosition: FingeringPredicate = (fingering) =>
+  _.sortBy(fingering.positions, (pos) => pos.stringNumber)[0].degreeIndex === 0;
+
+const barreCount: FingeringProjection<number> = (fingering) =>
+  fingering.barres.length;
+
+//
+// Filter
+//
+
+type Filter =
+  | { reject?: null; select: (_: Fingering) => boolean }
+  | { reject: (_: Fingering) => boolean; select?: null };
+
+interface FilterOptions {
+  filter: boolean;
+  fingerPicking: boolean;
+}
+
+// Build a list of filters for these options
+function getFilters(options: FilterOptions): Filter[] {
+  const filters = new Array<Filter>();
+  // filters.push name: 'has all chord notes', select: hasAllNotes
+  if (options.filter) {
+    filters.push({ select: fourFingersOrFewer });
+  }
+  if (!options.fingerPicking) {
+    filters.push({ reject: mutedMedialStrings });
+    filters.push({ reject: mutedTrebleStrings });
+  }
+  return filters;
+}
+
+/**Filter by all the filters in the list, except ignore filters that would
+ * eliminate remaining fingers.
+ */
+function selectFingerings(
   fingerings: Fingering[],
   options = { filter: false, fingerPicking: false },
 ): Fingering[] {
-  // Build a list of filters for these options
-  const filters = new Array<{
-    name: string;
-    select?: (_: Fingering) => boolean;
-    reject?: (_: Fingering) => boolean;
-  }>();
-  // filters.push name: 'has all chord notes', select: hasAllNotes
-  if (options.filter) {
-    filters.push({
-      name: 'four fingers or fewer',
-      select: fourFingersOrFewer,
-    });
-  }
-  if (!options.fingerPicking) {
-    filters.push({
-      name: 'no muted medial strings',
-      reject: mutedMedialStrings,
-    });
-    filters.push({
-      name: 'no muted treble strings',
-      reject: mutedTrebleStrings,
-    });
-  }
-
-  for (let { select, reject } of filters) {
-    let filtered = fingerings;
-    if (reject) {
-      select = (x) => !reject!(x);
-    }
-    if (select) {
-      filtered = filtered.filter(select);
-    }
+  const filters = getFilters(options);
+  for (const filter of filters) {
+    const select = filter.select || ((x) => !filter.reject!(x));
+    const filtered = fingerings.filter(select);
     // skip filters that reject everything
     if (filtered.length) {
       fingerings = filtered;
@@ -461,40 +469,35 @@ function filterFingerings(
 // Sort
 //
 
-// FIXME count pitch classes, not sounded strings
-const highNoteCount: FingeringProjection<number> = (fingering) =>
-  fingering.positions.length;
-
-const isRootPosition: FingeringPredicate = (fingering) =>
-  _.sortBy(fingering.positions, (pos) => pos.stringNumber)[0].degreeIndex === 0;
-
-const reverseSortKey: (
-  _: FingeringProjection<number>,
-) => FingeringProjection<number> = (fn) => (a) => -fn(a);
+const makeSortFunction = (
+  key: FingeringProjection<any>,
+  descending: boolean,
+) => (fingering: Fingering): number | boolean => {
+  const k = key(fingering);
+  return descending !== (typeof k === 'boolean') ? -Number(k) : k;
+};
 
 // ordered list of preferences, from most to least important
-const preferences: Array<{ name: string; key: (_: Fingering) => any }> = [
-  { name: 'root position', key: isRootPosition },
-  { name: 'high note count', key: highNoteCount },
-  {
-    key: reverseSortKey((fingering: Fingering) => fingering.barres.length),
-    name: 'avoid barres',
-  },
-  { name: 'low finger count', key: reverseSortKey(getFingerCount) },
+const sortingPreferences: Array<{
+  key: FingeringProjection<boolean | number>;
+  descending?: true | null;
+}> = [
+  { key: isRootPosition },
+  { key: noteCount, descending: true },
+  { key: barreCount },
+  { key: fingerCount },
 ];
 
-/// Sort fingerings lexicographically by the projections `preferences`. Mutates
-/// `fingerings`.
+/** Sort fingerings lexicographically by the projections `preferences`. Mutates
+ * `fingerings`.
+ */
 function sortFingerings(fingerings: Fingering[]): Fingering[] {
-  [...preferences].reverse().forEach(({ key }) => {
-    _.sortBy(fingerings, key);
-  });
-  return fingerings;
-  // .reverse()
-  // .reduce(
-  //   (results: Fingering[], { key }) =>
-  //     _.sortBy(results, key) as Fingering[],
-  //   fingerings
-  // )
-  // .reverse();
+  // sort true before false, 0 before 1, unless descending
+  const fs = _.reduceRight(
+    sortingPreferences,
+    (fs, { key, descending }) =>
+      fs.sortBy(makeSortFunction(key, descending || false)),
+    _.chain(fingerings),
+  ).value();
+  return fs;
 }
