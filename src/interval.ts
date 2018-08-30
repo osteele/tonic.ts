@@ -53,7 +53,7 @@ const abbrList: Array<[IntervalQuality, string]> = [
 ];
 // const qualityAbbrs = new Map<IntervalQuality, string>(abbrList);
 const abbrevToQuality = new Map<string, IntervalQuality>(
-  abbrList.map(([abbr, q]) => [q, abbr]),
+  abbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
 );
 
 const majorSemitones = new Array<number>(8);
