@@ -29,47 +29,36 @@ export class Fingering {
     return chordFingerings(chord, instrument);
   }
 
-  public readonly chord: Chord<Pitch>;
-  public readonly instrument: FrettedInstrument;
+  // Fingering positions, ascending by string number
   public readonly positions: FingeringPosition[];
-  public readonly barres: Barre[];
   public readonly properties: { [_: string]: any };
 
   private _fretString: string | null = null;
-  constructor({
-    positions,
-    chord,
-    barres,
-    instrument,
-  }: {
-    positions: FingeringPosition[];
-    chord: Chord<Pitch>;
-    barres: Barre[];
-    instrument: FrettedInstrument;
-  }) {
-    this.chord = chord;
-    this.instrument = instrument;
+  constructor(
+    readonly chord: Chord<Pitch>,
+    readonly instrument: FrettedInstrument,
+    positions: FingeringPosition[],
+    readonly barres: Barre[],
+  ) {
     this.positions = [...positions].sort(
       (a: FretPosition, b: FretPosition) => a.stringNumber - b.stringNumber,
     );
-    this.barres = barres;
     this.properties = Object.create(null);
   }
 
+  /** A string representation of open, fretted, and muted strings.  For example,
+   * 'x02440'.
+   */
   get fretString(): string {
-    if (!this._fretString) {
-      this._fretString = this.computeFretString();
+    if (this._fretString) {
+      return this._fretString;
     }
-    return this._fretString;
-  }
-
-  // string representation of a fingering
-  private computeFretString(): string {
     const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
     this.positions.forEach(({ stringNumber, fretNumber }: FretPosition) => {
       fretArray[stringNumber] = fretNumber;
     });
-    return fretArray.map((x) => (x >= 0 ? x : 'x')).join('');
+    this._fretString = fretArray.map((n) => (n >= 0 ? n : 'x')).join('');
+    return this._fretString;
   }
 
   // chordName(): string {
@@ -125,12 +114,18 @@ export interface Barre {
   readonly fingerReplacementCount: number;
 }
 
-// Returns an array of strings indexed by fret number. Each string
-// has a character at each string position:
-// '=' = fretted at this fret
-// '>' = fretted at a higher fret
-// '<' = fretted at a lower fret, or open
-// 'x' = muted
+//
+// Barre computation
+//
+
+/** Returns an array of strings, indexed by each fret number in `fretArray`.
+ * (Indices that don't correspond to a fret number are false-y.) Each string has
+ * a character at each string position:
+ * * '=' = fretted at this fret
+ * * '>' = fretted at a higher fret
+ * * '<' = fretted at a lower fret, or open
+ * * 'x' = muted
+ */
 function computeBarreCandidateStrings(fretArray: number[]): string[] {
   const codeStrings = [] as string[];
   for (const referenceFret of fretArray) {
@@ -211,12 +206,12 @@ function generateFingerings(
   instrument: FrettedInstrument,
   options: { allPositions: boolean },
 ): Fingering[] {
-  const fingerings = [];
   const fretArrays = collectFingeringPositions(
     fretsPerString(chord, instrument, options),
   )
     .filter((fretArray) => containsAllChordPitches(chord, instrument, fretArray))
     .filter(maximumFretDistance);
+  const fingerings = [];
   for (const fretArray of fretArrays) {
     const positions = fretArray
       .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
@@ -236,7 +231,7 @@ function generateFingerings(
       sets = collectBarreSets(fretArray);
     }
     for (const barres of sets) {
-      fingerings.push(new Fingering({ positions, chord, barres, instrument }));
+      fingerings.push(new Fingering(chord, instrument, positions, barres));
     }
   }
   return fingerings;
