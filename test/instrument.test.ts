@@ -14,7 +14,7 @@ describe('Instrument', () => {
   });
 
   it('should have an array of strings', () => {
-    expect(guitar.strings).toBe(6);
+    expect(guitar.stringNumbers).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it('should have a fret count', () => {
@@ -28,6 +28,10 @@ describe('Instrument', () => {
   it('should have an array of string pitches', () => {
     expect(guitar.stringPitches).toHaveLength(6);
     expect(guitar.stringPitches[0].toString()).toBe('E2');
+    expect(guitar.stringPitches[1].toString()).toBe('A2');
+    expect(guitar.stringPitches[2].toString()).toBe('D3');
+    expect(guitar.stringPitches[3].toString()).toBe('G3');
+    expect(guitar.stringPitches[4].toString()).toBe('B3');
     expect(guitar.stringPitches[5].toString()).toBe('E4');
   });
 
@@ -55,7 +59,9 @@ describe('Instrument', () => {
         strings[stringNumber] = true;
         frets[fretNumber] = true;
         count += 1;
-        found = found || (stringNumber === 2 && fretNumber === 3);
+        if (stringNumber === 2 && fretNumber === 3) {
+          found = true;
+        }
       });
       expect(count).toBe(6 * 13);
       expect(Object.keys(strings)).toHaveLength(6);

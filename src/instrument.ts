@@ -1,31 +1,37 @@
 import { Pitch } from './Pitch';
 
+/** A (musical) Instrument currently has just a name, and subclasses.
+ */
 export class Instrument {
-  public readonly name: string;
-  public readonly fretted: boolean;
+  constructor(readonly name: string) {}
+}
+
+/** A string instrument has an array of strings,
+ */
+export class StringInstrument extends Instrument {
   public readonly stringPitches: Pitch[];
-  public readonly fretCount: number | null;
-  public readonly strings: number;
   public readonly stringCount: number;
+  /** An array from [0…stringCount - 1], useful for enumerating over. */
   public readonly stringNumbers: number[];
-  constructor({
-    name,
-    fretted = false,
-    stringPitches,
-    fretCount,
-  }: {
-    name: string;
-    fretted?: boolean;
-    stringPitches: Pitch[] | string;
-    fretCount?: number;
-  }) {
-    this.name = name;
-    this.fretted = fretted;
-    this.fretCount = fretCount || null;
-    this.stringPitches =
-      typeof stringPitches === 'string'
-        ? stringPitches.split(/\s/).map(Pitch.fromString)
-        : stringPitches;
+  constructor(name: string, _stringPitches: Pitch[] | string) {
+    super(name);
+    const stringPitches =
+      typeof _stringPitches === 'string'
+        ? _stringPitches.split(/\s/).map(Pitch.fromString)
+        : _stringPitches;
+    this.stringPitches = stringPitches;
+    this.stringCount = this.stringPitches.length;
+    this.stringNumbers = stringPitches.map((_, i) => i);
+  }
+}
+
+export class FrettedInstrument extends StringInstrument {
+  constructor(
+    name: string,
+    stringPitches: Pitch[] | string,
+    readonly fretCount: number,
+  ) {
+    super(name, stringPitches);
     // if (typeof this.stringPitches[0] === 'string') {
     //   this.stringPitches = (() => {
     //     const result = [];
@@ -35,16 +41,15 @@ export class Instrument {
     //     return result;
     //   })();
     // }
-    this.strings = this.stringCount = this.stringPitches.length;
-    this.stringNumbers = __range__(0, this.strings, false);
   }
 
   public forEachFingerPosition(fn: (_: FretPosition) => any) {
-    return this.stringNumbers.map((stringNumber) =>
-      __range__(0, this.fretCount || 0, true).map((fretNumber) =>
-        fn({ stringNumber, fretNumber }),
-      ),
-    );
+    this.stringNumbers.forEach((stringNumber) => {
+      // <= instead of <, since 0 represents the nut
+      for (let fretNumber = 0; fretNumber <= this.fretCount; fretNumber++) {
+        fn({ stringNumber, fretNumber });
+      }
+    });
   }
 
   public pitchAt({ stringNumber, fretNumber }: FretPosition) {
@@ -62,31 +67,12 @@ export interface FretPosition {
 // Instruments, indexed by name
 // tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
-export const Instruments: { [_: string]: Instrument } = [
-  {
-    name: 'Guitar',
-    stringPitches: 'E2 A2 D3 G3 B3 E4',
-    fretted: true,
-    fretCount: 12,
-  },
-  {
-    name: 'Violin',
-    stringPitches: 'G D A E',
-  },
-  {
-    name: 'Viola',
-    stringPitches: 'C G D A',
-  },
-  {
-    name: 'Cello',
-    stringPitches: 'C G D A',
-  },
-]
-  .map((attrs) => new Instrument(attrs))
-  .reduce((acc: { [_: string]: Instrument }, instr) => {
-    acc[instr.name] = instr;
-    return acc;
-  }, {});
+export const Instruments = {
+  Guitar: new FrettedInstrument('Guitar', 'E2 A2 D3 G3 B3 E4', 12),
+  Violin: new StringInstrument('Violin', 'G D A E'),
+  Viola: new StringInstrument('Viola', 'C G D A'),
+  Cello: new StringInstrument('Cello', 'C G D A'),
+};
 
 // TODO: make this a property of the instrument
 // tslint:disable-next-line variable-name
@@ -113,14 +99,3 @@ export const FretCount = FretNumbers.length - 1; // doesn't include nut
 //   });
 //   return positions;
 // };
-
-// TODO: replace this by something more idiomatic
-function __range__(left: number, right: number, inclusive: boolean) {
-  const range = [];
-  const ascending = left < right;
-  const end = !inclusive ? right : ascending ? right + 1 : right - 1;
-  for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
-    range.push(i);
-  }
-  return range;
-}

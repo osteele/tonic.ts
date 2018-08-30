@@ -2,7 +2,7 @@ import {
   FretCount,
   FretNumbers,
   FretPosition,
-  Instrument,
+  FrettedInstrument,
 } from '../Instrument';
 import { GraphicsContext } from './graphics';
 
@@ -20,22 +20,31 @@ const DefaultStyle = {
   stringSpacing: 20,
 };
 
-function paddedFretboardWidth(instrument: Instrument, style = DefaultStyle) {
+function paddedFretboardWidth(
+  instrument: FrettedInstrument,
+  style = DefaultStyle,
+) {
   return 2 * style.vGutter + style.fretWidth * FretCount + style.fretOverhang;
 }
 
-function paddedFretboardHeight(instrument: Instrument, style = DefaultStyle) {
+function paddedFretboardHeight(
+  instrument: FrettedInstrument,
+  style = DefaultStyle,
+) {
   if (style == null) {
     style = DefaultStyle;
   }
-  return 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing;
+  return 2 * style.hGutter + (instrument.stringCount - 1) * style.stringSpacing;
 }
 
 //
 // Drawing Methods
 //
 
-function drawFretboardStrings(ctx: GraphicsContext, instrument: Instrument) {
+function drawFretboardStrings(
+  ctx: GraphicsContext,
+  instrument: FrettedInstrument,
+) {
   const style = DefaultStyle;
   instrument.stringNumbers.forEach((stringNumber) => {
     const y = stringNumber * style.stringSpacing + style.hGutter;
@@ -50,7 +59,10 @@ function drawFretboardStrings(ctx: GraphicsContext, instrument: Instrument) {
   });
 }
 
-function drawFretboardFrets(ctx: GraphicsContext, instrument: Instrument) {
+function drawFretboardFrets(
+  ctx: GraphicsContext,
+  instrument: FrettedInstrument,
+) {
   const style = DefaultStyle;
   FretNumbers.forEach((fret) => {
     const x = style.hGutter + fret * style.fretWidth;
@@ -58,7 +70,7 @@ function drawFretboardFrets(ctx: GraphicsContext, instrument: Instrument) {
     ctx.moveTo(x, style.hGutter);
     ctx.lineTo(
       x,
-      style.hGutter + (instrument.strings - 1) * style.stringSpacing,
+      style.hGutter + (instrument.stringCount - 1) * style.stringSpacing,
     );
     if (fret === 0) {
       ctx.lineWidth = 3;
@@ -95,7 +107,7 @@ function drawFretboardFingerPosition(
 
 function drawFretboard(
   ctx: GraphicsContext,
-  instrument: Instrument,
+  instrument: FrettedInstrument,
   positions: FretPosition[],
 ) {
   drawFretboardStrings(ctx, instrument);

@@ -3,7 +3,7 @@ import {
   FretCount,
   FretNumbers,
   FretPosition,
-  Instrument,
+  FrettedInstrument,
 } from '../Instrument';
 import { Interval } from '../Interval';
 import { GraphicsContext } from './graphics';
@@ -49,7 +49,7 @@ export const DefaultStyle = {
 };
 
 function computeChordDiagramDimensions(
-  instrument: Instrument,
+  instrument: FrettedInstrument,
   style: Style = DefaultStyle,
 ) {
   if (style == null) {
@@ -57,7 +57,8 @@ function computeChordDiagramDimensions(
   }
   return {
     height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount,
-    width: 2 * style.hGutter + (instrument.strings - 1) * style.stringSpacing,
+    width:
+      2 * style.hGutter + (instrument.stringCount - 1) * style.stringSpacing,
   };
 }
 
@@ -67,7 +68,7 @@ function computeChordDiagramDimensions(
 
 function drawChordDiagramStrings(
   ctx: GraphicsContext,
-  instrument: Instrument,
+  instrument: FrettedInstrument,
   options: { dimStrings?: number[] } = {},
 ) {
   const style = DefaultStyle;
@@ -89,7 +90,7 @@ function drawChordDiagramStrings(
 
 function drawChordDiagramFrets(
   ctx: GraphicsContext,
-  instrument: Instrument,
+  instrument: FrettedInstrument,
   param = { drawNut: true },
 ) {
   const { drawNut } = param;
@@ -100,7 +101,7 @@ function drawChordDiagramFrets(
     ctx.beginPath();
     ctx.moveTo(style.vGutter - 0.5, y);
     ctx.lineTo(
-      style.vGutter + 0.5 + (instrument.strings - 1) * style.stringSpacing,
+      style.vGutter + 0.5 + (instrument.stringCount - 1) * style.stringSpacing,
       y,
     );
     if (fret === 0 && drawNut) {
@@ -113,7 +114,7 @@ function drawChordDiagramFrets(
 
 function drawChordDiagram(
   ctx: GraphicsContext,
-  instrument: Instrument,
+  instrument: FrettedInstrument,
   positions: Array<{
     fretNumber: number;
     stringNumber: number;
@@ -280,10 +281,10 @@ function drawChordDiagram(
   return { topFret };
 }
 
-export const width = (instrument: Instrument) =>
+export const width = (instrument: FrettedInstrument) =>
   computeChordDiagramDimensions(instrument).width;
 
-export const height = (instrument: Instrument) =>
+export const height = (instrument: FrettedInstrument) =>
   computeChordDiagramDimensions(instrument).height;
 
 export { DefaultStyle as defaultStyle, drawChordDiagram as draw };
