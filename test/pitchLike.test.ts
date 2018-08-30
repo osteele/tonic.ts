@@ -1,5 +1,4 @@
-import { Pitch, PitchClass } from '../src';
-import { asPitchLike, parsePitchLike } from '../src/pitchLike';
+import { asPitchLike, parsePitchLike, Pitch, PitchClass } from '../src';
 
 describe('parsePitchLike', () => {
   it('parses pitches', () => {

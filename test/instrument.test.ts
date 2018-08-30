@@ -1,4 +1,4 @@
-import { Instruments } from '../src/instrument';
+import { Instruments } from '../src';
 
 describe('Instruments', () => {
   it('should define a guitar', () => {
