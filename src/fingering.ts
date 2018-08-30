@@ -104,21 +104,24 @@ export class Fingering {
   // }
 }
 
-export interface FingeringPosition {
-  readonly stringNumber: number;
-  readonly fretNumber: number;
+/** An FretPosition, annotated with information that's useful during
+ * chord-fingering computation.
+ */
+export interface FingeringPosition extends FretPosition {
   readonly degreeIndex: number;
   readonly intervalClass: Interval;
 }
 
-//
-// Barres
-//
-
+/** A barre, or bar, uses a single finger to fret two or more consecutive
+ * strings.
+ */
 export interface Barre {
-  readonly fret: number;
+  readonly fretNumber: number;
+  /** The lowest-numbered string, that starts the barre. */
   readonly firstString: number;
+  /** The number of strings that the barre includes. */
   readonly stringCount: number;
+  // TODO: does this really need to be part of the interface?
   readonly fingerReplacementCount: number;
 }
 
@@ -152,9 +155,9 @@ function computeBarreCandidateStrings(fretArray: number[]): string[] {
 function findBarres(fretArray: number[]): Barre[] {
   const barres = [] as Barre[];
   const iterable = computeBarreCandidateStrings(fretArray);
-  for (let fret = 0; fret < iterable.length; fret++) {
-    const codeString = iterable[fret];
-    if (fret === 0) {
+  for (let fretNumber = 0; fretNumber < iterable.length; fretNumber++) {
+    const codeString = iterable[fretNumber];
+    if (fretNumber === 0) {
       continue;
     }
     if (!codeString) {
@@ -171,7 +174,7 @@ function findBarres(fretArray: number[]): Barre[] {
     barres.push({
       fingerReplacementCount: run.match(/\=/g)!.length,
       firstString: match.index!,
-      fret,
+      fretNumber,
       stringCount: run.length,
     });
   }
@@ -184,7 +187,7 @@ function collectBarreSets(fretArray: number[]) {
 }
 
 //
-// Fingerings
+// Generate fingerings
 //
 
 function fingerPositionsOnChord(
@@ -202,112 +205,109 @@ function fingerPositionsOnChord(
   return positions;
 }
 
+function generateFingerings(
+  chord: Chord<Pitch>,
+  instrument: Instrument,
+  options: { allPositions: boolean },
+): Fingering[] {
+  const fingerings = [];
+  const fretArrays = collectFingeringPositions(
+    fretsPerString(chord, instrument, options),
+  )
+    .filter((fretArray) => containsAllChordPitches(chord, instrument, fretArray))
+    .filter(maximumFretDistance);
+  for (const fretArray of fretArrays) {
+    const positions = fretArray
+      .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
+      .map((pos) => {
+        const intervalClass = Interval.between(
+          chord.root,
+          instrument.pitchAt(pos),
+        );
+        return {
+          ...pos,
+          degreeIndex: chord.intervals.indexOf(intervalClass),
+          intervalClass,
+        };
+      });
+    let sets = [[]] as Barre[][];
+    if (positions.length > 4) {
+      sets = collectBarreSets(fretArray);
+    }
+    for (const barres of sets) {
+      fingerings.push(new Fingering({ positions, chord, barres, instrument }));
+    }
+  }
+  return fingerings;
+}
+
+function collectFingeringPositions(
+  fretCandidatesPerString: number[][],
+): number[][] {
+  const stringCount = fretCandidatesPerString.length;
+  const positionSet = [] as number[][];
+  const fretArray = [] as number[];
+  function fill(s: number) {
+    if (s === stringCount) {
+      positionSet.push(fretArray.slice());
+    } else {
+      fretCandidatesPerString[s].forEach((fret) => {
+        fretArray[s] = fret;
+        fill(s + 1);
+      });
+    }
+  }
+  fill(0);
+  return positionSet;
+}
+
+// Return an array, indexed by string number, of frets in the chord
+function fretsPerString(
+  chord: Chord<Pitch>,
+  instrument: Instrument,
+  options: { allPositions: boolean },
+): number[][] {
+  let positions = fingerPositionsOnChord(chord, instrument);
+  if (!options.allPositions) {
+    positions = positions.filter((pos) => pos.fretNumber <= 4);
+  }
+  const strings: number[][] = instrument.stringNumbers.map((_) => []);
+  positions.forEach(({ stringNumber, fretNumber }) =>
+    strings[stringNumber].push(fretNumber),
+  );
+  return strings;
+}
+
+// actually tests pitch classes, not pitches
+function containsAllChordPitches(
+  chord: Chord<Pitch>,
+  instrument: Instrument,
+  fretArray: number[],
+) {
+  const pitchClasses = [] as number[];
+  for (let stringNumber = 0; stringNumber < fretArray.length; stringNumber++) {
+    const fretNumber = fretArray[stringNumber];
+    const pitchClass = instrument
+      .pitchAt({ fretNumber, stringNumber })
+      .asPitchClass().semitones;
+    if (pitchClasses.indexOf(pitchClass) < 0) {
+      pitchClasses.push(pitchClass);
+    }
+  }
+  return pitchClasses.length === chord.pitches.length;
+}
+
+function maximumFretDistance(fretArray: number[]) {
+  const frets = fretArray.filter((fret) => fret > 0);
+  return _.max(frets)! - _.min(frets)! <= 3;
+}
+
 // TODO add options for strumming vs. fingerstyle; muting; stretch
 function chordFingerings(
   chord: Chord<Pitch>,
   instrument: Instrument,
   options = { filter: true, allPositions: false, fingerPicking: false },
 ): Fingering[] {
-  if (chord.root == null) {
-    throw new Error(`No root for ${chord}`);
-  }
-  // if (chord.root instanceof PitchClass) {
-  //   chord = chord.at(chord.root.asPitch());
-  // }
-
-  //
-  // Generate
-  //
-
-  // Return an array, indexed by string number, of frets in the chord
-  function fretsPerString(): number[][] {
-    let positions = fingerPositionsOnChord(chord, instrument);
-    if (!options.allPositions) {
-      positions = positions.filter((pos) => pos.fretNumber <= 4);
-    }
-    const strings: number[][] = instrument.stringNumbers.map((_) => []);
-    positions.forEach(({ stringNumber, fretNumber }) =>
-      strings[stringNumber].push(fretNumber),
-    );
-    return strings;
-  }
-
-  function collectFingeringPositions(
-    fretCandidatesPerString: number[][],
-  ): number[][] {
-    const stringCount = fretCandidatesPerString.length;
-    const positionSet = [] as number[][];
-    const fretArray = [] as number[];
-    function fill(s: number) {
-      if (s === stringCount) {
-        positionSet.push(fretArray.slice());
-      } else {
-        fretCandidatesPerString[s].forEach((fret) => {
-          fretArray[s] = fret;
-          fill(s + 1);
-        });
-      }
-    }
-    fill(0);
-    return positionSet;
-  }
-
-  // actually tests pitch classes, not pitches
-  function containsAllChordPitches(fretArray: number[]) {
-    const pitchClasses = [] as number[];
-    for (
-      let stringNumber = 0;
-      stringNumber < fretArray.length;
-      stringNumber++
-    ) {
-      const fretNumber = fretArray[stringNumber];
-      const pitchClass = instrument
-        .pitchAt({ fretNumber, stringNumber })
-        .asPitchClass().semitones;
-      if (pitchClasses.indexOf(pitchClass) < 0) {
-        pitchClasses.push(pitchClass);
-      }
-    }
-    return pitchClasses.length === chord.pitches.length;
-  }
-
-  function maximumFretDistance(fretArray: number[]) {
-    const frets = fretArray.filter((fret) => fret > 0);
-    return _.max(frets)! - _.min(frets)! <= 3;
-  }
-
-  function generateFingerings(): Fingering[] {
-    const fingerings = [];
-    const fretArrays = collectFingeringPositions(fretsPerString())
-      .filter(containsAllChordPitches)
-      .filter(maximumFretDistance);
-    for (const fretArray of fretArrays) {
-      const positions = fretArray
-        .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
-        .map((pos) => {
-          const intervalClass = Interval.between(
-            chord.root,
-            instrument.pitchAt(pos),
-          );
-          return {
-            ...pos,
-            degreeIndex: chord.intervals.indexOf(intervalClass),
-            intervalClass,
-          };
-        });
-      let sets = [[]] as Barre[][];
-      if (positions.length > 4) {
-        sets = collectBarreSets(fretArray);
-      }
-      for (const barres of sets) {
-        fingerings.push(
-          new Fingering({ positions, chord, barres, instrument }),
-        );
-      }
-    }
-    return fingerings;
-  }
-
   // const chordNoteCount = chord.pitches.length;
 
   //
@@ -330,7 +330,7 @@ function chordFingerings(
   // Generate, filter, and sort
   //
 
-  let fingerings = generateFingerings();
+  let fingerings = generateFingerings(chord, instrument, options);
   fingerings = selectFingerings(fingerings, options);
   fingerings = sortFingerings(fingerings);
 

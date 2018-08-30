@@ -1,6 +1,4 @@
-import { Interval } from '../src';
-import { Fingering } from '../src/fingering';
-import { Instruments } from '../src/instrument';
+import { Fingering, Instruments, Interval } from '../src';
 
 describe('Fingering', () => {
   const instrument = Instruments.Guitar;

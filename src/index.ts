@@ -1,5 +1,6 @@
 export * from './Chord';
 export * from './ChordClass';
+export * from './Fingering';
 export * from './Instrument';
 export * from './Interval';
 export * from './midi';
