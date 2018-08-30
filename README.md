@@ -1,6 +1,6 @@
 # Tonic.ts
 
-[![Build Status](https://api.travis-ci.org/osteele/tonic.ts.png?branch-master)](https://api.travis-ci.org/osteele/tonic.ts.png?branch-master)
+[![Build Status](https://travis-ci.org/osteele/tonic.ts.svg?branch=master)](https://travis-ci.org/osteele/tonic.ts)
 
 Tonic.ts is a TypeScript library that provides APIs for music theory, drawing
 pitch constellation diagrams, and calculating guitar chord fingerings.
@@ -9,7 +9,7 @@ This started out as a side project to generate various fretboard and fretboard
 diagrams that I'm using to learn guitar.
 
 It isn't intended to be useful to anyone but me in its current state, but it's
-slowly evolving towards a library of re-usable API.
+slowly evolving towards a re-usable API.
 
 ## Features
 
