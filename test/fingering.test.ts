@@ -1,8 +1,14 @@
-import { fingeringFor, Instruments, Interval } from '../src';
+import * as _ from 'lodash';
+import { allFingerings, fingeringFor, Instruments, Interval } from '../src';
+
+describe.skip('allFingerings', () => {
+  const fingerings = allFingerings('A Major', Instruments.Guitar);
+  expect(_.map(fingerings, 'fretString')).toHaveLength(100);
+});
 
 describe('Fingering', () => {
-  const instrument = Instruments.Guitar;
-  const fingering = fingeringFor('E Major', instrument);
+  const fingering = fingeringFor('E Major', Instruments.Guitar);
+  // const fingering = new Fingering(Chord.fromString('E Major'), Instrument.Guitar, ...)
 
   it('should have an array of barres', () =>
     expect(fingering.barres).toBeInstanceOf(Array));

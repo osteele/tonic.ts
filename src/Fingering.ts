@@ -25,15 +25,6 @@ export class Fingering {
     this.properties = this.createProperties();
   }
 
-  private createProperties(): object {
-    const fretString = this.fretString;
-    return _.mapValues(
-      propertyGetters,
-      (getter) =>
-        getter instanceof RegExp ? getter.test(fretString) : getter(this),
-    );
-  }
-
   /** How many fingers does the fingering require? For an un-barred fingering,
    * this is just the number of fretted strings.
    */
@@ -58,6 +49,15 @@ export class Fingering {
     });
     this._fretString = fretArray.map((n) => (n >= 0 ? n : 'x')).join('');
     return this._fretString;
+  }
+
+  private createProperties(): object {
+    const fretString = this.fretString;
+    return _.mapValues(
+      propertyGetters,
+      (getter) =>
+        getter instanceof RegExp ? getter.test(fretString) : getter(this),
+    );
   }
 
   // chordName(): string {
