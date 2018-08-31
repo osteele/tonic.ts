@@ -8,16 +8,16 @@ import { powerset } from './utils';
 
 // TODO: add options for strumming vs. fingerstyle; muting; stretch
 interface FindFingeringOptions {
-  allPositions: boolean;
   filter: boolean;
   fingerPicking: boolean;
+  maxFretNumber: number;
   maxFretSpread: number;
 }
 
 const defaultOptions: FindFingeringOptions = {
-  allPositions: false,
   filter: true,
   fingerPicking: false,
+  maxFretNumber: 4,
   maxFretSpread: 3,
 };
 
@@ -60,7 +60,7 @@ function fingerPositionsOnChord(
   instrument: FrettedInstrument,
 ): FretPosition[] {
   const { root, intervals } = chord;
-  const positions = [] as FretPosition[];
+  const positions = new Array<FretPosition>();
   instrument.forEachFingerPosition((pos) => {
     const interval = Interval.between(root, instrument.pitchAt(pos));
     if (intervals.indexOf(interval) >= 0) {
@@ -76,7 +76,7 @@ function generateFingerings(
   options: FindFingeringOptions,
 ): Fingering[] {
   const pitchClassCount = chord.pitches.length;
-  const fretArrays = collectFingeringPositions(
+  const fretArrays = generateFingeringPositions(
     fretsPerString(chord, instrument, options),
   )
     .filter(
@@ -108,12 +108,12 @@ function generateFingerings(
   return fingerings;
 }
 
-function collectFingeringPositions(
+function generateFingeringPositions(
   fretCandidatesPerString: number[][],
 ): number[][] {
   const stringCount = fretCandidatesPerString.length;
-  const positionSet = [] as number[][];
-  const fretArray = [] as number[];
+  const positionSet = new Array<number[]>();
+  const fretArray = new Array<number>();
   function fill(s: number) {
     if (s === stringCount) {
       positionSet.push(fretArray.slice());
@@ -135,10 +135,12 @@ function fretsPerString(
   options: FindFingeringOptions,
 ): number[][] {
   let positions = fingerPositionsOnChord(chord, instrument);
-  if (!options.allPositions) {
-    positions = positions.filter((pos) => pos.fretNumber <= 4);
+  if (options.maxFretNumber) {
+    positions = positions.filter(
+      (pos) => pos.fretNumber <= options.maxFretNumber,
+    );
   }
-  const strings: number[][] = instrument.stringNumbers.map((_) => []);
+  const strings = instrument.stringNumbers.map((_) => new Array<number>());
   positions.forEach(({ stringNumber, fretNumber }) =>
     strings[stringNumber].push(fretNumber),
   );
@@ -149,7 +151,7 @@ function countPitchClasses(
   instrument: FrettedInstrument,
   fretArray: number[],
 ): number {
-  const pitchClasses = [] as number[];
+  const pitchClasses = new Array<number>();
   for (let stringNumber = 0; stringNumber < fretArray.length; stringNumber++) {
     const fretNumber = fretArray[stringNumber];
     const pitchClass = instrument
@@ -301,7 +303,7 @@ function sortFingerings(fingerings: Fingering[]): Fingering[] {
  * * 'x' = muted
  */
 function computeBarreCandidateStrings(fretArray: number[]): string[] {
-  const codeStrings = [] as string[];
+  const codeStrings = new Array<string>();
   for (const referenceFret of fretArray) {
     if (!codeStrings[referenceFret]) {
       codeStrings[referenceFret] = fretArray
@@ -322,7 +324,7 @@ function computeBarreCandidateStrings(fretArray: number[]): string[] {
 }
 
 function findBarres(fretArray: number[]): Barre[] {
-  const barres = [] as Barre[];
+  const barres = new Array<Barre>();
   const iterable = computeBarreCandidateStrings(fretArray);
   for (let fretNumber = 0; fretNumber < iterable.length; fretNumber++) {
     const codeString = iterable[fretNumber];

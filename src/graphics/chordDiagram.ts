@@ -246,7 +246,7 @@ function drawChordDiagram(
   }
 
   function drawClosedStrings() {
-    const frettedStrings = [] as boolean[];
+    const frettedStrings = new Array<boolean>();
     positions.forEach(({ stringNumber }) => {
       frettedStrings[stringNumber] = true;
     });

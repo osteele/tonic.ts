@@ -3,7 +3,7 @@ import { allFingerings, fingeringFor, Instruments, Interval } from '../src';
 
 describe.skip('allFingerings', () => {
   const fingerings = allFingerings('A Major', Instruments.Guitar);
-  expect(_.map(fingerings, 'fretString')).toHaveLength(100);
+  // expect(_.map(fingerings, 'fretString')).toHaveLength(100);
 });
 
 describe('Fingering', () => {
