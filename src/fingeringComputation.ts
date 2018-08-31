@@ -52,8 +52,7 @@ export function allFingerings(
 // Generate fingerings
 //
 
-/** Generate an array, indexed by string number, of all the fret positions that
- * are on the chord.
+/** Make an array of the fret positions whose pitch classes are in the chord.
  */
 function fingerPositionsOnChord(
   chord: Chord<Pitch>,
@@ -70,11 +69,54 @@ function fingerPositionsOnChord(
   return positions;
 }
 
+/** Make an array, indexed by string number, of fret numbers in the chord.
+ */
+function fretsPerString(
+  chord: Chord<Pitch>,
+  instrument: FrettedInstrument,
+  options: FindFingeringOptions,
+): number[][] {
+  let positions = fingerPositionsOnChord(chord, instrument);
+  if (options.maxFretNumber) {
+    positions = positions.filter(
+      (pos) => pos.fretNumber <= options.maxFretNumber,
+    );
+  }
+  const stringFrets = instrument.stringNumbers.map(() => new Array<number>());
+  positions.forEach(({ stringNumber, fretNumber }) =>
+    stringFrets[stringNumber].push(fretNumber),
+  );
+  return stringFrets;
+}
+
+function generateFingeringPositions(
+  fretCandidatesPerString: number[][],
+): number[][] {
+  const stringCount = fretCandidatesPerString.length;
+  const positionSet = new Array<number[]>();
+  const fretArray = new Array<number>();
+  function fill(s: number) {
+    if (s === stringCount) {
+      positionSet.push(fretArray.slice());
+    } else {
+      fretCandidatesPerString[s].forEach((fret) => {
+        fretArray[s] = fret;
+        fill(s + 1);
+      });
+    }
+  }
+  fill(0);
+  return positionSet;
+}
+
 function generateFingerings(
   chord: Chord<Pitch>,
   instrument: FrettedInstrument,
   options: FindFingeringOptions,
 ): Fingering[] {
+  // Generate candidate fingerings. Do some preliminary filtering, to avoid
+  // creating computing barres and instantiating Fingering for fingering
+  // combinations that can be easily eliminated.
   const pitchClassCount = chord.pitches.length;
   const fretArrays = generateFingeringPositions(
     fretsPerString(chord, instrument, options),
@@ -83,6 +125,8 @@ function generateFingerings(
       (fretArray) => countPitchClasses(instrument, fretArray) === pitchClassCount,
     )
     .filter((fretArray) => computeFretSpread(fretArray) <= options.maxFretSpread);
+  // Transform the candidates into FretPositions, find barres, and create a
+  // Fingering for each combination.
   const fingerings = [];
   for (const fretArray of fretArrays) {
     const positions = fretArray
@@ -108,45 +152,7 @@ function generateFingerings(
   return fingerings;
 }
 
-function generateFingeringPositions(
-  fretCandidatesPerString: number[][],
-): number[][] {
-  const stringCount = fretCandidatesPerString.length;
-  const positionSet = new Array<number[]>();
-  const fretArray = new Array<number>();
-  function fill(s: number) {
-    if (s === stringCount) {
-      positionSet.push(fretArray.slice());
-    } else {
-      fretCandidatesPerString[s].forEach((fret) => {
-        fretArray[s] = fret;
-        fill(s + 1);
-      });
-    }
-  }
-  fill(0);
-  return positionSet;
-}
-
-// Return an array, indexed by string number, of frets in the chord
-function fretsPerString(
-  chord: Chord<Pitch>,
-  instrument: FrettedInstrument,
-  options: FindFingeringOptions,
-): number[][] {
-  let positions = fingerPositionsOnChord(chord, instrument);
-  if (options.maxFretNumber) {
-    positions = positions.filter(
-      (pos) => pos.fretNumber <= options.maxFretNumber,
-    );
-  }
-  const strings = instrument.stringNumbers.map((_) => new Array<number>());
-  positions.forEach(({ stringNumber, fretNumber }) =>
-    strings[stringNumber].push(fretNumber),
-  );
-  return strings;
-}
-
+/** Count the number of distinct pitch classes. */
 function countPitchClasses(
   instrument: FrettedInstrument,
   fretArray: number[],
@@ -164,6 +170,9 @@ function countPitchClasses(
   return pitchClasses.length;
 }
 
+/** Return the spread between the lowest- and highest-numbered frets, excluding
+ * the nut and muted strings.
+ */
 function computeFretSpread(fretArray: number[]) {
   const frets = fretArray.filter((fret) => fret > 0);
   return _.max(frets)! - _.min(frets)!;
