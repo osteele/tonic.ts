@@ -12,6 +12,10 @@
   "repository": "github:osteele/tonic.js",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist/",
+    "LICENSE"
+  ],
   "dependencies": {
     "@types/lodash": "^4.14.116",
     "lodash": "^4.17.10"
@@ -28,17 +32,19 @@
     "typescript": "^3.0.1"
   },
   "scripts": {
-    "prepublish": "yarn run build && tsc",
+    "clean": "rimraf dist",
     "build": "rimraf dist && tsc",
     "doc": "typedoc --out docs/api --mode file --excludePrivate --excludeProtected --excludeExternals --exclude \"**/graphics/*.ts\" src",
+    "format": "yarn lint --fix",
     "lint": "tslint --project .",
     "lint:strict": "tslint --project . -c tslint-strict.yaml",
-    "test": "jest --onlyChanged"
+    "prepublish": "yarn run build",
+    "test": "jest"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint --fix && yarn test --bail",
-      "pre-push": "yarn test --all && yarn build"
+      "pre-commit": "yarn format && yarn test --onlyChanged --bail",
+      "pre-push": "yarn build && yarn test --all"
     }
   }
 }
