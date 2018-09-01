@@ -51,19 +51,14 @@ describe('bestFingeringFor', () => {
   it('should yield best fingerings for open chords', () => {
     const instrument = Instruments.Guitar;
     expect(fingeringFor('E Major', instrument).fretString).toBe('022100');
-    // FIXME: should be x02220
-    expect(fingeringFor('A Major', instrument).fretString).toBe('002220');
-    // FIXME: should be xx0232
-    expect(fingeringFor('D Major', instrument).fretString).toBe('200232');
+    expect(fingeringFor('A Major', instrument).fretString).toBe('x02220');
+    expect(fingeringFor('D Major', instrument).fretString).toBe('xx0232');
     expect(fingeringFor('G Major', instrument).fretString).toBe('320003');
-    // FIXME: should be x32010
-    expect(fingeringFor('C Major', instrument).fretString).toBe('032010');
+    expect(fingeringFor('C Major', instrument).fretString).toBe('x32010');
 
     expect(fingeringFor('E Minor', instrument).fretString).toBe('022000');
-    // FIXME: should be xx02210
-    expect(fingeringFor('A Minor', instrument).fretString).toBe('002210');
-    // FIXME: should be xx0231
-    expect(fingeringFor('D Minor', instrument).fretString).toBe('100231');
+    expect(fingeringFor('A Minor', instrument).fretString).toBe('x02210');
+    expect(fingeringFor('D Minor', instrument).fretString).toBe('xx0231');
   });
 
   describe('E Major', () => {
