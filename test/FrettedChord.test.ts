@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
-import { allFingerings, fingeringFor, Instruments, Interval } from '../src';
+import { allFrettings, frettingFor, Instruments, Interval } from '../src';
 
 describe.skip('allFingerings', () => {
-  const fingerings = allFingerings('A Major', Instruments.Guitar);
+  const fingerings = allFrettings('A Major', Instruments.Guitar);
   expect(_.map(fingerings, 'fretString')).toHaveLength(100);
 });
 
 describe('Fingering', () => {
-  const fingering = fingeringFor('E Major', Instruments.Guitar);
+  const fingering = frettingFor('E Major', Instruments.Guitar);
   // const fingering = new Fingering(Chord.fromString('E Major'), Instrument.Guitar, ...)
 
   it('should have an array of barres', () =>
@@ -51,49 +51,49 @@ describe('bestFingeringFor', () => {
   const guitar = Instruments.Guitar;
 
   it('should yield the preferred fingerings for open chords', () => {
-    expect(fingeringFor('E Major', guitar).fretString).toBe('022100');
-    expect(fingeringFor('A Major', guitar).fretString).toBe('x02220');
-    expect(fingeringFor('D Major', guitar).fretString).toBe('xx0232');
-    expect(fingeringFor('G Major', guitar).fretString).toBe('320003');
-    expect(fingeringFor('C Major', guitar).fretString).toBe('x32010');
+    expect(frettingFor('E Major', guitar).fretString).toBe('022100');
+    expect(frettingFor('A Major', guitar).fretString).toBe('x02220');
+    expect(frettingFor('D Major', guitar).fretString).toBe('xx0232');
+    expect(frettingFor('G Major', guitar).fretString).toBe('320003');
+    expect(frettingFor('C Major', guitar).fretString).toBe('x32010');
 
-    expect(fingeringFor('E Minor', guitar).fretString).toBe('022000');
-    expect(fingeringFor('A Minor', guitar).fretString).toBe('x02210');
-    expect(fingeringFor('D Minor', guitar).fretString).toBe('xx0231');
+    expect(frettingFor('E Minor', guitar).fretString).toBe('022000');
+    expect(frettingFor('A Minor', guitar).fretString).toBe('x02210');
+    expect(frettingFor('D Minor', guitar).fretString).toBe('xx0231');
   });
 
   it('should yield the preferred fingerings for dominant 7th chords', () => {
     // TODO: should be 020100
-    expect(fingeringFor('E7', guitar).fretString).toBe('022100');
+    expect(frettingFor('E7', guitar).fretString).toBe('022100');
     // TODO: should be 320001
-    expect(fingeringFor('G7', guitar).fretString).toBe('320003');
+    expect(frettingFor('G7', guitar).fretString).toBe('320003');
     // TODO: should be x02020
-    expect(fingeringFor('A7', guitar).fretString).toBe('x02220');
+    expect(frettingFor('A7', guitar).fretString).toBe('x02220');
     // TODO: should be x21202
-    expect(fingeringFor('B7', guitar).fretString).toBe('x21402');
+    expect(frettingFor('B7', guitar).fretString).toBe('x21402');
     // TODO: should be xx0212
-    expect(fingeringFor('D7', guitar).fretString).toBe('xx0232');
+    expect(frettingFor('D7', guitar).fretString).toBe('xx0232');
   });
 
   it.skip('should yield the preferred fingerings for minor 7th chords', () => {
-    expect(fingeringFor('Dm7', guitar).fretString).toBe('xx0211')
-    expect(fingeringFor('Em7', guitar).fretString).toBe('020000')
-    expect(fingeringFor('Am7', guitar).fretString).toBe('x02010')
-    expect(fingeringFor('Bm7', guitar).fretString).toBe('x20202')
-    expect(fingeringFor('F♯m7', guitar).fretString).toBe('202220')
+    expect(frettingFor('Dm7', guitar).fretString).toBe('xx0211');
+    expect(frettingFor('Em7', guitar).fretString).toBe('020000');
+    expect(frettingFor('Am7', guitar).fretString).toBe('x02010');
+    expect(frettingFor('Bm7', guitar).fretString).toBe('x20202');
+    expect(frettingFor('F♯m7', guitar).fretString).toBe('202220');
   });
 
   it.skip('should yield the preferred fingerings for major 7th chords', () => {
-    expect(fingeringFor('Cmaj7').fretString).toBe('X32000');
-    expect(fingeringFor('Dmaj7').fretString).toBe('XX0222');
-    expect(fingeringFor('Emaj7').fretString).toBe('021100');
-    expect(fingeringFor('Fmaj7').fretString).toBe('103210');
-    expect(fingeringFor('Gmaj7').fretString).toBe('320002');
-    expect(fingeringFor('Amaj7').fretString).toBe('X02120');
+    expect(frettingFor('Cmaj7').fretString).toBe('X32000');
+    expect(frettingFor('Dmaj7').fretString).toBe('XX0222');
+    expect(frettingFor('Emaj7').fretString).toBe('021100');
+    expect(frettingFor('Fmaj7').fretString).toBe('103210');
+    expect(frettingFor('Gmaj7').fretString).toBe('320002');
+    expect(frettingFor('Amaj7').fretString).toBe('X02120');
   });
 
   describe('E Major', () => {
-    const fingering = fingeringFor('E Major', guitar);
+    const fingering = frettingFor('E Major', guitar);
 
     it('should have fingers at 022100', () => {
       expect(fingering.positions).toHaveLength(6);

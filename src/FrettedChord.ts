@@ -4,10 +4,11 @@ import { FretPosition, FrettedInstrument } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 
-/** These are "fingerings" and not "voicings" because they also include barre
- * information.
+/** Also known as “guitar chords”; but generalized to fretted instruments.
+ *
+ * See [guitar chord](https://en.wikipedia.org/wiki/Guitar_chord).
  */
-export class Fingering {
+export class FrettedChord {
   // Fingering positions, ascending by string number
   public readonly positions: FingeringPosition[];
   public readonly properties: { [_: string]: any };
@@ -114,7 +115,7 @@ export interface Barre {
 }
 
 // tslint:disable:object-literal-sort-keys
-type Getter<T> = (_: Fingering) => T;
+type Getter<T> = (_: FrettedChord) => T;
 const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
   fingers: (fingering) => fingering.fingerCount,
   bassIsRoot: ({ positions }) =>

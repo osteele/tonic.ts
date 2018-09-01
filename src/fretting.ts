@@ -1,20 +1,20 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
-import { Barre, Fingering } from './Fingering';
+import { Barre, FrettedChord } from './FrettedChord';
 import { FretPosition, FrettedInstrument } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 import { powerset } from './utils';
 
 // TODO: add options for strumming vs. fingerstyle; muting; stretch
-interface FingeringOptions {
+interface FrettingOptions {
   filter: boolean;
   fingerPicking: boolean;
   maxFretNumber: number;
   maxFretSpread: number;
 }
 
-const defaultOptions: FingeringOptions = {
+const defaultOptions: FrettingOptions = {
   filter: true,
   fingerPicking: false,
   maxFretNumber: 4,
@@ -24,21 +24,21 @@ const defaultOptions: FingeringOptions = {
 type FretNumber = number;
 
 /** Return best fingering, sorted by default properties. */
-export function fingeringFor(
+export function frettingFor(
   chord: Chord<Pitch> | string,
   instrument: FrettedInstrument,
-  options: Partial<FingeringOptions> = defaultOptions,
-): Fingering {
+  options: Partial<FrettingOptions> = defaultOptions,
+): FrettedChord {
   // TODO: nicer error when no fingerings available
-  return allFingerings(chord, instrument, options)[0];
+  return allFrettings(chord, instrument, options)[0];
 }
 
 /** Return fingerings, sorted by default properties. */
-export function allFingerings(
+export function allFrettings(
   chordOrName: Chord<Pitch> | string,
   instrument: FrettedInstrument,
-  options: Partial<FingeringOptions> = defaultOptions,
-): Fingering[] {
+  options: Partial<FrettingOptions> = defaultOptions,
+): FrettedChord[] {
   const chord =
     typeof chordOrName === 'string'
       ? (Chord.fromString(chordOrName) as Chord<Pitch>)
@@ -76,7 +76,7 @@ function fingerPositionsOnChord(
 function fretsPerString(
   chord: Chord<Pitch>,
   instrument: FrettedInstrument,
-  options: FingeringOptions,
+  options: FrettingOptions,
 ): FretNumber[][] {
   const result = instrument.stringNumbers.map(() => new Array<number>());
   fingerPositionsOnChord(chord, instrument)
@@ -121,8 +121,8 @@ function generateFretArrays(stringFrets: FretNumber[][]): FretArray[] {
 function generateFingerings(
   chord: Chord<Pitch>,
   instrument: FrettedInstrument,
-  options: FingeringOptions,
-): Fingering[] {
+  options: FrettingOptions,
+): FrettedChord[] {
   // Generate candidate fingerings. Do some preliminary filtering, to avoid
   // creating computing barres and instantiating Fingering for fingering
   // combinations that can be easily eliminated.
@@ -156,7 +156,7 @@ function generateFingerings(
     const barreSets = positions.length < 4 ? [[]] : collectBarreSets(fretArray);
     fingerings.push(
       ...barreSets.map(
-        (barres) => new Fingering(chord, instrument, positions, barres),
+        (barres) => new FrettedChord(chord, instrument, positions, barres),
       ),
     );
   }
@@ -194,7 +194,7 @@ function computeFretSpread(fretArray: FretArray) {
 // Predicates and other projections
 //
 
-type FingeringProjection<T> = (_: Fingering) => T;
+type FingeringProjection<T> = (_: FrettedChord) => T;
 type FingeringPredicate = FingeringProjection<boolean>;
 
 // const hasAllNotes: FingeringPredicate = (fingering) =>
@@ -214,7 +214,7 @@ const fingerCount: FingeringProjection<number> = (fingering) =>
   fingering.fingerCount;
 
 /// Does the fingering require four fingers or fewer?
-const fourFingersOrFewer: (_: Fingering) => boolean = (fingering) =>
+const fourFingersOrFewer: (_: FrettedChord) => boolean = (fingering) =>
   fingerCount(fingering) <= 4;
 
 // FIXME count pitch classes, not sounded strings
@@ -232,8 +232,8 @@ const barreCount: FingeringProjection<number> = (fingering) =>
 //
 
 type Filter =
-  | { reject?: null; select: (_: Fingering) => boolean }
-  | { reject: (_: Fingering) => boolean; select?: null };
+  | { reject?: null; select: (_: FrettedChord) => boolean }
+  | { reject: (_: FrettedChord) => boolean; select?: null };
 
 interface FilterOptions {
   filter: boolean;
@@ -258,9 +258,9 @@ function getFilters(options: FilterOptions): Filter[] {
  * eliminate remaining fingers.
  */
 function selectFingerings(
-  fingerings: Fingering[],
+  fingerings: FrettedChord[],
   options = { filter: false, fingerPicking: false },
-): Fingering[] {
+): FrettedChord[] {
   const filters = getFilters(options);
   for (const filter of filters) {
     const select = filter.select || ((x) => !filter.reject!(x));
@@ -292,7 +292,7 @@ const sortingPreferences: Array<{
 const makeSortFunction = (
   key: FingeringProjection<any>,
   descending: boolean,
-) => (fingering: Fingering): number | boolean => {
+) => (fingering: FrettedChord): number | boolean => {
   const k = key(fingering);
   return descending !== (typeof k === 'boolean') ? -Number(k) : k;
 };
@@ -300,7 +300,7 @@ const makeSortFunction = (
 /** Sort fingerings lexicographically by the projections `preferences`. Mutates
  * `fingerings`.
  */
-function sortFingerings(fingerings: Fingering[]): Fingering[] {
+function sortFingerings(fingerings: FrettedChord[]): FrettedChord[] {
   // sort true before false, 0 before 1, unless descending
   const fs = _.reduceRight(
     sortingPreferences,
