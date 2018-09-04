@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
 import { Barre, FrettedChord } from './FrettedChord';
-import { FretPosition, FrettedInstrument } from './Instrument';
+import { FrettedInstrument, StringFret } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 import { powerset } from './utils';
@@ -23,17 +23,17 @@ const defaultOptions: FrettingOptions = {
 
 type FretNumber = number;
 
-/** Return best fingering, sorted by default properties. */
+/** Return best fretting, sorted by default properties. */
 export function frettingFor(
   chord: Chord<Pitch> | string,
   instrument: FrettedInstrument,
   options: Partial<FrettingOptions> = defaultOptions,
 ): FrettedChord {
-  // TODO: nicer error when no fingerings available
+  // TODO: nicer error when no frettings available
   return allFrettings(chord, instrument, options)[0];
 }
 
-/** Return fingerings, sorted by default properties. */
+/** Return frettings, sorted by default properties. */
 export function allFrettings(
   chordOrName: Chord<Pitch> | string,
   instrument: FrettedInstrument,
@@ -44,25 +44,25 @@ export function allFrettings(
       ? (Chord.fromString(chordOrName) as Chord<Pitch>)
       : chordOrName;
   const allOptions = { ...options, ...defaultOptions };
-  let fingerings = generateFingerings(chord, instrument, allOptions);
-  fingerings = selectFingerings(fingerings, allOptions);
-  fingerings = sortFingerings(fingerings);
-  return fingerings;
+  let frettings = generateFrettings(chord, instrument, allOptions);
+  frettings = selectFrettings(frettings, allOptions);
+  frettings = sortFingerings(frettings);
+  return frettings;
 }
 
 //
-// Generate fingerings
+// Generate frettings
 //
 
 /** Make an array of the fret positions whose pitch classes are in the chord.
  */
-function fingerPositionsOnChord(
+function fretPositionsOnChord(
   chord: Chord<Pitch>,
   instrument: FrettedInstrument,
-): FretPosition[] {
+): StringFret[] {
   const { root, intervals } = chord;
-  const positions = new Array<FretPosition>();
-  instrument.forEachFingerPosition((pos) => {
+  const positions = new Array<StringFret>();
+  instrument.forEachStringFret((pos) => {
     const interval = Interval.between(root, instrument.pitchAt(pos));
     if (intervals.indexOf(interval) >= 0) {
       positions.push(pos);
@@ -79,7 +79,7 @@ function fretsPerString(
   options: FrettingOptions,
 ): FretNumber[][] {
   const result = instrument.stringNumbers.map(() => new Array<number>());
-  fingerPositionsOnChord(chord, instrument)
+  fretPositionsOnChord(chord, instrument)
     .filter(
       options.maxFretNumber
         ? (pos) => pos.fretNumber <= options.maxFretNumber
@@ -91,6 +91,7 @@ function fretsPerString(
   return result;
 }
 
+/** An array of candidate fret positions on a string. */
 type FretArray = Array<FretNumber | null>;
 
 /** in: an array[stringNumber] = candidates: fretNumber[]
@@ -118,13 +119,13 @@ function generateFretArrays(stringFrets: FretNumber[][]): FretArray[] {
   return result;
 }
 
-function generateFingerings(
+function generateFrettings(
   chord: Chord<Pitch>,
   instrument: FrettedInstrument,
   options: FrettingOptions,
 ): FrettedChord[] {
-  // Generate candidate fingerings. Do some preliminary filtering, to avoid
-  // creating computing barres and instantiating Fingering for fingering
+  // Generate candidate frettings. Do some preliminary filtering, to avoid
+  // creating computing barres and instantiating FrettedChord for fretting
   // combinations that can be easily eliminated.
   const pitchClassCount = chord.pitches.length;
   const fretArrays = generateFretArrays(
@@ -136,13 +137,13 @@ function generateFingerings(
     .filter((fretArray) => computeFretSpread(fretArray) <= options.maxFretSpread);
   // Transform the candidates into FretPositions, find barres, and create a
   // Fingering for each combination.
-  const fingerings = [];
+  const frettings = [];
   for (const fretArray of fretArrays) {
     const positions = fretArray
       .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
       .filter(({ fretNumber }) => fretNumber !== null)
       .map((_pos) => {
-        const pos = _pos as FretPosition;
+        const pos = _pos as StringFret;
         const intervalClass = Interval.between(
           chord.root,
           instrument.pitchAt(pos),
@@ -154,13 +155,13 @@ function generateFingerings(
         };
       });
     const barreSets = positions.length < 4 ? [[]] : collectBarreSets(fretArray);
-    fingerings.push(
+    frettings.push(
       ...barreSets.map(
         (barres) => new FrettedChord(chord, instrument, positions, barres),
       ),
     );
   }
-  return fingerings;
+  return frettings;
 }
 
 /** Count the number of distinct pitch classes. */
@@ -194,38 +195,38 @@ function computeFretSpread(fretArray: FretArray) {
 // Predicates and other projections
 //
 
-type FingeringProjection<T> = (_: FrettedChord) => T;
-type FingeringPredicate = FingeringProjection<boolean>;
+type FrettedChordProjection<T> = (_: FrettedChord) => T;
+type FrettedChordPredicate = FrettedChordProjection<boolean>;
 
-// const hasAllNotes: FingeringPredicate = (fingering) =>
-//   countDistinctNotes(fingering) === chordNoteCount;
+// const hasAllNotes: FingeringPredicate = (fretting) =>
+//   countDistinctNotes(fretting) === chordNoteCount;
 
 /// Is there a muted string between two voiced strings?
-const mutedMedialStrings: FingeringPredicate = (fingering) =>
-  fingering.fretString.match(/\dx+\d/) != null;
+const mutedMedialStrings: FrettedChordPredicate = (fretting) =>
+  fretting.fretString.match(/\dx+\d/) != null;
 
 /// Is there a muted treble string?
-const mutedTrebleStrings: FingeringPredicate = (fingering) =>
-  fingering.fretString.match(/x$/) != null;
+const mutedTrebleStrings: FrettedChordPredicate = (fretting) =>
+  fretting.fretString.match(/x$/) != null;
 
-/// How many fingers does the fingering require? For an un-barred fingering,
+/// How many fingers does the fretting require? For an un-barred fretting,
 /// this is just the number of fretted strings.
-const fingerCount: FingeringProjection<number> = (fingering) =>
-  fingering.fingerCount;
+const fingerCount: FrettedChordProjection<number> = (fretting) =>
+  fretting.fingerCount;
 
-/// Does the fingering require four fingers or fewer?
-const fourFingersOrFewer: (_: FrettedChord) => boolean = (fingering) =>
-  fingerCount(fingering) <= 4;
+/// Does the fretting require four fingers or fewer?
+const fourFingersOrFewer: (_: FrettedChord) => boolean = (fretting) =>
+  fingerCount(fretting) <= 4;
 
 // FIXME count pitch classes, not sounded strings
-const noteCount: FingeringProjection<number> = (fingering) =>
-  fingering.positions.length;
+const noteCount: FrettedChordProjection<number> = (fretting) =>
+  fretting.positions.length;
 
-const isRootPosition: FingeringPredicate = (fingering) =>
-  _.sortBy(fingering.positions, (pos) => pos.stringNumber)[0].degreeIndex === 0;
+const isRootPosition: FrettedChordPredicate = (fretting) =>
+  _.sortBy(fretting.positions, (pos) => pos.stringNumber)[0].degreeIndex === 0;
 
-const barreCount: FingeringProjection<number> = (fingering) =>
-  fingering.barres.length;
+const barreCount: FrettedChordProjection<number> = (fretting) =>
+  fretting.barres.length;
 
 //
 // Filter
@@ -257,30 +258,29 @@ function getFilters(options: FilterOptions): Filter[] {
 /**Filter by all the filters in the list, except ignore filters that would
  * eliminate remaining fingers.
  */
-function selectFingerings(
-  fingerings: FrettedChord[],
+function selectFrettings(
+  frettings: FrettedChord[],
   options = { filter: false, fingerPicking: false },
 ): FrettedChord[] {
   const filters = getFilters(options);
   for (const filter of filters) {
     const select = filter.select || ((x) => !filter.reject!(x));
-    const filtered = fingerings.filter(select);
+    const filtered = frettings.filter(select);
     // skip filters that reject everything
     if (filtered.length) {
-      fingerings = filtered;
+      frettings = filtered;
     }
   }
-  return fingerings;
+  return frettings;
 }
 
 //
 // Sort
 //
 
-// ordered list of preferences, from most to least important
-// TODO: move this to options
+// An ordered list of preferences, from most to least important.
 const sortingPreferences: Array<{
-  key: FingeringProjection<boolean | number>;
+  key: FrettedChordProjection<boolean | number>;
   descending?: true | null;
 }> = [
   { key: isRootPosition },
@@ -290,23 +290,23 @@ const sortingPreferences: Array<{
 ];
 
 const makeSortFunction = (
-  key: FingeringProjection<any>,
+  key: FrettedChordProjection<any>,
   descending: boolean,
-) => (fingering: FrettedChord): number | boolean => {
-  const k = key(fingering);
+) => (fretting: FrettedChord): number | boolean => {
+  const k = key(fretting);
   return descending !== (typeof k === 'boolean') ? -Number(k) : k;
 };
 
-/** Sort fingerings lexicographically by the projections `preferences`. Mutates
- * `fingerings`.
+/** Sort frettings lexicographically by the projections in
+ * `sortingPreferences`.
  */
-function sortFingerings(fingerings: FrettedChord[]): FrettedChord[] {
+function sortFingerings(frettings: FrettedChord[]): FrettedChord[] {
   // sort true before false, 0 before 1, unless descending
   const fs = _.reduceRight(
     sortingPreferences,
     (fs, { key, descending }) =>
       fs.sortBy(makeSortFunction(key, descending || false)),
-    _.chain(fingerings),
+    _.chain(frettings),
   ).value();
   return fs;
 }

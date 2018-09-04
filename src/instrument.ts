@@ -43,7 +43,7 @@ export class FrettedInstrument extends StringInstrument {
     // }
   }
 
-  public forEachFingerPosition(fn: (_: FretPosition) => any) {
+  public forEachStringFret(fn: (_: StringFret) => any) {
     this.stringNumbers.forEach((stringNumber) => {
       // <= instead of <, since 0 represents the nut
       for (let fretNumber = 0; fretNumber <= this.fretCount; fretNumber++) {
@@ -52,14 +52,17 @@ export class FrettedInstrument extends StringInstrument {
     });
   }
 
-  public pitchAt({ stringNumber, fretNumber }: FretPosition) {
+  public pitchAt({ stringNumber, fretNumber }: StringFret) {
     return Pitch.fromMidiNumber(
       this.stringPitches[stringNumber].midiNumber + fretNumber,
     );
   }
 }
 
-export interface FretPosition {
+/** A specific fret on a specific string. 0 represents an open string, or the
+ * nut.
+ */
+export interface StringFret {
   readonly fretNumber: number;
   readonly stringNumber: number;
 }

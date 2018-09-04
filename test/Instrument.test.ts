@@ -53,7 +53,7 @@ describe('Instrument', () => {
       let found = false;
       const strings: { [_: number]: boolean } = {};
       const frets: { [_: number]: boolean } = {};
-      guitar.forEachFingerPosition(({ stringNumber, fretNumber }) => {
+      guitar.forEachStringFret(({ stringNumber, fretNumber }) => {
         expect(stringNumber).toBeWithin(0, 5);
         expect(fretNumber).toBeWithin(0, 12);
         strings[stringNumber] = true;

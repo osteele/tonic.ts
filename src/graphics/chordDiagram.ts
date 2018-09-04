@@ -2,8 +2,8 @@ import * as _ from 'lodash';
 import {
   FretCount,
   FretNumbers,
-  FretPosition,
   FrettedInstrument,
+  StringFret,
 } from '../Instrument';
 import { Interval } from '../Interval';
 import { GraphicsContext } from './graphics';
@@ -162,7 +162,7 @@ function drawChordDiagram(
     );
   }
 
-  function fingerCoordinates({ stringNumber, fretNumber }: FretPosition) {
+  function fingerCoordinates({ stringNumber, fretNumber }: StringFret) {
     if (fretNumber > 0) {
       fretNumber -= topFret;
     }
@@ -177,7 +177,7 @@ function drawChordDiagram(
   }
 
   function drawFingerPosition(
-    position: FretPosition,
+    position: StringFret,
     options: { isRoot?: boolean; color?: string } = {},
   ) {
     const { isRoot, color } = options;

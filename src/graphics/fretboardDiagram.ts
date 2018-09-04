@@ -1,9 +1,4 @@
-import {
-  FretCount,
-  FretNumbers,
-  FretPosition,
-  FrettedInstrument,
-} from '../Instrument';
+import { FretCount, FretNumbers, FrettedInstrument, StringFret } from '../Instrument';
 import { GraphicsContext } from './graphics';
 
 //
@@ -82,7 +77,7 @@ function drawFretboardFrets(
 
 function drawFretboardFingerPosition(
   ctx: GraphicsContext,
-  position: FretPosition,
+  position: StringFret,
   options: { isRoot?: boolean; color?: string } = {},
 ) {
   const style = DefaultStyle;
@@ -108,7 +103,7 @@ function drawFretboardFingerPosition(
 function drawFretboard(
   ctx: GraphicsContext,
   instrument: FrettedInstrument,
-  positions: FretPosition[],
+  positions: StringFret[],
 ) {
   drawFretboardStrings(ctx, instrument);
   drawFretboardFrets(ctx, instrument);
@@ -117,8 +112,5 @@ function drawFretboard(
   );
 }
 
-export {
-  paddedFretboardWidth as width,
-  paddedFretboardHeight as height,
-  drawFretboard as draw,
-};
+export { paddedFretboardWidth as width, paddedFretboardHeight as height, drawFretboard as draw, };
+

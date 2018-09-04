@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
-import { FretPosition, FrettedInstrument } from './Instrument';
+import { FrettedInstrument, StringFret } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 
@@ -10,23 +10,23 @@ import { Pitch } from './Pitch';
  */
 export class FrettedChord {
   // Fingering positions, ascending by string number
-  public readonly positions: FingeringPosition[];
+  public readonly positions: ChordFret[];
   public readonly properties: { [_: string]: any };
 
   private _fretString: string | null = null;
   constructor(
     readonly chord: Chord<Pitch>,
     readonly instrument: FrettedInstrument,
-    positions: FingeringPosition[],
+    positions: ChordFret[],
     readonly barres: Barre[],
   ) {
     this.positions = [...positions].sort(
-      (a: FretPosition, b: FretPosition) => a.stringNumber - b.stringNumber,
+      (a: StringFret, b: StringFret) => a.stringNumber - b.stringNumber,
     );
     this.properties = this.createProperties();
   }
 
-  /** How many fingers does the fingering require? For an un-barred fingering,
+  /** How many fingers does the fretting require? For an un-barred fretting,
    * this is just the number of fretted strings.
    */
   get fingerCount(): number {
@@ -45,7 +45,7 @@ export class FrettedChord {
       return this._fretString;
     }
     const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
-    this.positions.forEach(({ stringNumber, fretNumber }: FretPosition) => {
+    this.positions.forEach(({ stringNumber, fretNumber }: StringFret) => {
       fretArray[stringNumber] = fretNumber;
     });
     this._fretString = fretArray.map((n) => (n >= 0 ? n : 'x')).join('');
@@ -94,9 +94,9 @@ export class FrettedChord {
 }
 
 /** A FretPosition, annotated with information that's useful during
- * chord-fingering computation.
+ * fretting computation.
  */
-export interface FingeringPosition extends FretPosition {
+export interface ChordFret extends StringFret {
   readonly degreeIndex: number;
   readonly intervalClass: Interval;
 }
@@ -117,11 +117,11 @@ export interface Barre {
 // tslint:disable:object-literal-sort-keys
 type Getter<T> = (_: FrettedChord) => T;
 const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
-  fingers: (fingering) => fingering.fingerCount,
+  fingers: (fretting) => fretting.fingerCount,
   bassIsRoot: ({ positions }) =>
     _.sortBy(positions, (pos) => pos.stringNumber)[0].degreeIndex === 0,
   // TODO: restore this
-  // inversion(f: Fingering) => f.inversionLetter || '',
+  // inversion(fretting: FrettedChord) => fretting.inversionLetter || '',
 
   bass: /^\d{3}x*$/,
   treble: /^x*\d{3}$/,
