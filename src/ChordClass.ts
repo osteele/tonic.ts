@@ -1,4 +1,8 @@
-import { asInterval, Chord, Interval, parsePitchLike, Pitch, PitchClass, PitchLike } from './index';
+import { Chord } from './Chord';
+import { asInterval, Interval } from './Interval';
+import { Pitch } from './Pitch';
+import { PitchClass } from './PitchClass';
+import { parsePitchLike, PitchLike } from './PitchLike';
 
 export interface ChordClassConstructorOptions {
   name: string;
@@ -83,7 +87,64 @@ export class ChordClass {
   }
 }
 
-/** A set of intervals from a root. A chord has a name, a set of intervals, a
- * set pitches (or pitch classes), and an inversion. For example, "E Major" and
- * "C Minor" name chords.
- */
+class ChordClassAccessor extends ChordClass {
+  public static addChord(chordClass: ChordClass) {
+    const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
+    [
+      chordClass.name,
+      chordClass.fullName,
+      ...chordClass.abbrs,
+      pitchKey,
+    ].forEach((key) => {
+      if (key) {
+        ChordClass.chordMap.set(key, chordClass);
+      }
+    });
+  }
+}
+
+const chordClassArray: ChordClass[] = [
+  { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
+  { name: 'Minor', abbrs: ['m'], intervals: '037' },
+  { name: 'Augmented', abbrs: ['+', 'aug'], intervals: '048' },
+  { name: 'Diminished', abbrs: ['°', 'dim'], intervals: '036' },
+  { name: 'Sus2', abbrs: ['sus2'], intervals: '027' },
+  { name: 'Sus4', abbrs: ['sus4'], intervals: '057' },
+  { name: 'Dominant 7th', abbrs: ['7', 'dom7'], intervals: '047t' },
+  { name: 'Augmented 7th', abbrs: ['+7', '7aug'], intervals: '048t' },
+  { name: 'Diminished 7th', abbrs: ['°7', 'dim7'], intervals: '0369' },
+  { name: 'Major 7th', abbrs: ['maj7'], intervals: '047e' },
+  { name: 'Minor 7th', abbrs: ['min7'], intervals: '037t' },
+  { name: 'Dominant 7b5', abbrs: ['7b5'], intervals: '046t' },
+  // following is also half-diminished 7th
+  { name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], intervals: '036t' },
+  { name: 'Diminished Maj 7th', abbrs: ['°Maj7'], intervals: '036e' },
+  {
+    abbrs: ['min/maj7', 'min(maj7)'],
+    intervals: '037e',
+    name: 'Minor-Major 7th',
+  },
+  { name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], intervals: '0479' },
+  { name: 'Minor 6th', abbrs: ['m6', 'min6'], intervals: '0379' },
+].map(({ name, abbrs, intervals }) => {
+  const fullName = name;
+  name = name
+    .replace(/Major(?!$)/, 'Maj')
+    .replace(/Minor(?!$)/, 'Min')
+    .replace('Dominant', 'Dom')
+    .replace('Diminished', 'Dim');
+  const toneNames: { [_: string]: number } = { t: 10, e: 11 };
+  const intervalInstances = intervals.match(/./g)!.map((c: string) => {
+    const left = toneNames[c];
+    const semitones = left != null ? left : Number(c);
+    return Interval.fromSemitones(semitones);
+  });
+  return new ChordClass({
+    abbrs,
+    fullName,
+    intervals: intervalInstances,
+    name,
+  });
+});
+
+chordClassArray.forEach(ChordClassAccessor.addChord);
