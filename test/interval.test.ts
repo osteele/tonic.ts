@@ -5,6 +5,7 @@ import {
   Intervals,
   LongIntervalNames,
   Pitch,
+  PitchClass,
   ShortIntervalNames,
 } from '../src';
 
@@ -93,15 +94,38 @@ describe('Interval', () => {
     const F4 = Pitch.fromString('F4');
     const G4 = Pitch.fromString('G4');
     const C4 = Pitch.fromString('C4');
-    const { P1, P5, m2, m3 } = Intervals;
+    const GA4 = Pitch.fromString('G#4');
+    const { P1, m2, m3, M3, P5 } = Intervals;
 
     it('should return the interval between two pitches', () => {
       expect(Interval.between(E4, E4)).toBe(P1);
       expect(Interval.between(E4, F4)).toBe(m2);
       expect(Interval.between(E4, G4)).toBe(m3);
+      expect(Interval.between(E4, GA4)).toBe(M3);
     });
-    it('should use modular arithmetic', () =>
-      expect(Interval.between(F4, C4)).toBe(P5));
+
+    it('should return the interval between two pitch classes', () => {
+      const E = PitchClass.fromString('E');
+      const F = PitchClass.fromString('F');
+      const G = PitchClass.fromString('G');
+      const GA = PitchClass.fromString('G#');
+      expect(Interval.between(E, E)).toBe(P1);
+      expect(Interval.between(E, F)).toBe(m2);
+      expect(Interval.between(E, G)).toBe(m3);
+      expect(Interval.between(E, GA)).toBe(M3);
+    });
+
+    it('should use modular arithmetic', () => {
+      expect(Interval.between(F4, C4)).toBe(P5);
+    });
+
+    it.skip('should preserve the quality', () => {
+      const d3 = Interval.fromString('d3');
+      const A3 = Interval.fromString('A3');
+      expect(Interval.between(C4, Pitch.fromString('E4'))).toBe(M3);
+      expect(Interval.between(C4, Pitch.fromString('Eb4'))).toBe(d3);
+      expect(Interval.between(C4, Pitch.fromString('E#4'))).toBe(A3);
+    });
   });
 
   it('inverse', () => {

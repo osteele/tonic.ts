@@ -3,6 +3,7 @@ import { normalizePitchClass, PitchClassNumber } from './notation';
 import { Pitch } from './Pitch';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
+
 // tslint:disable-next-line variable-name
 export const ShortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
   /\s/,
@@ -35,13 +36,17 @@ export enum IntervalQuality {
   DoublyAugmented,
 }
 
-const accidentalsToQuality = [
+// ar[semitones + 2] = IntervalQuality | null.
+// ar[0 + 2] = null, since this is ambiguous among Major, Minor, and Perfect,
+// depending on the interval's (diatonic) number.
+const accidentalsToQuality: Array<IntervalQuality | null> = [
   IntervalQuality.DoublyDiminished,
   IntervalQuality.Diminished,
   null,
   IntervalQuality.Augmented,
   IntervalQuality.DoublyAugmented,
 ];
+
 const abbrList: Array<[IntervalQuality, string]> = [
   [IntervalQuality.Major, 'M'],
   [IntervalQuality.Minor, 'm'],
@@ -56,9 +61,14 @@ const abbrevToQuality = new Map<string, IntervalQuality>(
   abbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
 );
 
+// Arrays of ar[diatonicNumber] to semitone counts. `Interval.fromString` uses
+// these. They're initialized below.
 const majorSemitones = new Array<number>(8);
 const minorSemitones = new Array<number>(8);
 const perfectSemitones = new Array<number>(8);
+
+// Initialize majorSemitones, minorSemitones, and perfectSemitones from
+// ShortIntervalNames.
 ShortIntervalNames.forEach((name, semitones) => {
   const m = name.match(/(.)(\d)/);
   if (m) {
@@ -87,7 +97,7 @@ const lowerCaseQualities: { [_: string]: number } = {
  * interned. Thus, two instance of M3 are ===, but augmented P4 and diminished
  * P5 are distinct from each other and from TT.
  */
-// FIXME these are interval classes, not intervals
+// TODO: these are interval classes, limited to P1–P8. Allow complex intervals.
 export class Interval {
   public static fromSemitones(semitones: number, accidentals = 0): Interval {
     return new Interval(semitones, accidentals);
