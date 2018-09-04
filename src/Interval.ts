@@ -207,6 +207,11 @@ export class Interval {
     return s;
   }
 
+  // Override the default implementation, to get readable Jest messages
+  public toJSON() {
+    return `Interval::${this.toString()}`;
+  }
+
   public add(other: Interval): Interval {
     return Interval.fromSemitones(
       this.naturalSemitones + other.naturalSemitones,
