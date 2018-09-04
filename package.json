@@ -38,7 +38,7 @@
     "format": "yarn lint --fix",
     "lint": "tslint --project .",
     "lint:strict": "tslint --project . -c tslint-strict.yaml",
-    "prepublish": "yarn run build",
+    "prepublishOnly": "yarn build",
     "test": "jest",
     "test:watch": "jest --watch"
   },
