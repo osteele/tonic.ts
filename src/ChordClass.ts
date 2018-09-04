@@ -113,8 +113,8 @@ const chordClassArray: ChordClass[] = [
   { name: 'Dominant 7th', abbrs: ['7', 'dom7'], intervals: '047t' },
   { name: 'Augmented 7th', abbrs: ['+7', '7aug'], intervals: '048t' },
   { name: 'Diminished 7th', abbrs: ['°7', 'dim7'], intervals: '0369' },
-  { name: 'Major 7th', abbrs: ['maj7'], intervals: '047e' },
-  { name: 'Minor 7th', abbrs: ['min7'], intervals: '037t' },
+  { name: 'Major 7th', abbrs: ['maj7', 'M7'], intervals: '047e' },
+  { name: 'Minor 7th', abbrs: ['min7', 'm7'], intervals: '037t' },
   { name: 'Dominant 7b5', abbrs: ['7b5'], intervals: '046t' },
   // following is also half-diminished 7th
   { name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], intervals: '036t' },

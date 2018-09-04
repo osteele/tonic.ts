@@ -2,7 +2,7 @@ import { Chord, ChordClass, Intervals, Pitch, PitchClass } from '../src';
 
 const { P1, m3, M3, P5 } = Intervals;
 
-describe('fromString', () => {
+describe('ChordClass.fromString', () => {
   it('should convert from chord class names', () => {
     expect(ChordClass.fromString('Major')).toBeInstanceOf(ChordClass);
     expect(ChordClass.fromString('Minor')).toBeInstanceOf(ChordClass);
@@ -20,6 +20,10 @@ describe('fromString', () => {
 
   it('fromString should recognize abbreviations', () => {
     expect(ChordClass.fromString('M')).toBeInstanceOf(ChordClass);
+    expect(ChordClass.fromString('maj7')).toBeInstanceOf(ChordClass);
+    expect(ChordClass.fromString('min7')).toBeInstanceOf(ChordClass);
+    expect(ChordClass.fromString('M7')).toBeInstanceOf(ChordClass);
+    expect(ChordClass.fromString('m7')).toBeInstanceOf(ChordClass);
     expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
     expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
   });
