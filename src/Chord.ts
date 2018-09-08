@@ -5,7 +5,8 @@ import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 import { rotateArray } from './utils';
 
-const chordNameRegex = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
+const chordNameRegex1 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*)\s*(7)$/;
+const chordNameRegex2 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
 const inversionNames = ['a', 'c', 'd'];
 
@@ -21,7 +22,7 @@ export class Chord<T extends PitchLike> {
   public static fromString(
     name: string,
   ): Chord<Pitch> | Chord<PitchClass> | ChordClass {
-    const match = name.match(chordNameRegex);
+    const match = name.match(chordNameRegex1) || name.match(chordNameRegex2);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);
     }

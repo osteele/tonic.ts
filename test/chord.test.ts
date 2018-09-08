@@ -1,31 +1,36 @@
 import { Chord, ChordClass, Intervals, Pitch, PitchClass } from '../src';
 
-const { P1, m3, M3, P5 } = Intervals;
+const { P1, m3, M3, P5, m7, M7 } = Intervals;
 
-describe('ChordClass.fromString', () => {
-  it('should convert from chord class names', () => {
-    expect(ChordClass.fromString('Major')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('Minor')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('Augmented')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('Diminished')).toBeInstanceOf(ChordClass);
+describe('ChordClass', () => {
+  describe('fromString', () => {
+    it('should convert from chord class names', () => {
+      expect(ChordClass.fromString('Major')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('Minor')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('Augmented')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('Diminished')).toBeInstanceOf(ChordClass);
+    });
 
-    let chordClass = ChordClass.fromString('Major');
-    expect(chordClass).toBeInstanceOf(ChordClass);
-    expect(chordClass.name).toBe('Major');
-
-    chordClass = ChordClass.fromString('Minor');
-    expect(chordClass).toBeInstanceOf(ChordClass);
-    expect(chordClass.name).toBe('Minor');
+    it('should recognize abbreviations', () => {
+      expect(ChordClass.fromString('M')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('maj7')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('min7')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('M7')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('m7')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
+    });
   });
 
-  it('fromString should recognize abbreviations', () => {
-    expect(ChordClass.fromString('M')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('maj7')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('min7')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('M7')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('m7')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
-    expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
+  it('name', () => {
+    expect(ChordClass.fromString('Major').name).toBe('Major');
+    expect(ChordClass.fromString('Minor').name).toBe('Minor');
+  });
+
+  it('intervals', () => {
+    expect(ChordClass.fromString('Major').intervals).toEqual([P1, M3, P5]);
+    expect(ChordClass.fromString('Minor').intervals).toEqual([P1, m3, P5]);
+    expect(ChordClass.fromString('M7').intervals).toEqual([P1, M3, P5, M7]);
   });
 });
 
@@ -100,6 +105,12 @@ describe('Chord', () => {
       expect(chord.name).toBe('A Major');
       expect(chord.inversion).toBe('a');
     });
+  });
+
+  describe.only('intervals', () => {
+    expect(Chord.fromString('E').intervals).toEqual([P1, M3, P5]);
+    expect(Chord.fromString('Em').intervals).toEqual([P1, m3, P5]);
+    expect(Chord.fromString('E7').intervals).toEqual([P1, M3, P5, m7]);
   });
 });
 

@@ -5,17 +5,17 @@ describe('allFrettings', () => {
   const eMajor = allFrettings('E Major');
   const aMinor = allFrettings('A Major');
 
-  it('should generate lots of frettings', () => {
+  it('should have the expected length', () => {
     expect(_.map(eMajor, 'ascii')).toHaveLength(22);
     expect(_.map(aMinor, 'ascii')).toHaveLength(11);
   });
 
-  it('should generate specific frettings', () => {
+  it('should include specific frettings', () => {
     expect(_.map(eMajor, 'ascii')).toContain('022100');
     expect(_.map(eMajor, 'ascii')).toContain('022104');
   });
 
-  it('should generate frettings with muted strings', () => {
+  it('should include frettings with muted strings', () => {
     expect(_.map(eMajor, 'ascii')).toContain('xx2100');
     expect(_.map(eMajor, 'ascii')).toContain('xxx100');
   });
@@ -48,9 +48,6 @@ describe('FrettedChord', () => {
     ]);
   });
 
-  // it.skip('should have an inversion');
-  // it.skip('should have an inversion letter');
-
   describe('positions', () => {
     it('should be an array', () => {
       expect(fretting.positions).toBeInstanceOf(Array);
@@ -64,7 +61,7 @@ describe('FrettedChord', () => {
     });
   });
 
-  it('should define properties', () => {
+  it('should have properties', () => {
     expect(fretting.properties.bassIsRoot).toBe(true);
     expect(fretting.properties.barres).toBe(0);
     expect(fretting.properties.fingers).toBe(3);
@@ -110,17 +107,11 @@ describe('frettingFor', () => {
   });
 
   it('should yield the preferred fingerings for dominant 7th chords', () => {
-    // FIXME: should be 020100
-    expect(frettingFor('E7').ascii).toBe('022100');
-    expect(frettingFor('E7').ascii).toBe('022100');
-    // FIXME: should be 320001
-    expect(frettingFor('G7').ascii).toBe('320003');
-    // FIXME: should be x02020
-    expect(frettingFor('A7').ascii).toBe('x02220');
-    // FIXME: should be x21202
-    expect(frettingFor('B7').ascii).toBe('x21402');
-    // FIXME: should be xx0212
-    expect(frettingFor('D7').ascii).toBe('xx0232');
+    expect(frettingFor('E7').ascii).toBe('020100');
+    expect(frettingFor('G7').ascii).toBe('320001');
+    expect(frettingFor('A7').ascii).toBe('x02020');
+    expect(frettingFor('B7').ascii).toBe('x21202');
+    expect(frettingFor('D7').ascii).toBe('xx0212');
   });
 
   it('should yield the preferred fingerings for minor 7th chords', () => {
