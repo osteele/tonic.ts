@@ -40,9 +40,9 @@ export class FrettedChord {
   /** A string representation of open, fretted, and muted strings.  For example,
    * 'x02440'.
    *
-   * The fretString doesn't represent barres.
+   * This representation doesn't represent barres.
    */
-  get fretString(): string {
+  get ascii(): string {
     if (this._fretString) {
       return this._fretString;
     }
@@ -55,7 +55,7 @@ export class FrettedChord {
   }
 
   private createProperties(): object {
-    const fretString = this.fretString;
+    const fretString = this.ascii;
     return _.mapValues(
       propertyGetters,
       (getter) =>

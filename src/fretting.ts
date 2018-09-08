@@ -202,11 +202,11 @@ type FrettedChordPredicate = FrettedChordProjection<boolean>;
 
 /// Is there a muted string between two voiced strings?
 const mutedMedialStrings: FrettedChordPredicate = (fretting) =>
-  fretting.fretString.match(/\dx+\d/) != null;
+  fretting.ascii.match(/\dx+\d/) != null;
 
 /// Is there a muted treble string?
 const mutedTrebleStrings: FrettedChordPredicate = (fretting) =>
-  fretting.fretString.match(/x$/) != null;
+  fretting.ascii.match(/x$/) != null;
 
 /// How many fingers does the fretting require? For an un-barred fretting,
 /// this is just the number of fretted strings.
