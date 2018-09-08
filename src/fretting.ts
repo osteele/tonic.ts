@@ -28,9 +28,8 @@ export function frettingFor(
   chord: Chord<Pitch> | string,
   instrument: FrettedInstrument,
   options: Partial<FrettingOptions> = defaultOptions,
-): FrettedChord {
-  // TODO: nicer error when no frettings available
-  return allFrettings(chord, instrument, options)[0];
+): FrettedChord | null {
+  return allFrettings(chord, instrument, options)[0] || null;
 }
 
 /** Return frettings, sorted by default properties. */
@@ -283,18 +282,23 @@ const sortingPreferences: Array<{
   key: FrettedChordProjection<boolean | number>;
   descending?: true | null;
 }> = [
-  { key: isRootPosition },
+  { key: isRootPosition, descending: true },
   { key: noteCount, descending: true },
   { key: barreCount },
   { key: fingerCount },
 ];
 
-const makeSortFunction = (
-  key: FrettedChordProjection<any>,
-  descending: boolean,
-) => (fretting: FrettedChord): number | boolean => {
+/** Return a function that returns the sort key, for use in `_.sortBy`.
+ *
+ * 0 is sorted before 1, and `true` is sorted before `false`, unless
+ * `descending` is true, in which case the key is complemented so that the sort
+ * will be reversed.
+ */
+const getSortKey = (key: FrettedChordProjection<any>, descending: boolean) => (
+  fretting: FrettedChord,
+): number | boolean => {
   const k = key(fretting);
-  return descending !== (typeof k === 'boolean') ? -Number(k) : k;
+  return typeof k === 'boolean' ? (descending ? !k : k) : descending ? -k : k;
 };
 
 /** Sort frettings lexicographically by the projections in
@@ -305,7 +309,7 @@ function sortFingerings(frettings: FrettedChord[]): FrettedChord[] {
   const fs = _.reduceRight(
     sortingPreferences,
     (fs, { key, descending }) =>
-      fs.sortBy(makeSortFunction(key, descending || false)),
+      fs.sortBy(getSortKey(key, descending || false)),
     _.chain(frettings),
   ).value();
   return fs;

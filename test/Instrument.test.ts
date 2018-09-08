@@ -47,8 +47,8 @@ describe('Instrument', () => {
     );
   });
 
-  describe('eachFingerPosition', () =>
-    it('should iterate over each finger position', () => {
+  describe('forEachStringFret', () =>
+    it('should iterate over each string/fret combination', () => {
       let count = 0;
       let found = false;
       const strings: { [_: number]: boolean } = {};

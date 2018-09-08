@@ -39,6 +39,8 @@ export class FrettedChord {
 
   /** A string representation of open, fretted, and muted strings.  For example,
    * 'x02440'.
+   *
+   * The fretString doesn't represent barres.
    */
   get fretString(): string {
     if (this._fretString) {

@@ -112,5 +112,4 @@ function drawFretboard(
   );
 }
 
-export { paddedFretboardWidth as width, paddedFretboardHeight as height, drawFretboard as draw, };
-
+export { paddedFretboardWidth as width, paddedFretboardHeight as height, drawFretboard as draw };
