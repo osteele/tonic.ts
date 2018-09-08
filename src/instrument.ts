@@ -67,7 +67,7 @@ export interface StringFret {
   readonly stringNumber: number;
 }
 
-// Instruments, indexed by name
+// Instruments, indexed by name, in standard tuning.
 // tslint:disable: object-literal-sort-keys
 // tslint:disable-next-line variable-name
 export const Instruments = {

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
-import { FrettedInstrument, StringFret } from './Instrument';
+import { FrettedInstrument, Instruments, StringFret } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 import { PitchLike } from './PitchLike';
@@ -12,7 +12,7 @@ import { PitchLike } from './PitchLike';
 export class FrettedChord {
   public static fromAscii(
     ascii: string,
-    instrument: FrettedInstrument,
+    instrument = Instruments.Guitar,
   ): FrettedChord {
     const stringFrets = _.map(
       ascii,

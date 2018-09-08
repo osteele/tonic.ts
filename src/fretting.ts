@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
 import { Barre, FrettedChord } from './FrettedChord';
-import { FrettedInstrument, StringFret } from './Instrument';
+import { FrettedInstrument, Instruments, StringFret } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
 import { powerset } from './utils';
@@ -10,6 +10,7 @@ import { powerset } from './utils';
 interface FrettingOptions {
   filter: boolean;
   fingerPicking: boolean;
+  instrument: FrettedInstrument;
   maxFretNumber: number;
   maxFretSpread: number;
 }
@@ -17,6 +18,7 @@ interface FrettingOptions {
 const defaultFrettingOptions: FrettingOptions = {
   filter: true,
   fingerPicking: false,
+  instrument: Instruments.Guitar,
   maxFretNumber: 4,
   maxFretSpread: 3,
 };
@@ -26,16 +28,14 @@ type FretNumber = number;
 /** Return best fretting, sorted by default properties. */
 export function frettingFor(
   chord: Chord<Pitch> | string,
-  instrument: FrettedInstrument,
   options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord | null {
-  return allFrettings(chord, instrument, options)[0] || null;
+  return allFrettings(chord, options)[0] || null;
 }
 
 /** Return frettings, sorted by default properties. */
 export function allFrettings(
   chordOrName: Chord<Pitch> | string,
-  instrument: FrettedInstrument,
   options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord[] {
   const chord =
@@ -43,7 +43,7 @@ export function allFrettings(
       ? (Chord.fromString(chordOrName) as Chord<Pitch>)
       : chordOrName;
   const allOptions = { ...options, ...defaultFrettingOptions };
-  let frettings = generateFrettings(chord, instrument, allOptions);
+  let frettings = generateFrettings(chord, allOptions.instrument, allOptions);
   frettings = selectFrettings(frettings, allOptions);
   frettings = sortFingerings(frettings);
   return frettings;
