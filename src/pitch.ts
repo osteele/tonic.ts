@@ -23,12 +23,23 @@ export class Pitch implements PitchLike {
     return new Pitch(midiNumber, name);
   }
 
+  // Indexed by name not midiNumber, in order to preserve the distinction
+  // between enharmonic equivalents.
+  // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
+  private static instances = new Map<string, Pitch>();
+
   public readonly name: string;
   constructor(readonly midiNumber: number, name?: string) {
     this.name = name || pitchToScientificNotation(midiNumber);
-    this.midiNumber = midiNumber;
+    const instance = Pitch.instances.get(this.name);
+    if (instance) {
+      return instance;
+    }
+    Pitch.instances.set(this.name, this);
   }
 
+  // FIXME: this returns the Helmholtz notation if this was created by parsing
+  // such.
   public toString(): string {
     return this.name;
   }

@@ -180,6 +180,14 @@ describe('Pitch', () => {
     expect(Pitch.fromString("d'''").midiNumber).toBe(86);
   });
 
+  it('should intern instances', () => {
+    expect(Pitch.fromString('C4')).toBe(Pitch.fromString('C4'));
+    expect(Pitch.fromString('C4')).not.toBe(Pitch.fromString('D4'));
+    // FIXME:
+    // expect(Pitch.fromString('C1')).toBe(Pitch.fromString('C,'));
+    expect(Pitch.fromString('C#4')).not.toBe(Pitch.fromString('Db4'));
+  });
+
   it('should implement toString', () => {
     expect(Pitch.fromMidiNumber(60).toString()).toBe('C4');
     expect(Pitch.fromMidiNumber(72).toString()).toBe('C5');

@@ -16,9 +16,16 @@ export class PitchClass implements PitchLike {
     return PitchClass.fromSemitones(parsePitchClass(name));
   }
 
+  private static instances = new Map<string, PitchClass>();
+
   public readonly name: string;
   constructor(readonly semitones: number, name?: string) {
     this.name = name || NoteNames[semitones];
+    const instance = PitchClass.instances.get(this.name);
+    if (instance) {
+      return instance;
+    }
+    PitchClass.instances.set(this.name, this);
   }
 
   public toString(): string {
