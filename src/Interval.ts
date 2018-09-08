@@ -138,7 +138,9 @@ export class Interval {
     } else if (typeof a === 'number' && typeof b === 'number') {
       semitones = b - a;
     } else {
-      throw new Error(`Can't take the interval between ${a} and ${b}`);
+      throw new Error(
+        `Can't take the interval between different types ${a} and ${b}`,
+      );
     }
     if (!(0 <= semitones && semitones < 12)) {
       semitones = normalizePitchClass(semitones);

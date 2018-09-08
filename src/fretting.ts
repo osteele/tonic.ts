@@ -14,7 +14,7 @@ interface FrettingOptions {
   maxFretSpread: number;
 }
 
-const defaultOptions: FrettingOptions = {
+const defaultFrettingOptions: FrettingOptions = {
   filter: true,
   fingerPicking: false,
   maxFretNumber: 4,
@@ -27,7 +27,7 @@ type FretNumber = number;
 export function frettingFor(
   chord: Chord<Pitch> | string,
   instrument: FrettedInstrument,
-  options: Partial<FrettingOptions> = defaultOptions,
+  options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord | null {
   return allFrettings(chord, instrument, options)[0] || null;
 }
@@ -36,13 +36,13 @@ export function frettingFor(
 export function allFrettings(
   chordOrName: Chord<Pitch> | string,
   instrument: FrettedInstrument,
-  options: Partial<FrettingOptions> = defaultOptions,
+  options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord[] {
   const chord =
     typeof chordOrName === 'string'
       ? (Chord.fromString(chordOrName) as Chord<Pitch>)
       : chordOrName;
-  const allOptions = { ...options, ...defaultOptions };
+  const allOptions = { ...options, ...defaultFrettingOptions };
   let frettings = generateFrettings(chord, instrument, allOptions);
   frettings = selectFrettings(frettings, allOptions);
   frettings = sortFingerings(frettings);

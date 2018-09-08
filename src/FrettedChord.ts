@@ -3,38 +3,62 @@ import { Chord } from './Chord';
 import { FrettedInstrument, StringFret } from './Instrument';
 import { Interval } from './Interval';
 import { Pitch } from './Pitch';
+import { PitchLike } from './PitchLike';
 
 /** Also known as “guitar chords”; but generalized to fretted instruments.
  *
  * See [guitar chord](https://en.wikipedia.org/wiki/Guitar_chord).
  */
 export class FrettedChord {
+  public static fromAscii(
+    ascii: string,
+    instrument: FrettedInstrument,
+  ): FrettedChord {
+    const stringFrets = _.map(
+      ascii,
+      (fretNumber, stringNumber) =>
+        fretNumber.match(/^\d+$/) && {
+          fretNumber: Number(fretNumber),
+          stringNumber,
+        },
+    ).filter(Boolean) as StringFret[];
+
+    const fretsWithPitches = stringFrets.map(({ fretNumber, stringNumber }) => {
+      const pitch = instrument.pitchAt({ fretNumber, stringNumber });
+      return { fretNumber, stringNumber, pitch };
+    });
+    // TODO: recognize inversions
+    const pitches = fretsWithPitches.map(({ pitch }) => pitch);
+    const pitchClasses = [...new Set(pitches.map((p) => p.asPitchClass()))];
+    const chord = Chord.fromPitches(pitchClasses);
+    // TODO: identify the root, find the chord at this root, and change
+    // FrettedChord.chord back to Chord<Pitch>.
+    const fretsWithIntervals = fretsWithPitches.map(
+      ({ fretNumber, stringNumber, pitch }) => ({
+        degreeIndex: 0, // FIXME:
+        fretNumber,
+        intervalClass: Interval.between(chord.root, pitch.asPitchClass()),
+        stringNumber,
+      }),
+    );
+    return new FrettedChord(chord, instrument, fretsWithIntervals);
+  }
+
   // Fingering positions, ascending by string number
   public readonly positions: ChordFret[];
   public readonly properties: { [_: string]: any };
 
   private _fretString: string | null = null;
   constructor(
-    readonly chord: Chord<Pitch>,
+    readonly chord: Chord<PitchLike>,
     readonly instrument: FrettedInstrument,
     positions: ChordFret[],
-    readonly barres: Barre[],
+    readonly barres: Barre[] = [],
   ) {
     this.positions = [...positions].sort(
       (a: StringFret, b: StringFret) => a.stringNumber - b.stringNumber,
     );
     this.properties = this.createProperties();
-  }
-
-  /** How many fingers does the fretting require? For an un-barred fretting,
-   * this is just the number of fretted strings.
-   */
-  get fingerCount(): number {
-    let n = this.positions.filter((pos) => pos.fretNumber > 0).length;
-    for (const barre of this.barres) {
-      n -= barre.fingerReplacementCount - 1;
-    }
-    return n;
   }
 
   /** A string representation of open, fretted, and muted strings.  For example,
@@ -52,6 +76,24 @@ export class FrettedChord {
     });
     this._fretString = fretArray.map((n) => (n >= 0 ? n : 'x')).join('');
     return this._fretString;
+  }
+
+  /** How many fingers does the fretting require? For an un-barred fretting,
+   * this is just the number of fretted strings.
+   */
+  get fingerCount(): number {
+    let n = this.positions.filter((pos) => pos.fretNumber > 0).length;
+    for (const barre of this.barres) {
+      n -= barre.fingerReplacementCount - 1;
+    }
+    return n;
+  }
+
+  /** The pitches, in order, by string, with duplicates. */
+  get pitches(): Pitch[] {
+    return this.positions.map(({ intervalClass }) =>
+      this.chord.root.transposeBy(intervalClass),
+    );
   }
 
   private createProperties(): object {

@@ -1,5 +1,11 @@
 import * as _ from 'lodash';
-import { allFrettings, frettingFor, Instruments, Interval } from '../src';
+import {
+  allFrettings,
+  FrettedChord,
+  frettingFor,
+  Instruments,
+  Interval,
+} from '../src';
 
 describe('allFrettings', () => {
   const eMajor = allFrettings('E Major', Instruments.Guitar);
@@ -18,23 +24,36 @@ describe('allFrettings', () => {
   it('should generate frettings with muted strings', () => {
     expect(_.map(eMajor, 'ascii')).toContain('xx2100');
     expect(_.map(eMajor, 'ascii')).toContain('xxx100');
-
-    const e7 = allFrettings('E7', Instruments.Guitar);
-    // FIXME:
-    // expect(_.map(e7, 'ascii')).toContain('020100');
   });
 });
 
 describe('FrettedChord', () => {
   const fretting = frettingFor('E Major', Instruments.Guitar);
 
+  it('fromAscii', () => {
+    expect(FrettedChord.fromAscii('022100', Instruments.Guitar).ascii).toBe(
+      '022100',
+    );
+  });
+
   it('ascii', () => {
     expect(fretting.ascii).toMatch(/^[\dx]{6}$/);
     expect(fretting.ascii).toBe('022100');
   });
 
-  it('should have an array of barres', () => {
+  it('barres', () => {
     expect(fretting.barres).toBeInstanceOf(Array);
+  });
+
+  it('pitches', () => {
+    expect(_.invokeMap(fretting.pitches, 'toString')).toEqual([
+      'E2',
+      'B2',
+      'E2',
+      'G♯2',
+      'B2',
+      'E2',
+    ]);
   });
 
   // it.skip('should have an inversion');
