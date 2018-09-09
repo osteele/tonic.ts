@@ -26,12 +26,25 @@ export const LongIntervalNames = [
   'Octave',
 ];
 
+/** See [Interval
+ * quality](https://en.wikipedia.org/wiki/Interval_(music)#Quality).
+ */
 export enum IntervalQuality {
   DoublyDiminished,
+  /** A
+   * [diminished](https://en.wikipedia.org/wiki/Diminution#Diminution_of_intervals)
+   * interval is narrowed by a chromatic semitone.
+   */
   Diminished,
+  /** A [minor](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords) interval. */
   Minor,
   Perfect,
+  /** A [major](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords) interval. */
   Major,
+  /** An
+   * [augmented](https://en.wikipedia.org/wiki/Augmentation_(music)#Augmentation_of_intervals)
+   * interval is widened by a chromatic semitone.
+   */
   Augmented,
   DoublyAugmented,
 }
@@ -88,14 +101,18 @@ const lowerCaseQualities: { [_: string]: number } = {
   diminished: -1,
 };
 
-/** An Interval is the signed distance between two pitches or pitch classes.
+/** An Interval is the signed distance between two pitches or pitch classes. See
+ * [Interval](https://en.wikipedia.org/wiki/Interval_(music)).
  *
  * An instance of Interval is a musical *simple diatonic interval*, that spans
  * at most a single octave.
  *
  * Intervals that represent the same semitone span *and* accidental are
- * interned. Thus, two instance of M3 are ===, but augmented P4 and diminished
- * P5 are distinct from each other and from TT.
+ * [interned](https://en.wikipedia.org/wiki/String_interning). interned. For
+ * example, two instance of M3 are ===, but augmented P4 and diminished P5 are
+ * distinct from each other and from TT. This enables the use of the ECMAScript
+ * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
+ * to implement sets of intervals.
  */
 // TODO: these are interval classes, limited to P1–P8. Allow complex intervals.
 export class Interval {

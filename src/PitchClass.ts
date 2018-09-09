@@ -3,8 +3,13 @@ import { normalizePitchClass, NoteNames, parsePitchClass } from './notation';
 import { Pitch } from './Pitch';
 import { PitchLike } from './PitchLike';
 
-/** `PitchClass` represents a pitch class: a musical pitch modulo its octave. For
- * example, the pitch class "E" represents "E0", "E1", "E2", etc.
+/** `PitchClass` represents a pitch class: a musical pitch modulo its octave.
+ * For example, the pitch class "E" represents "E0", "E1", "E2", etc.
+ *
+ * Pitch classes are [interned](https://en.wikipedia.org/wiki/String_interning).
+ * interned. This enables the use of the ECMAScript
+ * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
+ * to implement sets of pitch classes.
  */
 export class PitchClass implements PitchLike {
   public static fromSemitones(semitones: number): PitchClass {

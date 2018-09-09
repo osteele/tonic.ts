@@ -10,9 +10,10 @@ const chordNameRegex2 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
 const inversionNames = ['a', 'c', 'd'];
 
-/** A set of intervals from a root. A chord has a name, a set of intervals, a
- * set pitches (or pitch classes), and an inversion. For example, "E Major" and
- * "C Minor" name chords.
+/** A set of notes or note classes; equivalently, a set of intervals and an
+ * optional root. For example, "E Major" and "C Minor" name chords.
+ *
+ * See [Chord](https://en.wikipedia.org/wiki/Chord_(music)).
  */
 export class Chord<T extends PitchLike> {
   /** Return either a `Chord` or a `ChordClass`, depending on whether `name`

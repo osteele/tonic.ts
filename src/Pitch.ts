@@ -8,8 +8,16 @@ import {
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
-/** `Pitch` represents musical pitches such as "E4" and "F♯5". It converts
- * between string and instance representations.
+/** A `Pitch` is a named pitch such as "E4" and "F♯5".
+ *
+ * See [note](https://en.wikipedia.org/wiki/Musical_note). Instances of `Pitch`
+ * represent only the name of the pitch (this is one sense of "note"), not the
+ * duration (which is included by another).
+ *
+ * Pitches are [interned](https://en.wikipedia.org/wiki/String_interning). This
+ * enables the use of the ECMAScript
+ * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
+ * to implement pitch sets.
  */
 export class Pitch implements PitchLike {
   public static fromMidiNumber(midiNumber: number): Pitch {
