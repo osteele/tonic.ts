@@ -70,11 +70,11 @@ export class Chord<T extends PitchLike> {
     }
   }
 
-  get name() {
+  get name(): string {
     return `${this.root.toString()} ${this.chordClass.name}`;
   }
 
-  get fullName() {
+  get fullName(): string {
     return `${this.root.toString()} ${this.chordClass.fullName}`;
   }
 

@@ -57,8 +57,8 @@ describe('FrettedChord', () => {
     it('should have properties', () => {
       expect(fretting.positions[0].fretNumber).toBe(0);
       expect(fretting.positions[0].stringNumber).toBe(0);
-      expect(fretting.positions[0].intervalClass.toString()).toBe('P1');
-      expect(fretting.positions[0].pitch.toString()).toBe('E2');
+      expect(fretting.positions[0].intervalClass.name).toBe('P1');
+      expect(fretting.positions[0].pitch.name).toBe('E2');
     });
   });
 

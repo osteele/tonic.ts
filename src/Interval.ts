@@ -161,8 +161,12 @@ export class Interval {
     return this.interned(naturalSemitones, accidentals, this);
   }
 
-  /** The diatonic number, for example 2 for M2, m2, d2, and D2.
-   * The tritone’s number is null.
+  get name(): string {
+    return this.toString();
+  }
+
+  /** The diatonic number, within the C major scale. For example M2, m2, d2, and
+   * D2 all have a diatonic number of 2. The tritone’s number is null.
    */
   get number(): number | null {
     const m = ShortIntervalNames[this.naturalSemitones].match(/\d+/);
