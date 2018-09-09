@@ -1,15 +1,10 @@
 # Tonic.ts
 
 [![Build Status](https://travis-ci.org/osteele/tonic.ts.svg?branch=master)](https://travis-ci.org/osteele/tonic.ts)
+[![Docs](./docs/docs-badge.svg)](http://osteele.github.io/tonic.ts/)
 
 Tonic.ts is a TypeScript library that provides APIs for music theory, drawing
 pitch constellation diagrams, and calculating guitar chord fingerings.
-
-This started out as a side project to generate various fretboard and fretboard
-diagrams that I'm using to learn guitar.
-
-It isn't intended to be useful to anyone but me in its current state, but it's
-slowly evolving towards a re-usable API.
 
 ## Features
 
@@ -45,24 +40,21 @@ they're the names from the domain of music theory.
 The API makes use of TypeScript generics. Although it can be used from straight
 JavaScript, there's better alternatives (link TBD) for that.
 
-### Chord Diagram Calculator
+### Guitar Chord Calculator
 
-There's a function (TBD) to calculate the guitar (or other fretted polyphonic stringed instrument) fingerings that voice a chord.
+`bestFretting` finds [guitar chords](https://en.wikipedia.org/wiki/Guitar_chord)
+(or chords on other polyphonic fretted stringed instruments) for a chord.
 
-Fingerings are ranked and sorted according to voicing and play-ability metrics:
+Chords are filtered and sorted according to voicing and play-ability metrics:
 number of open strings, distance between closed frets, presence of barres.
 
-These are "fingerings", rather than "voicings", because two instances may have
-the same voicing (which frets are held on which strings), but differ in their
-specification (the presence or absence of barres).
-
-### Chord Diagram Rendering
+### Chord Diagrams
 
 A function to render a fingering as a chord diagram on a Canvas-like element.
 This is probably broken (it hasn't been tested since being ported from
 CoffeeScript).
 
-### Pitch Constellation Rendering
+### Pitch Constellations
 
 A function to render a sequence of pitch classes as a [pitch
 constellation](https://en.wikipedia.org/wiki/Chromatic_circle#Pitch_constellation).
@@ -74,9 +66,11 @@ Fingerboard web app uses, if I recall.)
 ## Road Map
 
 * [x] Test coverage for music theory objects
-* [ ] Publish generated docs
-* [ ] Better docs and coverage for guitar chord calculator
-* [ ] Restore, and test, pitch constellation and chord diagram rendering.
+* [x] Publish generated docs
+* [ ] Guitar chord calculator docs
+* [x] Guitar chord calculator test coverage
+* [ ] Revise class names
+* [ ] Docs, tests, for pitch constellation and chord diagram rendering.
 
 ## Other Languages
 
