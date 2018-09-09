@@ -1,11 +1,11 @@
 import { Interval } from './Interval';
+import { NoteClass } from './NoteClass';
 import {
   pitchFromHelmholtzNotation,
   pitchFromScientificNotation,
   pitchToPitchClass,
   pitchToScientificNotation,
-} from './notation';
-import { NoteClass } from './NoteClass';
+} from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** A `Note` is a named pitch such as "E4" and "F♯5".

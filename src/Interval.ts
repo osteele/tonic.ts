@@ -1,7 +1,7 @@
 import { semitonesToAccidentalString } from './accidentals';
-import { normalizePitchClass, PitchClassNumber } from './notation';
 import { Note } from './Note';
 import { NoteClass } from './NoteClass';
+import { normalizePitchClass, PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 // tslint:disable-next-line variable-name
@@ -308,8 +308,8 @@ export const Intervals: { [_: string]: Interval } = ShortIntervalNames.reduce(
 
 // The interval class (integer in [0...12]) between two pitch class numbers
 export function intervalClassDifference(
-  a: PitchClassNumber,
-  b: PitchClassNumber,
+  a: PitchClass,
+  b: PitchClass,
 ): number {
   return normalizePitchClass(b - a);
 }

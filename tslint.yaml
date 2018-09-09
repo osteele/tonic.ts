@@ -6,7 +6,11 @@ rules:
   quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
   variable-name:
     [true, 'ban-keywords', 'check-format', 'allow-leading-underscore']
+
   # FIXME
   max-classes-per-file: [true, 3]
   no-console: false
   no-shadowed-variable: false
+
+  # Considering:
+  no-namespace: false

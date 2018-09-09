@@ -1,7 +1,7 @@
 import { Chord } from './Chord';
 import { chordFromRomanNumeral } from './chordProgressions';
 import { Interval } from './Interval';
-import { normalizePitchClass } from './notation';
+import { normalizePitchClass } from './PitchClass';
 import { asPitchLike, PitchLike } from './PitchLike';
 
 interface GenericScaleConstructorOptions {

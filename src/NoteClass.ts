@@ -1,6 +1,6 @@
 import { Interval } from './Interval';
-import { normalizePitchClass, NoteNames, parsePitchClass } from './notation';
 import { Note } from './Note';
+import { normalizePitchClass, NoteNames, parsePitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** `NoteClass` represents a set of notes separated by octaves. For example, the

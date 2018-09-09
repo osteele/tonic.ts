@@ -1,7 +1,7 @@
 import { AccidentalValues } from './accidentals';
 
 export type PitchClassName = string;
-export type PitchClassNumber = number;
+export type PitchClass = number;
 
 // tslint:disable-next-line variable-name
 export const SharpNoteNames = 'C C♯ D D♯ E F F♯ G G♯ A A♯ B'.split(/\s/);
@@ -12,24 +12,26 @@ export const FlatNoteNames = 'C D♭ D E♭ E F G♭ G A♭ A B♭ B'.split(/\s/
 // tslint:disable-next-line variable-name
 export const NoteNames = SharpNoteNames;
 
-export function getPitchName(
-  pitch: PitchClassName | PitchClassNumber,
-  { sharp, flat }: { sharp?: boolean; flat?: boolean } = {},
-): string {
-  if (typeof pitch === 'string') {
-    return pitch;
+export namespace PitchClass {
+  export function asNoteName(
+    pitch: PitchClassName | PitchClass,
+    { sharp, flat }: { sharp?: boolean; flat?: boolean } = {},
+  ): string {
+    if (typeof pitch === 'string') {
+      return pitch;
+    }
+    const pitchClass = pitchToPitchClass(pitch);
+    const flatName = FlatNoteNames[pitchClass];
+    const sharpName = SharpNoteNames[pitchClass];
+    let name = sharp ? sharpName : flatName;
+    if (flat && sharp && flatName !== sharpName) {
+      name = `${flatName}/\n${sharpName}`;
+    }
+    return name;
   }
-  const pitchClass = pitchToPitchClass(pitch);
-  const flatName = FlatNoteNames[pitchClass];
-  const sharpName = SharpNoteNames[pitchClass];
-  let name = sharp ? sharpName : flatName;
-  if (flat && sharp && flatName !== sharpName) {
-    name = `${flatName}/\n${sharpName}`;
-  }
-  return name;
 }
 
-export function pitchFromScientificNotation(name: string): PitchClassNumber {
+export function pitchFromScientificNotation(name: string): PitchClass {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
@@ -44,7 +46,7 @@ export function pitchFromScientificNotation(name: string): PitchClassNumber {
   return pitch;
 }
 
-export function pitchFromHelmholtzNotation(name: string): PitchClassNumber {
+export function pitchFromHelmholtzNotation(name: string): PitchClass {
   const match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in Helmholtz notation`);
@@ -67,7 +69,7 @@ export function pitchToScientificNotation(midiNumber: number): string {
 export function parsePitchClass(
   name: PitchClassName,
   normal = true,
-): PitchClassNumber {
+): PitchClass {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
   if (!match) {
     throw new Error(`“${name}” is not a pitch class name`);
@@ -83,11 +85,11 @@ export function parsePitchClass(
   return pitch;
 }
 
-export function getPitchClassName(pitchClass: PitchClassNumber) {
+export function getPitchClassName(pitchClass: PitchClass) {
   return NoteNames[pitchClass];
 }
 
-export const normalizePitchClass = (pitchClass: PitchClassNumber) =>
+export const normalizePitchClass = (pitchClass: PitchClass) =>
   ((pitchClass % 12) + 12) % 12;
 
 export const pitchToPitchClass = normalizePitchClass;
