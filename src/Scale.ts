@@ -72,6 +72,17 @@ class GenericScale<T extends PitchLike | null> {
 
 /** `Scale` is a named sequence of intervals from an (unspecified) tonic. For
  * example, "Diatonic Major" names a scale.
+ *
+ * Along with a number of other libraries, and much discussion of music (and
+ * even music theory), `Scale` here conflates the musical concepts of  *scale*
+ * (a sequence of notes), *key* (that additionally includes a tonic and chords,
+ * but in which the notes are unordered), and *mode* (which additionally denotes
+ * notes' melodic functions — I think).
+ *
+ * References:
+ * * Wikipedia [musical scale](https://en.wikipedia.org/wiki/Scale_(music))
+ * * Wikipedia [musical key](https://en.wikipedia.org/wiki/Key_(music))
+ * * Wikipedia [musical mode](https://en.wikipedia.org/wiki/Mode_(music))
  */
 export class Scale extends GenericScale<null> {
   public static fromString(name: string): Scale {
