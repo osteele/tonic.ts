@@ -1,17 +1,21 @@
+import * as _ from 'lodash';
 import { Note } from './Note';
 
-/** A (musical) Instrument currently has just a name, and subclasses.
+/** A (musical) Instrument has just a name. Its subclasses are more interesting.
  */
 export class Instrument {
   constructor(readonly name: string) {}
 }
 
-/** A string instrument has an array of strings,
+/** A string instrument has an array of strings, each with an (open) pitch.
  */
+// TODO: split out Tuning
+// TODO: add a key?
 export class StringInstrument extends Instrument {
+  // TODO: This should probably be a Pitch[]
   public readonly stringPitches: Note[];
   public readonly stringCount: number;
-  /** An array from [0…stringCount - 1], useful for enumerating over. */
+  /** An array from [0…stringCount-1]. This is useful for enumerating over. */
   public readonly stringNumbers: number[];
   constructor(name: string, _stringPitches: Note[] | string) {
     super(name);
@@ -25,30 +29,32 @@ export class StringInstrument extends Instrument {
   }
 }
 
+/** A fretted instrument is a string instrument that can be fretted.
+ *
+ * This API assumes that all strings have the same number of frets, and that
+ * each string can be independently fretted. These assumptions don't actually
+ * hold for all instruments.
+ *
+ * Fret 0 represents the open (un-fretted) string, or nut.
+ */
 export class FrettedInstrument extends StringInstrument {
+  /** An array from [fretCount-1]. This is useful for enumerating over. */
+  public readonly fretNumbers: number[];
   constructor(
     name: string,
     stringPitches: Note[] | string,
     readonly fretCount: number,
   ) {
     super(name, stringPitches);
-    // if (typeof this.stringPitches[0] === 'string') {
-    //   this.stringPitches = (() => {
-    //     const result = [];
-    //     for (name of Array.from(this.stringPitches)) {
-    //       result.push(Pitch.fromString(name));
-    //     }
-    //     return result;
-    //   })();
-    // }
+    this.fretNumbers = _.times(fretCount + 1, Number);
   }
 
-  public forEachStringFret(fn: (_: StringFret) => any) {
+  /** Applies `callback` to each fret on each string. */
+  public forEachStringFret(callback: (_: StringFret) => any) {
     this.stringNumbers.forEach((stringNumber) => {
-      // <= instead of <, since 0 represents the nut
-      for (let fretNumber = 0; fretNumber <= this.fretCount; fretNumber++) {
-        fn({ stringNumber, fretNumber });
-      }
+      this.fretNumbers.forEach((fretNumber) => {
+        callback({ stringNumber, fretNumber });
+      });
     });
   }
 
@@ -76,29 +82,3 @@ export const Instruments = {
   Viola: new StringInstrument('Viola', 'C G D A'),
   Cello: new StringInstrument('Cello', 'C G D A'),
 };
-
-// TODO: make this a property of the instrument
-// tslint:disable-next-line variable-name
-export const FretNumbers = [0, 1, 2, 3, 4]; // includes nut
-
-// tslint:disable-next-line variable-name
-export const FretCount = FretNumbers.length - 1; // doesn't include nut
-
-// const intervalPositionsFromRoot = function(
-//   instrument,
-//   rootPosition,
-//   semitones
-// ) {
-//   const rootPitch = instrument.pitchAt(rootPosition);
-//   const positions = [];
-//   fretboard_positions_each(function(fingerPosition) {
-//     if (
-//       intervalClassDifference(rootPitch, instrument.pitchAt(fingerPosition)) !==
-//       semitones
-//     ) {
-//       return;
-//     }
-//     return positions.push(fingerPosition);
-//   });
-//   return positions;
-// };

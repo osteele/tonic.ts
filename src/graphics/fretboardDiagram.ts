@@ -1,4 +1,4 @@
-import { FretCount, FretNumbers, FrettedInstrument, StringFret } from '../Instrument';
+import { FrettedInstrument, StringFret } from '../Instrument';
 import { GraphicsContext } from './graphics';
 
 //
@@ -19,7 +19,11 @@ function paddedFretboardWidth(
   instrument: FrettedInstrument,
   style = DefaultStyle,
 ) {
-  return 2 * style.vGutter + style.fretWidth * FretCount + style.fretOverhang;
+  return (
+    2 * style.vGutter +
+    style.fretWidth * instrument.fretCount +
+    style.fretOverhang
+  );
 }
 
 function paddedFretboardHeight(
@@ -46,7 +50,9 @@ function drawFretboardStrings(
     ctx.beginPath();
     ctx.moveTo(style.hGutter, y);
     ctx.lineTo(
-      style.hGutter + FretCount * style.fretWidth + style.fretOverhang,
+      style.hGutter +
+        instrument.fretCount * style.fretWidth +
+        style.fretOverhang,
       y,
     );
     ctx.lineWidth = 1;
@@ -59,7 +65,7 @@ function drawFretboardFrets(
   instrument: FrettedInstrument,
 ) {
   const style = DefaultStyle;
-  FretNumbers.forEach((fret) => {
+  instrument.fretNumbers.forEach((fret) => {
     const x = style.hGutter + fret * style.fretWidth;
     ctx.beginPath();
     ctx.moveTo(x, style.hGutter);
@@ -112,4 +118,8 @@ function drawFretboard(
   );
 }
 
-export { paddedFretboardWidth as width, paddedFretboardHeight as height, drawFretboard as draw };
+export {
+  paddedFretboardWidth as width,
+  paddedFretboardHeight as height,
+  drawFretboard as draw,
+};

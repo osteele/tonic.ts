@@ -1,10 +1,5 @@
 import * as _ from 'lodash';
-import {
-  FretCount,
-  FretNumbers,
-  FrettedInstrument,
-  StringFret,
-} from '../Instrument';
+import { FrettedInstrument, StringFret } from '../Instrument';
 import { Interval } from '../Interval';
 import { GraphicsContext } from './graphics';
 import { hsv2css } from './utils';
@@ -56,7 +51,7 @@ function computeChordDiagramDimensions(
     style = DefaultStyle;
   }
   return {
-    height: 2 * style.vGutter + (style.fretHeight + 2) * FretCount,
+    height: 2 * style.vGutter + (style.fretHeight + 2) * instrument.fretCount,
     width:
       2 * style.hGutter + (instrument.stringCount - 1) * style.stringSpacing,
   };
@@ -78,7 +73,9 @@ function drawChordDiagramStrings(
     ctx.moveTo(x, style.vGutter + style.aboveFretboard);
     ctx.lineTo(
       x,
-      style.vGutter + style.aboveFretboard + FretCount * style.fretHeight,
+      style.vGutter +
+        style.aboveFretboard +
+        instrument.fretCount * style.fretHeight,
     );
     ctx.strokeStyle =
       options.dimStrings && options.dimStrings.indexOf(stringNumber) >= 0
@@ -96,7 +93,7 @@ function drawChordDiagramFrets(
   const { drawNut } = param;
   const style = DefaultStyle;
   ctx.strokeStyle = 'black';
-  FretNumbers.forEach((fret) => {
+  instrument.fretNumbers.forEach((fret) => {
     const y = style.vGutter + style.aboveFretboard + fret * style.fretHeight;
     ctx.beginPath();
     ctx.moveTo(style.vGutter - 0.5, y);
