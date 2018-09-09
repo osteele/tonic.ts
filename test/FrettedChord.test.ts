@@ -76,7 +76,7 @@ describe('FrettedChord', () => {
 });
 
 describe('frettingFor', () => {
-  it('should yield the preferred fingerings for major open chords', () => {
+  it('major open chords', () => {
     expect(frettingFor('E Major').ascii).toBe('022100');
     expect(frettingFor('A Major').ascii).toBe('x02220');
     expect(frettingFor('D Major').ascii).toBe('xx0232');
@@ -84,20 +84,20 @@ describe('frettingFor', () => {
     expect(frettingFor('C Major').ascii).toBe('x32010');
   });
 
-  it('should yield the preferred fingerings for minor open chords', () => {
+  it('minor open chords', () => {
     expect(frettingFor('E Minor').ascii).toBe('022000');
     expect(frettingFor('A Minor').ascii).toBe('x02210');
     expect(frettingFor('D Minor').ascii).toBe('xx0231');
   });
 
-  it.skip('should yield the preferred fingerings for major non-open chords', () => {
+  it.skip('major non-open chords', () => {
     expect(frettingFor('B Major').ascii).toBe('x24442');
     expect(frettingFor('F Major').ascii).toBe('133211');
     expect(frettingFor('F# Major').ascii).toBe('244322');
     // TODO: Nashville style G: 3×0033
   });
 
-  it.skip('should yield the preferred fingerings for major non-open chords', () => {
+  it.skip('sus chords', () => {
     expect(frettingFor('A Sus2').ascii).toBe('002200');
     expect(frettingFor('B Sus2').ascii).toBe('224422');
     expect(frettingFor('C Sus2').ascii).toBe('335533');
@@ -107,7 +107,7 @@ describe('frettingFor', () => {
     expect(frettingFor('G Sus4').ascii).toBe('366633');
   });
 
-  it('should yield the preferred fingerings for dominant 7th chords', () => {
+  it('dominant 7ths', () => {
     expect(frettingFor('E7').ascii).toBe('020100');
     expect(frettingFor('G7').ascii).toBe('320001');
     expect(frettingFor('A7').ascii).toBe('x02020');
@@ -115,7 +115,7 @@ describe('frettingFor', () => {
     expect(frettingFor('D7').ascii).toBe('xx0212');
   });
 
-  it('should yield the preferred fingerings for minor 7th chords', () => {
+  it('minor 7ths', () => {
     expect(frettingFor('Dm7').ascii).toBe('xx0211');
     expect(frettingFor('Em7').ascii).toBe('020000');
     expect(frettingFor('Am7').ascii).toBe('x02010');
@@ -123,7 +123,7 @@ describe('frettingFor', () => {
     expect(frettingFor('F♯m7').ascii).toBe('202220');
   });
 
-  it('should yield the preferred fingerings for major 7th chords', () => {
+  it('major 7ths', () => {
     expect(frettingFor('Cmaj7').ascii).toBe('x32000');
     expect(frettingFor('Dmaj7').ascii).toBe('xx0222');
     expect(frettingFor('Emaj7').ascii).toBe('021100');
@@ -133,23 +133,29 @@ describe('frettingFor', () => {
     expect(frettingFor('Amaj7').ascii).toBe('x02120');
   });
 
-  // TODO: Major 9
-  // AM9: xx7454
-  // BM9: xx9676 ||| BbM9: xx8565
-  // CM9: xx(10)787 ||| C#M9: xx(11)898
-  // DM9: xx0220
-  // EM9: 099800
-  // FM9: xx3010
-  // GM9: xx5232
+  it.skip('major 9ths', () => {
+    const options = { maxFretNumber: 11 };
+    expect(frettingFor('AM9', options).ascii).toBe('xx7454');
+    expect(frettingFor('BM9', options).ascii).toBe('xx9676');
+    expect(frettingFor('BbM9', options).ascii).toBe('xx8565');
+    expect(frettingFor('CM9', options).ascii).toBe('xx(10)787');
+    expect(frettingFor('C#M9', options).ascii).toBe('xx(11)898');
+    expect(frettingFor('DM9', options).ascii).toBe('xx0220');
+    expect(frettingFor('EM9', options).ascii).toBe('099800');
+    expect(frettingFor('FM9', options).ascii).toBe('xx3010');
+    expect(frettingFor('GM9', options).ascii).toBe('xx5232');
+  });
 
-  // TODO: Minor 9
-  // Am9: 575557
-  // Bm9: 797779
-  // Cm9: x3133x
-  // Dm9: x5355x
-  // Em9: x7577x
-  // Fm9: x8688x
-  // Gm9: 353335
+  it.skip('minor 9ths', () => {
+    const options = { maxFretNumber: 9 };
+    expect(frettingFor('Am9', options).ascii).toBe('575557');
+    expect(frettingFor('Bm9', options).ascii).toBe('797779');
+    expect(frettingFor('Cm9', options).ascii).toBe('x3133x');
+    expect(frettingFor('Dm9', options).ascii).toBe('x5355x');
+    expect(frettingFor('Em9', options).ascii).toBe('x7577x');
+    expect(frettingFor('Fm9', options).ascii).toBe('x8688x');
+    expect(frettingFor('Gm9', options).ascii).toBe('353335');
+  });
 
   // TODO: inversions, e.g. Am/E
   // A: xxx655 | A: xxx9(10)9 | A: xxx220

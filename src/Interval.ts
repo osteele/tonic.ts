@@ -62,7 +62,7 @@ const accidentalsToQuality: Array<IntervalQuality | null> = [
   IntervalQuality.DoublyAugmented,
 ];
 
-const abbrList: Array<[IntervalQuality, string]> = [
+const qualityAbbrList: Array<[IntervalQuality, string]> = [
   [IntervalQuality.Major, 'M'],
   [IntervalQuality.Minor, 'm'],
   [IntervalQuality.Perfect, 'P'],
@@ -71,9 +71,13 @@ const abbrList: Array<[IntervalQuality, string]> = [
   [IntervalQuality.DoublyAugmented, 'AA'],
   [IntervalQuality.DoublyDiminished, 'dd'],
 ];
-// const qualityAbbrs = new Map<IntervalQuality, string>(abbrList);
+
 const abbrevToQuality = new Map<string, IntervalQuality>(
-  abbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
+  qualityAbbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
+);
+
+const qualityAbbrs = new Map<IntervalQuality, string>(
+  qualityAbbrList.map(([abbr, q]) => [abbr, q] as [IntervalQuality, string]),
 );
 
 // Arrays of ar[diatonicNumber] to semitone counts. `Interval.fromString` uses
@@ -132,16 +136,21 @@ export class Interval {
       return Interval.fromSemitones(semitones);
     }
     const m =
-      name.match(/^([Ad])\s*(\d+)$/) ||
+      name.match(/^([AMPmd])(\d+)$/) ||
       name.match(/^(augmented|diminished)\s*(\d+)$/i);
-    const num = m ? +m[2] : -1;
-    if (!(1 <= num && num <= 8)) {
+    if (!m) {
       throw new Error(`No interval named ${name}`);
     }
-    const accidentals = lowerCaseQualities[m![1].toLowerCase()];
+    const qualityAbbr = m[1];
+    const dn = Number(m[2]); // diatonic number
+    if (dn > 8) {
+      const simplex = Interval.fromString(`${qualityAbbr}${dn - 7}`);
+      return new Interval(simplex.semitones + 12, simplex.accidentals);
+    }
+    const accidentals = lowerCaseQualities[qualityAbbr.toLowerCase()] || 0;
     semitones =
-      (accidentals < 0 ? minorSemitones : majorSemitones)[num] ||
-      perfectSemitones[num];
+      (accidentals < 0 ? minorSemitones : majorSemitones)[dn] ||
+      perfectSemitones[dn];
     return new Interval(semitones, accidentals);
   }
 
@@ -188,8 +197,9 @@ export class Interval {
    * D2 all have a diatonic number of 2. The tritone’s number is null.
    */
   get number(): number | null {
-    const m = ShortIntervalNames[this.naturalSemitones].match(/\d+/);
-    return m && Number(m[0]);
+    const dn = this.naturalSemitones;
+    const m = ShortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
+    return m && Number(m[0]) + (dn > 12 ? 7 * Math.floor(dn / 12) : 0);
   }
 
   /** Accidentals greater than double-augmented and double-diminished, and the
@@ -197,7 +207,7 @@ export class Interval {
    */
   get quality(): IntervalQuality | null {
     if (this.accidentals === 0) {
-      const m = ShortIntervalNames[this.naturalSemitones].match(/./);
+      const m = ShortIntervalNames[this.naturalSemitones % 12].match(/./);
       return (m && abbrevToQuality.get(m[0])) || null;
     }
     return accidentalsToQuality[this.accidentals + 2];
@@ -235,6 +245,9 @@ export class Interval {
   // TODO: add methods natural, augment, diminish
 
   public toString(): string {
+    if (this.naturalSemitones > 12) {
+      return `${qualityAbbrs.get(this.quality!)}${this.number}`;
+    }
     let s = ShortIntervalNames[this.naturalSemitones];
     if (this.accidentals) {
       s = semitonesToAccidentalString(this.accidentals) + s;

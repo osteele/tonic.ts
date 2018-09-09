@@ -1,6 +1,15 @@
-import { Chord, ChordClass, Intervals, Pitch, PitchClass } from '../src';
+import {
+  Chord,
+  ChordClass,
+  Interval,
+  Intervals,
+  Pitch,
+  PitchClass,
+} from '../src';
 
 const { P1, m3, M3, P5, m7, M7 } = Intervals;
+const m9 = Interval.fromString('m9');
+const M9 = Interval.fromString('M9');
 
 describe('ChordClass', () => {
   describe('fromString', () => {
@@ -13,12 +22,12 @@ describe('ChordClass', () => {
 
     it('should recognize abbreviations', () => {
       expect(ChordClass.fromString('M')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
+      expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
       expect(ChordClass.fromString('maj7')).toBeInstanceOf(ChordClass);
       expect(ChordClass.fromString('min7')).toBeInstanceOf(ChordClass);
       expect(ChordClass.fromString('M7')).toBeInstanceOf(ChordClass);
       expect(ChordClass.fromString('m7')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
     });
   });
 
@@ -31,6 +40,9 @@ describe('ChordClass', () => {
     expect(ChordClass.fromString('Major').intervals).toEqual([P1, M3, P5]);
     expect(ChordClass.fromString('Minor').intervals).toEqual([P1, m3, P5]);
     expect(ChordClass.fromString('M7').intervals).toEqual([P1, M3, P5, M7]);
+    expect(ChordClass.fromString('m7').intervals).toEqual([P1, m3, P5, m7]);
+    expect(ChordClass.fromString('M9').intervals).toEqual([P1, M3, P5, M7, M9]);
+    expect(ChordClass.fromString('m9').intervals).toEqual([P1, m3, P5, m7, M9]);
   });
 });
 
@@ -107,7 +119,7 @@ describe('Chord', () => {
     });
   });
 
-  describe.only('intervals', () => {
+  describe('intervals', () => {
     expect(Chord.fromString('E').intervals).toEqual([P1, M3, P5]);
     expect(Chord.fromString('Em').intervals).toEqual([P1, m3, P5]);
     expect(Chord.fromString('E7').intervals).toEqual([P1, M3, P5, m7]);

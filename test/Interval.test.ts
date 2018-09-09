@@ -168,6 +168,37 @@ describe('Interval', () => {
     expect(Interval.fromString('A3').natural).toBe(M3);
     // FIXME: expect(Interval.fromString('d3').natural).toBe(M3);
   });
+
+  it('compound interval', () => {
+    expect(Interval.fromString('m9').semitones).toBe(13);
+    expect(Interval.fromString('M9').semitones).toBe(14);
+    expect(Interval.fromString('m10').semitones).toBe(15);
+    expect(Interval.fromString('M10').semitones).toBe(16);
+    expect(Interval.fromString('P11').semitones).toBe(17);
+    expect(Interval.fromString('P12').semitones).toBe(19);
+    expect(Interval.fromString('m13').semitones).toBe(20);
+    expect(Interval.fromString('M13').semitones).toBe(21);
+    expect(Interval.fromString('m14').semitones).toBe(22);
+    expect(Interval.fromString('M14').semitones).toBe(23);
+    expect(Interval.fromString('P15').semitones).toBe(24);
+
+    expect(Interval.fromString('M9').name).toBe('M9');
+    expect(Interval.fromString('m9').name).toBe('m9');
+    // expect(Interval.fromString('A9').name).toBe('A9');
+    // expect(Interval.fromString('d9').name).toBe('d9');
+    // TODO: test tritone compounds
+
+    expect(Interval.fromString('M9').number).toBe(9);
+    expect(Interval.fromString('m9').number).toBe(9);
+    // FIXME:
+    // expect(Interval.fromString('A9').number).toBe(9);
+    // expect(Interval.fromString('d9').number).toBe(9);
+
+    expect(Interval.fromString('M9').quality).toBe(IntervalQuality.Major);
+    expect(Interval.fromString('m9').quality).toBe(IntervalQuality.Minor);
+    expect(Interval.fromString('A9').quality).toBe(IntervalQuality.Augmented);
+    expect(Interval.fromString('d9').quality).toBe(IntervalQuality.Diminished);
+  });
 });
 
 describe('IntervalNames', () => {

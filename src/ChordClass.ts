@@ -103,6 +103,7 @@ class ChordClassAccessor extends ChordClass {
   }
 }
 
+// tslint:disable:object-literal-sort-keys
 const chordClassArray: ChordClass[] = [
   { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
   { name: 'Minor', abbrs: ['m'], intervals: '037' },
@@ -110,6 +111,8 @@ const chordClassArray: ChordClass[] = [
   { name: 'Diminished', abbrs: ['°', 'dim'], intervals: '036' },
   { name: 'Sus2', abbrs: ['sus2'], intervals: '027' },
   { name: 'Sus4', abbrs: ['sus4'], intervals: '057' },
+  { name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], intervals: '0479' },
+  { name: 'Minor 6th', abbrs: ['m6', 'min6'], intervals: '0379' },
   { name: 'Dominant 7th', abbrs: ['7', 'dom7'], intervals: '047t' },
   { name: 'Augmented 7th', abbrs: ['+7', '7aug'], intervals: '048t' },
   { name: 'Diminished 7th', abbrs: ['°7', 'dim7'], intervals: '0369' },
@@ -120,30 +123,32 @@ const chordClassArray: ChordClass[] = [
   { name: 'Minor 7th b5', abbrs: ['ø', 'Ø', 'm7b5'], intervals: '036t' },
   { name: 'Diminished Maj 7th', abbrs: ['°Maj7'], intervals: '036e' },
   {
+    name: 'Minor-Major 7th',
     abbrs: ['min/maj7', 'min(maj7)'],
     intervals: '037e',
-    name: 'Minor-Major 7th',
   },
-  { name: '6th', abbrs: ['6', 'M6', 'M6', 'maj6'], intervals: '0479' },
-  { name: 'Minor 6th', abbrs: ['m6', 'min6'], intervals: '0379' },
+  { name: 'Major 9th', abbrs: ['M9'], intervals: 'P1 M3 P5 M7 M9' },
+  { name: 'Minor 9th', abbrs: ['m9'], intervals: 'P1 m3 P5 m7 M9' },
+  // tslint:enable:object-literal-sort-keys
 ].map(({ name, abbrs, intervals }) => {
-  const fullName = name;
-  name = name
+  const shortName = name
     .replace(/Major(?!$)/, 'Maj')
     .replace(/Minor(?!$)/, 'Min')
     .replace('Dominant', 'Dom')
     .replace('Diminished', 'Dim');
   const toneNames: { [_: string]: number } = { t: 10, e: 11 };
-  const intervalInstances = intervals.match(/./g)!.map((c: string) => {
-    const left = toneNames[c];
-    const semitones = left != null ? left : Number(c);
-    return Interval.fromSemitones(semitones);
-  });
+  const intervalInstances = intervals.match(/[PMm]/)
+    ? intervals.split(' ').map(Interval.fromString)
+    : intervals.match(/./g)!.map((c: string) => {
+        const left = toneNames[c];
+        const semitones = left != null ? left : Number(c);
+        return Interval.fromSemitones(semitones);
+      });
   return new ChordClass({
     abbrs,
-    fullName,
+    fullName: name,
     intervals: intervalInstances,
-    name,
+    name: shortName,
   });
 });
 
