@@ -1,11 +1,6 @@
 import { Interval } from './Interval';
 import { NoteClass } from './NoteClass';
-import {
-  pitchFromHelmholtzNotation,
-  pitchFromScientificNotation,
-  pitchToPitchClass,
-  pitchToScientificNotation,
-} from './PitchClass';
+import { PitchClass, pitchToPitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** A `Note` is a named pitch such as "E4" and "F♯5".
@@ -31,8 +26,8 @@ export class Note implements PitchLike {
    */
   public static fromString(name: string): Note {
     const midiNumber = (name.match(/\d/)
-      ? pitchFromScientificNotation
-      : pitchFromHelmholtzNotation)(name);
+      ? PitchClass.fromScientificNotation
+      : PitchClass.fromHelmholtzNotation)(name);
     return new Note(midiNumber, name);
   }
 
@@ -43,7 +38,7 @@ export class Note implements PitchLike {
 
   public readonly name: string;
   constructor(readonly midiNumber: number, name?: string) {
-    this.name = name || pitchToScientificNotation(midiNumber);
+    this.name = name || PitchClass.toScientificNotation(midiNumber);
     const instance = Note.instances.get(this.name);
     if (instance) {
       return instance;

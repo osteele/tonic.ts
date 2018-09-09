@@ -29,60 +29,57 @@ export namespace PitchClass {
     }
     return name;
   }
-}
 
-export function pitchFromScientificNotation(name: string): PitchClass {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i);
-  if (!match) {
-    throw new Error(`“${name}” is not in scientific notation`);
+  export function fromScientificNotation(name: string): PitchClass {
+    const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i);
+    if (!match) {
+      throw new Error(`“${name}” is not in scientific notation`);
+    }
+    const [naturalName, accidentals, octave] = match.slice(1);
+    let pitch =
+      SharpNoteNames.indexOf(naturalName.toUpperCase()) +
+      12 * (1 + Number(octave));
+    for (const c of accidentals) {
+      pitch += AccidentalValues[c];
+    }
+    return pitch;
   }
-  const [naturalName, accidentals, octave] = match.slice(1);
-  let pitch =
-    SharpNoteNames.indexOf(naturalName.toUpperCase()) +
-    12 * (1 + Number(octave));
-  for (const c of accidentals) {
-    pitch += AccidentalValues[c];
-  }
-  return pitch;
-}
 
-export function pitchFromHelmholtzNotation(name: string): PitchClass {
-  const match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i);
-  if (!match) {
-    throw new Error(`“${name}” is not in Helmholtz notation`);
+  export function fromHelmholtzNotation(name: string): PitchClass {
+    const match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i);
+    if (!match) {
+      throw new Error(`“${name}” is not in Helmholtz notation`);
+    }
+    const [pitchClassName, commas, apostrophes] = match.slice(1);
+    const pitchClassNumber = fromString(pitchClassName, false);
+    const octave =
+      4 -
+      Number(pitchClassName === pitchClassName.toUpperCase()) -
+      commas.length +
+      apostrophes.length;
+    return 12 * octave + pitchClassNumber;
   }
-  const [pitchClassName, commas, apostrophes] = match.slice(1);
-  const pitchClassNumber = parsePitchClass(pitchClassName, false);
-  const octave =
-    4 -
-    Number(pitchClassName === pitchClassName.toUpperCase()) -
-    commas.length +
-    apostrophes.length;
-  return 12 * octave + pitchClassNumber;
-}
 
-export function pitchToScientificNotation(midiNumber: number): string {
-  const octave = Math.floor(midiNumber / 12) - 1;
-  return getPitchClassName(normalizePitchClass(midiNumber)) + octave;
-}
+  export function toScientificNotation(midiNumber: number): string {
+    const octave = Math.floor(midiNumber / 12) - 1;
+    return getPitchClassName(normalizePitchClass(midiNumber)) + octave;
+  }
 
-export function parsePitchClass(
-  name: PitchClassName,
-  normal = true,
-): PitchClass {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
-  if (!match) {
-    throw new Error(`“${name}” is not a pitch class name`);
+  export function fromString(name: PitchClassName, normal = true): PitchClass {
+    const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
+    if (!match) {
+      throw new Error(`“${name}” is not a pitch class name`);
+    }
+    const [naturalName, accidentals] = match.slice(1);
+    let pitch = SharpNoteNames.indexOf(naturalName.toUpperCase());
+    for (const c of accidentals) {
+      pitch += AccidentalValues[c];
+    }
+    if (normal) {
+      pitch = normalizePitchClass(pitch);
+    }
+    return pitch;
   }
-  const [naturalName, accidentals] = match.slice(1);
-  let pitch = SharpNoteNames.indexOf(naturalName.toUpperCase());
-  for (const c of accidentals) {
-    pitch += AccidentalValues[c];
-  }
-  if (normal) {
-    pitch = normalizePitchClass(pitch);
-  }
-  return pitch;
 }
 
 export function getPitchClassName(pitchClass: PitchClass) {

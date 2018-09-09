@@ -1,10 +1,7 @@
 import { PitchClass } from '../src';
 import { semitonesToAccidentalString } from '../src/accidentals';
 import { midi2name, name2midi } from '../src/midi';
-import {
-  pitchFromScientificNotation,
-  pitchToPitchClass,
-} from '../src/PitchClass';
+import { pitchToPitchClass } from '../src/PitchClass';
 
 describe('semitonesToAccidentalString', () =>
   it('should turn semitones into strings', () => {
@@ -22,6 +19,32 @@ describe('semitonesToAccidentalString', () =>
   }));
 
 describe('PitchClass', () => {
+  describe('fromString', () => {
+    it('should parse naturals', () => {
+      expect(PitchClass.fromString('C')).toBe(0);
+      expect(PitchClass.fromString('D')).toBe(2);
+      expect(PitchClass.fromString('E')).toBe(4);
+      expect(PitchClass.fromString('F')).toBe(5);
+      expect(PitchClass.fromString('G')).toBe(7);
+      expect(PitchClass.fromString('A')).toBe(9);
+      expect(PitchClass.fromString('B')).toBe(11);
+    });
+
+    it('should parse sharps', () => {
+      expect(PitchClass.fromString('C#')).toBe(1);
+      expect(PitchClass.fromString('C♯')).toBe(1);
+    });
+
+    it('should parse flats', () => {
+      expect(PitchClass.fromString('Cb')).toBe(11);
+      expect(PitchClass.fromString('C♭')).toBe(11);
+    });
+
+    // test.skip('should parse double sharps and flats');
+    // expect(parsePitchClass('C𝄪')).toBe(2)
+    // expect(parsePitchClass('C𝄫')).toBe(10)
+  });
+
   describe('getPitchName', () => {
     it('should return natural names', () => {
       expect(PitchClass.asNoteName(0)).toBe('C');
@@ -57,38 +80,38 @@ describe('PitchClass', () => {
         'D♭/\nC♯',
       ));
   });
-});
 
-describe('pitchFromScientificNotation', () => {
-  it('should parse the pitch class', () => {
-    expect(pitchFromScientificNotation('C4')).toBe(60);
-    expect(pitchFromScientificNotation('D4')).toBe(62);
-    expect(pitchFromScientificNotation('E4')).toBe(64);
-    expect(pitchFromScientificNotation('F4')).toBe(65);
-    expect(pitchFromScientificNotation('G4')).toBe(67);
-    expect(pitchFromScientificNotation('A4')).toBe(69);
-    expect(pitchFromScientificNotation('B4')).toBe(71);
+  describe('pitchFromScientificNotation', () => {
+    it('should parse the pitch class', () => {
+      expect(PitchClass.fromScientificNotation('C4')).toBe(60);
+      expect(PitchClass.fromScientificNotation('D4')).toBe(62);
+      expect(PitchClass.fromScientificNotation('E4')).toBe(64);
+      expect(PitchClass.fromScientificNotation('F4')).toBe(65);
+      expect(PitchClass.fromScientificNotation('G4')).toBe(67);
+      expect(PitchClass.fromScientificNotation('A4')).toBe(69);
+      expect(PitchClass.fromScientificNotation('B4')).toBe(71);
+    });
+    it('should parse the octave', () => {
+      expect(PitchClass.fromScientificNotation('C1')).toBe(24);
+      expect(PitchClass.fromScientificNotation('C2')).toBe(36);
+      expect(PitchClass.fromScientificNotation('C3')).toBe(48);
+      expect(PitchClass.fromScientificNotation('C4')).toBe(60);
+      expect(PitchClass.fromScientificNotation('C5')).toBe(72);
+      expect(PitchClass.fromScientificNotation('C6')).toBe(84);
+    });
+    it('should parse accidentals', () => {
+      expect(PitchClass.fromScientificNotation('Cb4')).toBe(59);
+      expect(PitchClass.fromScientificNotation('C#4')).toBe(61);
+      expect(PitchClass.fromScientificNotation('C♭4')).toBe(59);
+      expect(PitchClass.fromScientificNotation('C♯4')).toBe(61);
+      expect(PitchClass.fromScientificNotation('C♭♭4')).toBe(58);
+      expect(PitchClass.fromScientificNotation('C♯♯4')).toBe(62);
+    });
+    // test.skip('should parse double accidentals');
   });
-  it('should parse the octave', () => {
-    expect(pitchFromScientificNotation('C1')).toBe(24);
-    expect(pitchFromScientificNotation('C2')).toBe(36);
-    expect(pitchFromScientificNotation('C3')).toBe(48);
-    expect(pitchFromScientificNotation('C4')).toBe(60);
-    expect(pitchFromScientificNotation('C5')).toBe(72);
-    expect(pitchFromScientificNotation('C6')).toBe(84);
-  });
-  it('should parse accidentals', () => {
-    expect(pitchFromScientificNotation('Cb4')).toBe(59);
-    expect(pitchFromScientificNotation('C#4')).toBe(61);
-    expect(pitchFromScientificNotation('C♭4')).toBe(59);
-    expect(pitchFromScientificNotation('C♯4')).toBe(61);
-    expect(pitchFromScientificNotation('C♭♭4')).toBe(58);
-    expect(pitchFromScientificNotation('C♯♯4')).toBe(62);
-  });
-  // test.skip('should parse double accidentals');
+  // expect(PitchClass.pitchFromScientificNotation('C𝄫4')).toBe(58);
+  // expect(PitchClass.pitchFromScientificNotation('C𝄪4')).toBe(62);
 });
-// expect(pitchFromScientificNotation('C𝄫4')).toBe(58);
-// expect(pitchFromScientificNotation('C𝄪4')).toBe(62);
 
 describe('pitchToPitchClass', () => {
   it('should return an integer in [0...12]', () => {

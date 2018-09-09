@@ -3,7 +3,6 @@ import {
   Interval,
   normalizePitchClass,
   NoteClass,
-  parsePitchClass,
 } from '../src';
 
 describe('getPitchClassName', () => {
@@ -37,33 +36,6 @@ describe('normalizePitchClass', () => {
     expect(normalizePitchClass(25)).toBe(1);
   });
 });
-
-// aka pitchNameToNumber
-describe('parsePitchClass', () => {
-  it('should parse naturals', () => {
-    expect(parsePitchClass('C')).toBe(0);
-    expect(parsePitchClass('D')).toBe(2);
-    expect(parsePitchClass('E')).toBe(4);
-    expect(parsePitchClass('F')).toBe(5);
-    expect(parsePitchClass('G')).toBe(7);
-    expect(parsePitchClass('A')).toBe(9);
-    expect(parsePitchClass('B')).toBe(11);
-  });
-
-  it('should parse sharps', () => {
-    expect(parsePitchClass('C#')).toBe(1);
-    expect(parsePitchClass('C♯')).toBe(1);
-  });
-
-  it('should parse flats', () => {
-    expect(parsePitchClass('Cb')).toBe(11);
-    expect(parsePitchClass('C♭')).toBe(11);
-  });
-
-  // test.skip('should parse double sharps and flats');
-});
-// expect(parsePitchClass('C𝄪')).toBe(2)
-// expect(parsePitchClass('C𝄫')).toBe(10)
 
 describe('NoteClass', () => {
   it('fromString', () => {
