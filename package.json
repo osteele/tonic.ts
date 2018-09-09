@@ -34,7 +34,7 @@
     "build": "rimraf dist && tsc",
     "check": "tsc --noEmit",
     "clean": "rimraf dist",
-    "doc": "typedoc --out docs/api --mode file --excludePrivate --excludeProtected --excludeExternals --exclude \"**/graphics/*.ts\" src",
+    "docs": "typedoc --out docs/api --mode file --excludePrivate --excludeProtected --excludeExternals --exclude \"**/graphics/*.ts\" src",
     "format": "yarn lint --fix",
     "lint": "tslint --project .",
     "lint:strict": "tslint --project . -c tslint-strict.yaml",
@@ -45,7 +45,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn format && yarn check && yarn test --bail",
-      "pre-push": "yarn check && yarn test"
+      "pre-push": "yarn lint && yarn check && yarn test"
     }
   }
 }

@@ -12,6 +12,15 @@ script:
   - yarn lint
   - yarn check
   - yarn test
+  - yarn docs
+
+deploy:
+  local-dir: docs/api
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  on:
+    branch: master
 
 notifications:
   email:
