@@ -1,4 +1,4 @@
-import { AccidentalValues } from './accidentals';
+import { accidentalValues } from './parsers/accidentals';
 import { NoteNames } from './PitchClass';
 
 export type MidiNumber = number;
@@ -14,7 +14,7 @@ export function name2midi(name: string): MidiNumber {
   const [noteName, accidentals, octave] = m.slice(1);
   let pitch = NoteNames.indexOf(noteName);
   for (const c of accidentals) {
-    pitch += AccidentalValues[c];
+    pitch += accidentalValues[c];
   }
   pitch += 12 * (1 + Number(octave));
   return pitch;

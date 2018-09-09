@@ -1,7 +1,6 @@
 // A map of accidental names to semitone offsets
 // tslint:disable object-literal-sort-keys quotemark
-// tslint:disable-next-line variable-name
-export const AccidentalValues: { [_: string]: number } = {
+export const accidentalValues: { [_: string]: number } = {
   "#": 1,
   "♯": 1,
   "b": -1,

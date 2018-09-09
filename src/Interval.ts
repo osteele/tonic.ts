@@ -1,6 +1,6 @@
-import { semitonesToAccidentalString } from './accidentals';
 import { Note } from './Note';
 import { NoteClass } from './NoteClass';
+import { semitonesToAccidentalString } from './parsers/accidentals';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 

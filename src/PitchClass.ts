@@ -1,6 +1,5 @@
-import { AccidentalValues } from './accidentals';
+import { accidentalValues } from './parsers/accidentals';
 
-export type PitchClassName = string;
 export type PitchClass = number;
 
 // tslint:disable-next-line variable-name
@@ -14,7 +13,7 @@ export const NoteNames = SharpNoteNames;
 
 export namespace PitchClass {
   export function asNoteName(
-    pitch: PitchClassName | PitchClass,
+    pitch: string | PitchClass,
     { sharp, flat }: { sharp?: boolean; flat?: boolean } = {},
   ): string {
     if (typeof pitch === 'string') {
@@ -40,7 +39,7 @@ export namespace PitchClass {
       SharpNoteNames.indexOf(naturalName.toUpperCase()) +
       12 * (1 + Number(octave));
     for (const c of accidentals) {
-      pitch += AccidentalValues[c];
+      pitch += accidentalValues[c];
     }
     return pitch;
   }
@@ -65,7 +64,7 @@ export namespace PitchClass {
     return getPitchClassName(normalize(midiNumber)) + octave;
   }
 
-  export function fromString(name: PitchClassName, normal = true): PitchClass {
+  export function fromString(name: string, normal = true): PitchClass {
     const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
     if (!match) {
       throw new Error(`“${name}” is not a pitch class name`);
@@ -73,7 +72,7 @@ export namespace PitchClass {
     const [naturalName, accidentals] = match.slice(1);
     let pitch = SharpNoteNames.indexOf(naturalName.toUpperCase());
     for (const c of accidentals) {
-      pitch += AccidentalValues[c];
+      pitch += accidentalValues[c];
     }
     if (normal) {
       pitch = normalize(pitch);

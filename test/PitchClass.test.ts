@@ -1,6 +1,6 @@
 import { PitchClass } from '../src';
-import { semitonesToAccidentalString } from '../src/accidentals';
 import { midi2name, name2midi } from '../src/midi';
+import { semitonesToAccidentalString } from '../src/parsers/accidentals';
 
 describe('semitonesToAccidentalString', () =>
   it('should turn semitones into strings', () => {
