@@ -112,7 +112,7 @@ export class FrettedChord {
   }
 
   /** Pitches in the chord, in order by string, with duplicates. */
-  get pitches(): Note[] {
+  get notes(): Note[] {
     return this.positions.map(({ pitch }) => pitch);
   }
 
@@ -125,14 +125,6 @@ export class FrettedChord {
     );
   }
 
-  // chordName(): string {
-  //   let { name } = this.chord;
-  //   if (this.inversion() > 0) {
-  //     name += ` / ${this.instrument.pitchAt(this.positions[0]).toString()}`;
-  //   }
-  //   return name;
-  // }
-
   // inversion():number {
   //   return this.chord.pitches.indexOf(
   //     Interval.between(
@@ -142,12 +134,11 @@ export class FrettedChord {
   //   );
   // }
 
-  //   inversionLetter():string {
+  // inversionLetter():string {
   //   if (!(this.inversion > 0)) {
   //     return;
   //   }
   //   return String.fromCharCode(96 + this.inversion);
-  // }
   // }
 }
 
@@ -169,12 +160,15 @@ export interface Barre {
   readonly firstString: number;
   /** The number of strings that the barre includes. */
   readonly stringCount: number;
-  // TODO: does this really need to be part of the interface?
+  // TODO: does this need to be part of the interface?
   readonly fingerReplacementCount: number;
 }
 
 // tslint:disable:object-literal-sort-keys
 type Getter<T> = (_: FrettedChord) => T;
+
+// The implementation of FrettedChord.properties applies these to the
+// instance.
 const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
   fingers: (fretting) => fretting.fingerCount,
   bassIsRoot: ({ positions }) =>
@@ -193,7 +187,6 @@ const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
   skipped: /\dx+\d/,
 
   position: ({ positions }) =>
-    // const frets = positions.map(({ fret }) => fret);
     Math.max(
       _.chain(positions)
         .map('fretNumber')
@@ -201,6 +194,7 @@ const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
         .value()! - 1,
       0,
     ),
+
   strings: ({ positions }) => positions.length,
 };
 // tslint:enable

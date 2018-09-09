@@ -48,8 +48,8 @@ export class Chord<T extends PitchLike> {
   /** The preferred abbreviation. */
   public readonly abbr: string;
   public readonly abbrs: string[];
+  public readonly notes: T[];
   public readonly intervals: Interval[];
-  public readonly pitches: T[];
   constructor(
     readonly chordClass: ChordClass,
     readonly root: T,
@@ -60,7 +60,7 @@ export class Chord<T extends PitchLike> {
     );
     this.abbr = this.abbrs[0];
     this.intervals = this.chordClass.intervals;
-    this.pitches = this.chordClass.intervals.map((interval: Interval) =>
+    this.notes = this.chordClass.intervals.map((interval: Interval) =>
       this.root.transposeBy(interval),
     ) as T[];
 
@@ -70,7 +70,7 @@ export class Chord<T extends PitchLike> {
 
     if (this.inversion) {
       this.intervals = rotateArray(this.intervals, this.inversion);
-      this.pitches = rotateArray(this.pitches, this.inversion);
+      this.notes = rotateArray(this.notes, this.inversion);
     }
   }
 

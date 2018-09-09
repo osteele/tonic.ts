@@ -106,14 +106,14 @@ describe('Interval', () => {
     const GA4 = Note.fromString('G#4');
     const { P1, m2, m3, M3, P5 } = Intervals;
 
-    it('should return the interval between two pitches', () => {
+    it('should return the interval between two notes', () => {
       expect(Interval.between(E4, E4)).toBe(P1);
       expect(Interval.between(E4, F4)).toBe(m2);
       expect(Interval.between(E4, G4)).toBe(m3);
       expect(Interval.between(E4, GA4)).toBe(M3);
     });
 
-    it('should return the interval between two pitch classes', () => {
+    it('should return the interval between two note classes', () => {
       const E = NoteClass.fromString('E');
       const F = NoteClass.fromString('F');
       const G = NoteClass.fromString('G');

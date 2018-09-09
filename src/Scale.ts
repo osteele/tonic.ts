@@ -75,7 +75,7 @@ class GenericScale<T extends PitchLike | null> {
  */
 export class Scale extends GenericScale<null> {
   public static fromString(name: string): Scale {
-    const scale = Scale.scaleMap.get(name);
+    const scale = Scale.instances.get(name);
     if (!scale) {
       throw new Error(`No scale named ${name}`);
     }
@@ -83,19 +83,17 @@ export class Scale extends GenericScale<null> {
   }
 
   public static addScale(scale: Scale) {
-    Scale.scaleMap.set(scale.name, scale);
+    Scale.instances.set(scale.name, scale);
   }
 
   public static get scales(): IterableIterator<Scale> {
-    return Scale.scaleMap.values();
+    return Scale.instances.values();
   }
 
-  private static readonly scaleMap = new Map<string, Scale>();
+  private static readonly instances = new Map<string, Scale>();
 }
 
-/** `SpecificScale<PitchLike>` is a scale that starts at a specific pitch or pitch
- * class.
- */
+/** `SpecificScale<PitchLike>` is a scale that starts at a specific tonic. */
 export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
   public static fromString(name: string): SpecificScale<PitchLike> {
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
@@ -110,12 +108,12 @@ export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
   }
 
   public readonly tonic: T;
-  public readonly pitches: T[];
+  public readonly notes: T[];
 
   constructor(options: ScaleConstructorOptions<T>) {
     super(options);
     this.tonic = options.tonic;
-    this.pitches = this.intervals.map((interval) =>
+    this.notes = this.intervals.map((interval) =>
       options.tonic.transposeBy(interval),
     ) as T[];
   }
@@ -228,9 +226,7 @@ const scaleMap = [
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;
   pitchClasses = [...pitchClasses.slice(i), ...pitchClasses.slice(0, i)];
-  return pitchClasses.map((pc) =>
-    PitchClass.normalize(pc - pitchClasses[0]),
-  );
+  return pitchClasses.map((pc) => PitchClass.normalize(pc - pitchClasses[0]));
 }
 
 // Indexed by scale degree

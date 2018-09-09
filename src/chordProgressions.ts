@@ -45,7 +45,7 @@ export function chordFromRomanNumeral<T extends PitchLike>(
   }
   // TODO: 9, 13, sharp, natural
   // FIXME: remove the cast
-  const chord = ChordClass.fromString(chordType).at(scale.pitches[degree]);
+  const chord = ChordClass.fromString(chordType).at(scale.notes[degree]);
   return inversion ? chord.invert(inversion) : chord;
 }
 

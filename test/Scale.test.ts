@@ -109,10 +109,10 @@ describe('Scale', () => {
         expect(eMajor.tonic!.toString()).toBe('E');
       });
 
-      it('should have seven pitches', () => {
-        expect(eMajor.pitches).toHaveLength(7);
-        const pitches = eMajor.pitches! as Note[];
-        const pitchNames = pitches.map((pitch) => pitch.toString());
+      it('should have seven notes', () => {
+        expect(eMajor.notes).toHaveLength(7);
+        const notes = eMajor.notes! as Note[];
+        const pitchNames = notes.map((pitch) => pitch.toString());
         expect(pitchNames).toEqual('E F♯ G♯ A B C♯ D♯'.split(/\s/));
       });
 

@@ -86,11 +86,12 @@ describe('Note', () => {
     expect(C4.transposeBy(Interval.fromString('M2')).toString()).toBe('D4');
   });
 
-  // test.skip('#asPitch should itself');
-  // test.skip('#asPitchClass should its pitch class');
+  // test.skip('asPitch should return itself');
+  // test.skip('asPitchClass should its pitch class');
 });
 
-describe('Notes', () =>
-  it('should contain 12 notes', () => {
+describe('Notes', () => {
+  it('should have 12 notes', () => {
     expect(Notes).toHaveLength(12);
-  }));
+  });
+});

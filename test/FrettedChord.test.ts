@@ -44,8 +44,8 @@ describe('FrettedChord', () => {
     );
   });
 
-  it('pitches', () => {
-    expect(_.invokeMap(fretting.pitches, 'toString').join(' ')).toEqual(
+  it('notes', () => {
+    expect(_.invokeMap(fretting.notes, 'toString').join(' ')).toEqual(
       'E2 B2 E3 G♯3 B3 E4',
     );
   });

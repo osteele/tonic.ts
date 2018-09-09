@@ -126,7 +126,7 @@ function generateFrettings(
   // Generate candidate frettings. Do some preliminary filtering, to avoid
   // creating computing barres and instantiating FrettedChord for fretting
   // combinations that can be easily eliminated.
-  const pitchClassCount = chord.pitches.length;
+  const pitchClassCount = chord.notes.length;
   const fretArrays = generateFretArrays(
     fretsPerString(chord, instrument, options),
   )

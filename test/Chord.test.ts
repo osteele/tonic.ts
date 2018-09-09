@@ -171,9 +171,9 @@ describe('Major Chord Class', () => {
       expect(chord.intervals).toHaveLength(3);
     });
 
-    it('should have three pitches', () => {
-      expect(chord.pitches).toHaveLength(3);
-      expect(chord.pitches).toEqual(['E', 'G#', 'B'].map(NoteClass.fromString));
+    it('should have three notes', () => {
+      expect(chord.notes).toHaveLength(3);
+      expect(chord.notes).toEqual(['E', 'G#', 'B'].map(NoteClass.fromString));
     });
 
     it('invert', () => {
@@ -184,11 +184,11 @@ describe('Major Chord Class', () => {
       expect(first.inversion).toBe(1);
       // TODO: expect(chord.root).toBe
       // TODO: expect(first.shortName).toBe('Ea');
-      expect(first.pitches).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
+      expect(first.notes).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
 
       const second = chord.invert('c');
       expect(second.inversion).toBe(2);
-      expect(first.pitches).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
+      expect(first.notes).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
 
       // TODO: needs a 7th
       // const third = chord.invert('d');
@@ -216,9 +216,9 @@ describe('Major Chord Class', () => {
     });
 
     it('should have an array of pitches', () => {
-      expect(chord.pitches).toBeInstanceOf(Array);
-      expect(chord.pitches).toHaveLength(3);
-      expect(chord.pitches).toEqual(['E4', 'G♯4', 'B4'].map(Note.fromString));
+      expect(chord.notes).toBeInstanceOf(Array);
+      expect(chord.notes).toHaveLength(3);
+      expect(chord.notes).toEqual(['E4', 'G♯4', 'B4'].map(Note.fromString));
     });
   });
 });
