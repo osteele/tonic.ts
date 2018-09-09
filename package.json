@@ -44,7 +44,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn format && yarn check && yarn test --onlyChanged --bail",
+      "pre-commit": "yarn format && yarn check && yarn test --bail",
       "pre-push": "yarn check && yarn test"
     }
   }
