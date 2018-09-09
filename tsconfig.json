@@ -26,5 +26,14 @@
     /* Source Map Options */
     "sourceMap": true /* Generates corresponding '.map' file. */
   },
-  "include": ["src", "index.js", "./typings.d.ts", "types"]
+  "include": ["src", "index.js", "./typings.d.ts", "types"],
+  "typedocOptions": {
+    "mode": "file",
+    "out": "docs/api",
+    "excludeNotExported": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "exclude": ["**/parsers/*.ts", "**/utils.ts", "**/graphics/*.ts"]
+  }
 }
