@@ -36,8 +36,13 @@ export class Note implements PitchLike {
   // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
   private static instances = new Map<string, Note>();
 
+  // tslint:disable-next-line:member-ordering
+  public static all = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
+    (pitch) => new Note(pitch),
+  );
+
   public readonly name: string;
-  constructor(readonly midiNumber: number, name?: string) {
+  private constructor(readonly midiNumber: number, name?: string) {
     this.name = name || PitchClass.toScientificNotation(midiNumber);
     const instance = Note.instances.get(this.name);
     if (instance) {
@@ -69,7 +74,6 @@ export class Note implements PitchLike {
   }
 }
 
+/** The first twelve Notes, indexed by semitone count. */
 // tslint:disable-next-line variable-name
-export const Notes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
-  (pitch) => new Note(pitch),
-);
+export const Notes = Note.all;

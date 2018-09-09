@@ -24,7 +24,7 @@ export class NoteClass implements PitchLike {
   private static instances = new Map<string, NoteClass>();
 
   public readonly name: string;
-  constructor(readonly semitones: number, name?: string) {
+  private constructor(readonly semitones: number, name?: string) {
     this.name = name || NoteNames[semitones];
     const instance = NoteClass.instances.get(this.name);
     if (instance) {

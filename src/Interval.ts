@@ -178,11 +178,20 @@ export class Interval {
 
   private static bySemitone = new Array<Map<number, Interval>>();
 
+  // tslint:disable-next-line:member-ordering
+  public static all = ShortIntervalNames.reduce(
+    (acc: { [_: string]: Interval }, name, semitones) => {
+      acc[name] = new Interval(semitones);
+      return acc;
+    },
+    {},
+  );
+
   /*** `semitones` is the semitones of the corresponding natural interval. The
    *   constructed interval is diminished or augmented from this by
    *   `accidentals`.
    */
-  constructor(
+  private constructor(
     private readonly naturalSemitones: number,
     readonly accidentals = 0,
   ) {
@@ -293,18 +302,12 @@ export class Interval {
 }
 
 export function asInterval(n: Interval | number): Interval {
-  return n instanceof Interval ? n : new Interval(n);
+  return n instanceof Interval ? n : Interval.fromSemitones(n);
 }
 
 // TODO: change these to constants in a namespace?
 // tslint:disable-next-line variable-name
-export const Intervals: { [_: string]: Interval } = ShortIntervalNames.reduce(
-  (acc: { [_: string]: Interval }, name, semitones) => {
-    acc[name] = new Interval(semitones);
-    return acc;
-  },
-  {},
-);
+export const Intervals: { [_: string]: Interval } = Interval.all;
 
 // The interval class (integer in [0...12]) between two pitch class numbers
 export function intervalClassDifference(a: PitchClass, b: PitchClass): number {

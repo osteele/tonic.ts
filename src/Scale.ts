@@ -45,9 +45,7 @@ class GenericScale<T extends PitchLike | null> {
     this.parent =
       typeof parent === 'string' ? Scale.fromString(parent) : parent;
     this.pitchClasses = pitchClasses;
-    this.intervals = this.pitchClasses.map(
-      (semitones: number) => new Interval(semitones),
-    );
+    this.intervals = this.pitchClasses.map((semitones) => Interval.fromSemitones(semitones));
     this.modes = modeNames.map(
       (modeName, i) =>
         new Scale({
