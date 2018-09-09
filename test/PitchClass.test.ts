@@ -1,7 +1,6 @@
 import { PitchClass } from '../src';
 import { semitonesToAccidentalString } from '../src/accidentals';
 import { midi2name, name2midi } from '../src/midi';
-import { pitchToPitchClass } from '../src/PitchClass';
 
 describe('semitonesToAccidentalString', () =>
   it('should turn semitones into strings', () => {
@@ -45,7 +44,7 @@ describe('PitchClass', () => {
     // expect(parsePitchClass('C𝄫')).toBe(10)
   });
 
-  describe('getPitchName', () => {
+  describe('asNoteName', () => {
     it('should return natural names', () => {
       expect(PitchClass.asNoteName(0)).toBe('C');
       expect(PitchClass.asNoteName(2)).toBe('D');
@@ -81,7 +80,7 @@ describe('PitchClass', () => {
       ));
   });
 
-  describe('pitchFromScientificNotation', () => {
+  describe('fromScientificNotation', () => {
     it('should parse the pitch class', () => {
       expect(PitchClass.fromScientificNotation('C4')).toBe(60);
       expect(PitchClass.fromScientificNotation('D4')).toBe(62);
@@ -115,16 +114,48 @@ describe('PitchClass', () => {
 
 describe('pitchToPitchClass', () => {
   it('should return an integer in [0...12]', () => {
-    expect(pitchToPitchClass(0)).toBe(0);
-    expect(pitchToPitchClass(1)).toBe(1);
-    expect(pitchToPitchClass(12)).toBe(0);
-    expect(pitchToPitchClass(13)).toBe(1);
-    expect(pitchToPitchClass(-1)).toBe(11);
-    expect(pitchToPitchClass(-13)).toBe(11);
+    expect(PitchClass.fromNumber(0)).toBe(0);
+    expect(PitchClass.fromNumber(1)).toBe(1);
+    expect(PitchClass.fromNumber(12)).toBe(0);
+    expect(PitchClass.fromNumber(13)).toBe(1);
+    expect(PitchClass.fromNumber(-1)).toBe(11);
+    expect(PitchClass.fromNumber(-13)).toBe(11);
+  });
+
+  describe('getPitchClassName', () => {
+    it('should return natural names', () => {
+      expect(PitchClass.getPitchClassName(0)).toBe('C');
+      expect(PitchClass.getPitchClassName(2)).toBe('D');
+      expect(PitchClass.getPitchClassName(4)).toBe('E');
+      expect(PitchClass.getPitchClassName(5)).toBe('F');
+      expect(PitchClass.getPitchClassName(7)).toBe('G');
+      expect(PitchClass.getPitchClassName(9)).toBe('A');
+      expect(PitchClass.getPitchClassName(11)).toBe('B');
+    });
+
+    it('should return sharp names', () => {
+      expect(PitchClass.getPitchClassName(1)).toBe('C♯');
+      expect(PitchClass.getPitchClassName(3)).toBe('D♯');
+      expect(PitchClass.getPitchClassName(6)).toBe('F♯');
+      expect(PitchClass.getPitchClassName(8)).toBe('G♯');
+      expect(PitchClass.getPitchClassName(10)).toBe('A♯');
+    });
+  });
+
+  describe('normalizePitchClass', () => {
+    it('should return an integer in 0..11', () => {
+      expect(PitchClass.normalize(0)).toBe(0);
+      expect(PitchClass.normalize(11)).toBe(11);
+      expect(PitchClass.normalize(-1)).toBe(11);
+      expect(PitchClass.normalize(-13)).toBe(11);
+      expect(PitchClass.normalize(12)).toBe(0);
+      expect(PitchClass.normalize(13)).toBe(1);
+      expect(PitchClass.normalize(25)).toBe(1);
+    });
   });
 });
 
-describe('midi2name', () =>
+describe('midi2name', () => {
   it('should return a pitch name', () => {
     expect(midi2name(0)).toBe('C-1');
     expect(midi2name(12)).toBe('C0');
@@ -133,9 +164,10 @@ describe('midi2name', () =>
     expect(midi2name(24)).toBe('C1');
     expect(midi2name(36)).toBe('C2');
     expect(midi2name(127)).toBe('G9');
-  }));
+  });
+});
 
-describe('name2midi', () =>
+describe('name2midi', () => {
   it('should return a midi number', () => {
     expect(name2midi('C-1')).toBe(0);
     expect(name2midi('C0')).toBe(12);
@@ -144,4 +176,5 @@ describe('name2midi', () =>
     expect(name2midi('C1')).toBe(24);
     expect(name2midi('C2')).toBe(36);
     expect(name2midi('G9')).toBe(127);
-  }));
+  });
+});

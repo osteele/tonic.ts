@@ -1,7 +1,7 @@
 import { semitonesToAccidentalString } from './accidentals';
 import { Note } from './Note';
 import { NoteClass } from './NoteClass';
-import { normalizePitchClass, PitchClass } from './PitchClass';
+import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 // tslint:disable-next-line variable-name
@@ -162,7 +162,7 @@ export class Interval {
     if (a instanceof Note && b instanceof Note) {
       semitones = b.midiNumber - a.midiNumber;
     } else if (a instanceof NoteClass && b instanceof NoteClass) {
-      semitones = normalizePitchClass(b.semitones - a.semitones);
+      semitones = PitchClass.normalize(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
       semitones = b - a;
     } else {
@@ -171,7 +171,7 @@ export class Interval {
       );
     }
     if (!(0 <= semitones && semitones < 12)) {
-      semitones = normalizePitchClass(semitones);
+      semitones = PitchClass.normalize(semitones);
     }
     return Interval.fromSemitones(semitones);
   }
@@ -307,9 +307,6 @@ export const Intervals: { [_: string]: Interval } = ShortIntervalNames.reduce(
 );
 
 // The interval class (integer in [0...12]) between two pitch class numbers
-export function intervalClassDifference(
-  a: PitchClass,
-  b: PitchClass,
-): number {
-  return normalizePitchClass(b - a);
+export function intervalClassDifference(a: PitchClass, b: PitchClass): number {
+  return PitchClass.normalize(b - a);
 }

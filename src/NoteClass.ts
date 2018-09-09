@@ -1,6 +1,6 @@
 import { Interval } from './Interval';
 import { Note } from './Note';
-import { normalizePitchClass, NoteNames, PitchClass } from './PitchClass';
+import { NoteNames, PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** `NoteClass` represents a set of notes separated by octaves. For example, the
@@ -13,7 +13,7 @@ import { PitchLike } from './PitchLike';
  */
 export class NoteClass implements PitchLike {
   public static fromSemitones(semitones: number): NoteClass {
-    semitones = normalizePitchClass(semitones);
+    semitones = PitchClass.normalize(semitones);
     return new NoteClass(semitones);
   }
 

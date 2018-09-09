@@ -20,7 +20,7 @@ export namespace PitchClass {
     if (typeof pitch === 'string') {
       return pitch;
     }
-    const pitchClass = pitchToPitchClass(pitch);
+    const pitchClass = fromNumber(pitch);
     const flatName = FlatNoteNames[pitchClass];
     const sharpName = SharpNoteNames[pitchClass];
     let name = sharp ? sharpName : flatName;
@@ -62,7 +62,7 @@ export namespace PitchClass {
 
   export function toScientificNotation(midiNumber: number): string {
     const octave = Math.floor(midiNumber / 12) - 1;
-    return getPitchClassName(normalizePitchClass(midiNumber)) + octave;
+    return getPitchClassName(normalize(midiNumber)) + octave;
   }
 
   export function fromString(name: PitchClassName, normal = true): PitchClass {
@@ -76,17 +76,18 @@ export namespace PitchClass {
       pitch += AccidentalValues[c];
     }
     if (normal) {
-      pitch = normalizePitchClass(pitch);
+      pitch = normalize(pitch);
     }
     return pitch;
   }
+
+  // TODO: rename or remove this
+  export function getPitchClassName(pitchClass: PitchClass) {
+    return NoteNames[pitchClass];
+  }
+
+  export const normalize = (pitchClass: PitchClass) =>
+    ((pitchClass % 12) + 12) % 12;
+
+  export const fromNumber = normalize;
 }
-
-export function getPitchClassName(pitchClass: PitchClass) {
-  return NoteNames[pitchClass];
-}
-
-export const normalizePitchClass = (pitchClass: PitchClass) =>
-  ((pitchClass % 12) + 12) % 12;
-
-export const pitchToPitchClass = normalizePitchClass;

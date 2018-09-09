@@ -1,6 +1,6 @@
 import { Interval } from './Interval';
 import { NoteClass } from './NoteClass';
-import { PitchClass, pitchToPitchClass } from './PitchClass';
+import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** A `Note` is a named pitch such as "E4" and "F♯5".
@@ -61,7 +61,7 @@ export class Note implements PitchLike {
   }
 
   public asPitchClass(): NoteClass {
-    return NoteClass.fromSemitones(pitchToPitchClass(this.midiNumber));
+    return NoteClass.fromSemitones(PitchClass.fromNumber(this.midiNumber));
   }
 
   public transposeBy(interval: Interval): Note {
