@@ -24,6 +24,11 @@ export class Pitch implements PitchLike {
     return new Pitch(midiNumber);
   }
 
+  /** Return a note specified in [scientific pitch
+   * notation](https://en.wikipedia.org/wiki/Scientific_pitch_notation) or
+   * [Helmholtz pitch
+   * notation](https://en.wikipedia.org/wiki/Helmholtz_pitch_notation).
+   */
   public static fromString(name: string): Pitch {
     const midiNumber = (name.match(/\d/)
       ? pitchFromScientificNotation

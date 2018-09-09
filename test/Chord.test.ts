@@ -94,13 +94,13 @@ describe('Chord', () => {
     });
 
     it('should find the chord from an array of pitches', () => {
-      const pitches = ['A3', 'C#4', 'E4'].map(Pitch.fromString);
+      const pitches = ['A3', 'C♯4', 'E4'].map(Pitch.fromString);
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A3 Major');
     });
 
     it.skip('should recognize inversions', () => {
-      const pitches = ['C#', 'A', 'E'].map(PitchClass.fromString);
+      const pitches = ['C♯', 'A', 'E'].map(PitchClass.fromString);
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A Major');
       expect(chord.inversion).toBe('a');

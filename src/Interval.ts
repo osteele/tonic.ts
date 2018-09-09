@@ -26,8 +26,10 @@ export const LongIntervalNames = [
   'Octave',
 ];
 
-/** See [Interval
- * quality](https://en.wikipedia.org/wiki/Interval_(music)#Quality).
+/** The *quality* distinguishes between [major and
+ * minor](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords)
+ * intervals, and further augments or diminishes an interval. See [Wikipedia:
+ * Interval quality](https://en.wikipedia.org/wiki/Interval_(music)#Quality).
  */
 export enum IntervalQuality {
   DoublyDiminished,
