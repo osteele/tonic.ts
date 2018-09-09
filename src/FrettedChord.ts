@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Chord } from './Chord';
 import { FrettedInstrument, Instruments, StringFret } from './Instrument';
-import { Interval } from './Interval';
+import { Interval, Intervals } from './Interval';
 import { Pitch } from './Pitch';
 import { PitchLike } from './PitchLike';
 
@@ -10,11 +10,21 @@ import { PitchLike } from './PitchLike';
  * See [guitar chord](https://en.wikipedia.org/wiki/Guitar_chord).
  */
 export class FrettedChord {
+  /** Create a FrettedChord from an ASCII chord description, e.g. 'x02440'.
+   *
+   * For all valid ASCII chord descriptions `desc`,
+   * `FrettedChord.fromAscii(desc).ascii === desc`.
+   *
+   * For all FrettedChords `chord` with no barres,
+   * `assert.deepStrictEqual(FrettedCord.fromAscii(chord.ascii), chord)`.
+   */
   public static fromAscii(
     ascii: string,
     instrument = Instruments.Guitar,
   ): FrettedChord {
-    const stringFrets = _.map(
+    // Parse the string into stringFrets or (for 'x') null.
+    // TODO: recognize 'xxx9(10)9' notation.
+    const stringFrets: StringFret[] = _.map(
       ascii,
       (fretNumber, stringNumber) =>
         fretNumber.match(/^\d+$/) && {
@@ -22,26 +32,33 @@ export class FrettedChord {
           stringNumber,
         },
     ).filter(Boolean) as StringFret[];
-
-    const fretsWithPitches = stringFrets.map(({ fretNumber, stringNumber }) => {
-      const pitch = instrument.pitchAt({ fretNumber, stringNumber });
-      return { fretNumber, stringNumber, pitch };
-    });
+    // Annotate stringFrets with pitches.
+    const stringFretsWithPitches = stringFrets.map(
+      ({ fretNumber, stringNumber }) => {
+        const pitch = instrument.pitchAt({ fretNumber, stringNumber });
+        return { fretNumber, stringNumber, pitch };
+      },
+    );
     // TODO: recognize inversions
-    const pitches = fretsWithPitches.map(({ pitch }) => pitch);
+    const pitches = stringFretsWithPitches.map(({ pitch }) => pitch);
     const pitchClasses = [...new Set(pitches.map((p) => p.asPitchClass()))];
     const chord = Chord.fromPitches(pitchClasses);
-    // TODO: identify the root, find the chord at this root, and change
-    // FrettedChord.chord back to Chord<Pitch>.
-    const fretsWithIntervals = fretsWithPitches.map(
-      ({ fretNumber, stringNumber, pitch }) => ({
-        degreeIndex: 0, // FIXME:
-        fretNumber,
-        intervalClass: Interval.between(chord.root, pitch.asPitchClass()),
-        stringNumber,
-      }),
+    const chordFrets = stringFretsWithPitches.map(
+      ({ fretNumber, stringNumber, pitch }) => {
+        const intervalClass = Interval.between(
+          chord.root,
+          pitch.asPitchClass(),
+        );
+        return {
+          degreeIndex: chord.intervals.indexOf(intervalClass),
+          fretNumber,
+          intervalClass,
+          pitch,
+          stringNumber,
+        };
+      },
     );
-    return new FrettedChord(chord, instrument, fretsWithIntervals);
+    return new FrettedChord(chord, instrument, chordFrets);
   }
 
   // Fingering positions, ascending by string number
@@ -89,11 +106,14 @@ export class FrettedChord {
     return n;
   }
 
-  /** The pitches, in order, by string, with duplicates. */
+  /** Intervals in the chord, in order by string, with duplicates. */
+  get intervals(): Interval[] {
+    return this.positions.map(({ intervalClass }) => intervalClass);
+  }
+
+  /** Pitches in the chord, in order by string, with duplicates. */
   get pitches(): Pitch[] {
-    return this.positions.map(({ intervalClass }) =>
-      this.chord.root.transposeBy(intervalClass),
-    );
+    return this.positions.map(({ pitch }) => pitch);
   }
 
   private createProperties(): object {
@@ -113,12 +133,6 @@ export class FrettedChord {
   //   return name;
   // }
 
-  // @cached_getter 'pitches', ->
-  //   (@instrument.pitchAt(positions) for positions in @positions)
-
-  // @cached_getter 'intervals', ->
-  //   _.uniq(intervalClassDifference(@chord.rootPitch, pitchClass) for pitchClass in @.pitches)
-
   // inversion():number {
   //   return this.chord.pitches.indexOf(
   //     Interval.between(
@@ -137,12 +151,13 @@ export class FrettedChord {
   // }
 }
 
-/** A FretPosition, annotated with information that's useful during
- * fretting computation.
+/** A ChordFret is a FretPosition, annotated with information about its role in
+ * a chord.
  */
 export interface ChordFret extends StringFret {
   readonly degreeIndex: number;
   readonly intervalClass: Interval;
+  readonly pitch: Pitch;
 }
 
 /** A barre, or bar, uses a single finger to fret two or more consecutive
@@ -163,7 +178,8 @@ type Getter<T> = (_: FrettedChord) => T;
 const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
   fingers: (fretting) => fretting.fingerCount,
   bassIsRoot: ({ positions }) =>
-    _.sortBy(positions, (pos) => pos.stringNumber)[0].degreeIndex === 0,
+    _.sortBy(positions, (pos) => pos.stringNumber)[0].intervalClass ===
+    Intervals.P1,
   // TODO: restore this
   // inversion(fretting: FrettedChord) => fretting.inversionLetter || '',
 

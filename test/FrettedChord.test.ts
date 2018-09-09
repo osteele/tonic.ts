@@ -35,17 +35,19 @@ describe('FrettedChord', () => {
 
   it('barres', () => {
     expect(fretting.barres).toBeInstanceOf(Array);
+    expect(fretting.barres).toHaveLength(0);
+  });
+
+  it('intervals', () => {
+    expect(_.invokeMap(fretting.intervals, 'toString').join(' ')).toEqual(
+      'P1 P5 P1 M3 P5 P1',
+    );
   });
 
   it('pitches', () => {
-    expect(_.invokeMap(fretting.pitches, 'toString')).toEqual([
-      'E2',
-      'B2',
-      'E2',
-      'G♯2',
-      'B2',
-      'E2',
-    ]);
+    expect(_.invokeMap(fretting.pitches, 'toString').join(' ')).toEqual(
+      'E2 B2 E3 G♯3 B3 E4',
+    );
   });
 
   describe('positions', () => {
@@ -55,9 +57,8 @@ describe('FrettedChord', () => {
     it('should have properties', () => {
       expect(fretting.positions[0].fretNumber).toBe(0);
       expect(fretting.positions[0].stringNumber).toBe(0);
-      expect(fretting.positions[0].intervalClass).toBe(
-        Interval.fromString('P1'),
-      );
+      expect(fretting.positions[0].intervalClass.toString()).toBe('P1');
+      expect(fretting.positions[0].pitch.toString()).toBe('E2');
     });
   });
 

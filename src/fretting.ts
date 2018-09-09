@@ -138,25 +138,24 @@ function generateFrettings(
   // Fingering for each combination.
   const frettings = [];
   for (const fretArray of fretArrays) {
-    const positions = fretArray
+    const stringFrets = fretArray
       .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
-      .filter(({ fretNumber }) => fretNumber !== null)
-      .map((_pos) => {
-        const pos = _pos as StringFret;
-        const intervalClass = Interval.between(
-          chord.root,
-          instrument.pitchAt(pos),
-        );
-        return {
-          ...pos,
-          degreeIndex: chord.intervals.indexOf(intervalClass),
-          intervalClass,
-        };
-      });
-    const barreSets = positions.length < 4 ? [[]] : collectBarreSets(fretArray);
+      .filter(({ fretNumber }) => fretNumber !== null) as StringFret[];
+    const chordFrets = stringFrets.map((pos) => {
+      const pitch = instrument.pitchAt(pos);
+      const intervalClass = Interval.between(chord.root, pitch);
+      return {
+        ...pos,
+        degreeIndex: chord.intervals.indexOf(intervalClass),
+        intervalClass,
+        pitch,
+      };
+    });
+    const barreSets =
+      chordFrets.length < 4 ? [[]] : collectBarreSets(fretArray);
     frettings.push(
       ...barreSets.map(
-        (barres) => new FrettedChord(chord, instrument, positions, barres),
+        (barres) => new FrettedChord(chord, instrument, chordFrets, barres),
       ),
     );
   }
