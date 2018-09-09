@@ -1,7 +1,7 @@
 import { Chord } from './Chord';
 import { asInterval, Interval } from './Interval';
-import { Pitch } from './Pitch';
-import { PitchClass } from './PitchClass';
+import { Note } from './Note';
+import { NoteClass } from './NoteClass';
 import { parsePitchLike, PitchLike } from './PitchLike';
 
 export interface ChordClassConstructorOptions {
@@ -72,7 +72,7 @@ export class ChordClass {
   public at<T extends PitchLike>(root: T): Chord<T>;
   public at(root: string): Chord<PitchLike>;
   public at<T extends PitchLike | string>(
-    _root: Pitch | PitchClass | string,
+    _root: Note | NoteClass | string,
   ): Chord<PitchLike> {
     const root = typeof _root === 'string' ? parsePitchLike(_root) : _root;
     return new Chord(this, root);

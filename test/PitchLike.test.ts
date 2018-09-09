@@ -1,11 +1,11 @@
-import { asPitchLike, parsePitchLike, Pitch, PitchClass } from '../src';
+import { asPitchLike, Note, NoteClass, parsePitchLike } from '../src';
 
 describe('parsePitchLike', () => {
   it('parses pitches', () => {
-    expect(parsePitchLike('E4')).toBeInstanceOf(Pitch);
+    expect(parsePitchLike('E4')).toBeInstanceOf(Note);
   });
   it('parses pitch classes', () => {
-    expect(parsePitchLike('E')).toBeInstanceOf(PitchClass);
+    expect(parsePitchLike('E')).toBeInstanceOf(NoteClass);
   });
   it('throws exceptions', () => {
     expect(() => expect(parsePitchLike('invalid')).toThrow());
@@ -14,18 +14,18 @@ describe('parsePitchLike', () => {
 
 describe('asPitchLike', () => {
   it('parses pitches', () => {
-    expect(asPitchLike('E4')).toBeInstanceOf(Pitch);
+    expect(asPitchLike('E4')).toBeInstanceOf(Note);
   });
   it('parses pitch classes', () => {
-    expect(asPitchLike('E')).toBeInstanceOf(PitchClass);
+    expect(asPitchLike('E')).toBeInstanceOf(NoteClass);
   });
   it('throws exceptions', () => {
     expect(() => expect(asPitchLike('invalid')).toThrow());
   });
-  it('is idempotent on Pitch and PitchClass', () => {
-    const pitch = Pitch.fromString('E4');
-    const pitchClass = Pitch.fromString('E');
-    expect(asPitchLike(pitch)).toBe(pitch);
+  it('is idempotent on Note and PitchClass', () => {
+    const note = Note.fromString('E4');
+    const pitchClass = Note.fromString('E');
+    expect(asPitchLike(note)).toBe(note);
     expect(asPitchLike(pitchClass)).toBe(pitchClass);
   });
 });

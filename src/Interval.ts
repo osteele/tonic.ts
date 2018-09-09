@@ -1,7 +1,7 @@
 import { semitonesToAccidentalString } from './accidentals';
 import { normalizePitchClass, PitchClassNumber } from './notation';
-import { Pitch } from './Pitch';
-import { PitchClass } from './PitchClass';
+import { Note } from './Note';
+import { NoteClass } from './NoteClass';
 import { PitchLike } from './PitchLike';
 
 // tslint:disable-next-line variable-name
@@ -159,9 +159,9 @@ export class Interval {
   public static between<T extends PitchLike | number>(a: T, b: T) {
     // FIXME: preserve the quality
     let semitones = 0;
-    if (a instanceof Pitch && b instanceof Pitch) {
+    if (a instanceof Note && b instanceof Note) {
       semitones = b.midiNumber - a.midiNumber;
-    } else if (a instanceof PitchClass && b instanceof PitchClass) {
+    } else if (a instanceof NoteClass && b instanceof NoteClass) {
       semitones = normalizePitchClass(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
       semitones = b - a;

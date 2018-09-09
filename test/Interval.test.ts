@@ -4,8 +4,8 @@ import {
   IntervalQuality,
   Intervals,
   LongIntervalNames,
-  Pitch,
-  PitchClass,
+  Note,
+  NoteClass,
   ShortIntervalNames,
 } from '../src';
 
@@ -99,11 +99,11 @@ describe('Interval', () => {
       ).toBe(3)));
 
   describe('between', () => {
-    const E4 = Pitch.fromString('E4');
-    const F4 = Pitch.fromString('F4');
-    const G4 = Pitch.fromString('G4');
-    const C4 = Pitch.fromString('C4');
-    const GA4 = Pitch.fromString('G#4');
+    const E4 = Note.fromString('E4');
+    const F4 = Note.fromString('F4');
+    const G4 = Note.fromString('G4');
+    const C4 = Note.fromString('C4');
+    const GA4 = Note.fromString('G#4');
     const { P1, m2, m3, M3, P5 } = Intervals;
 
     it('should return the interval between two pitches', () => {
@@ -114,10 +114,10 @@ describe('Interval', () => {
     });
 
     it('should return the interval between two pitch classes', () => {
-      const E = PitchClass.fromString('E');
-      const F = PitchClass.fromString('F');
-      const G = PitchClass.fromString('G');
-      const GA = PitchClass.fromString('G#');
+      const E = NoteClass.fromString('E');
+      const F = NoteClass.fromString('F');
+      const G = NoteClass.fromString('G');
+      const GA = NoteClass.fromString('G#');
       expect(Interval.between(E, E)).toBe(P1);
       expect(Interval.between(E, F)).toBe(m2);
       expect(Interval.between(E, G)).toBe(m3);
@@ -131,9 +131,9 @@ describe('Interval', () => {
     it.skip('should preserve the quality', () => {
       const d3 = Interval.fromString('d3');
       const A3 = Interval.fromString('A3');
-      expect(Interval.between(C4, Pitch.fromString('E4'))).toBe(M3);
-      expect(Interval.between(C4, Pitch.fromString('Eb4'))).toBe(d3);
-      expect(Interval.between(C4, Pitch.fromString('E#4'))).toBe(A3);
+      expect(Interval.between(C4, Note.fromString('E4'))).toBe(M3);
+      expect(Interval.between(C4, Note.fromString('Eb4'))).toBe(d3);
+      expect(Interval.between(C4, Note.fromString('E#4'))).toBe(A3);
     });
   });
 

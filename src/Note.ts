@@ -5,23 +5,23 @@ import {
   pitchToPitchClass,
   pitchToScientificNotation,
 } from './notation';
-import { PitchClass } from './PitchClass';
+import { NoteClass } from './NoteClass';
 import { PitchLike } from './PitchLike';
 
-/** A `Pitch` is a named pitch such as "E4" and "F♯5".
+/** A `Note` is a named pitch such as "E4" and "F♯5".
  *
  * See [note](https://en.wikipedia.org/wiki/Musical_note). Instances of `Pitch`
- * represent only the name of the pitch (this is one sense of "note"), not the
+ * represent only the name of the note (this is one sense of "note"), not the
  * duration (which is included by another).
  *
- * Pitches are [interned](https://en.wikipedia.org/wiki/String_interning). This
+ * Notes are [interned](https://en.wikipedia.org/wiki/String_interning). This
  * enables the use of the ECMAScript
  * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
- * to implement pitch sets.
+ * to implement sets of notes.
  */
-export class Pitch implements PitchLike {
-  public static fromMidiNumber(midiNumber: number): Pitch {
-    return new Pitch(midiNumber);
+export class Note implements PitchLike {
+  public static fromMidiNumber(midiNumber: number): Note {
+    return new Note(midiNumber);
   }
 
   /** Return a note specified in [scientific pitch
@@ -29,26 +29,26 @@ export class Pitch implements PitchLike {
    * [Helmholtz pitch
    * notation](https://en.wikipedia.org/wiki/Helmholtz_pitch_notation).
    */
-  public static fromString(name: string): Pitch {
+  public static fromString(name: string): Note {
     const midiNumber = (name.match(/\d/)
       ? pitchFromScientificNotation
       : pitchFromHelmholtzNotation)(name);
-    return new Pitch(midiNumber, name);
+    return new Note(midiNumber, name);
   }
 
   // Indexed by name not midiNumber, in order to preserve the distinction
   // between enharmonic equivalents.
   // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
-  private static instances = new Map<string, Pitch>();
+  private static instances = new Map<string, Note>();
 
   public readonly name: string;
   constructor(readonly midiNumber: number, name?: string) {
     this.name = name || pitchToScientificNotation(midiNumber);
-    const instance = Pitch.instances.get(this.name);
+    const instance = Note.instances.get(this.name);
     if (instance) {
       return instance;
     }
-    Pitch.instances.set(this.name, this);
+    Note.instances.set(this.name, this);
   }
 
   // FIXME: this returns the Helmholtz notation if this was created by parsing
@@ -57,24 +57,24 @@ export class Pitch implements PitchLike {
     return this.name;
   }
 
-  public add(other: Interval): Pitch {
-    return new Pitch(this.midiNumber + other.semitones);
+  public add(other: Interval): Note {
+    return new Note(this.midiNumber + other.semitones);
   }
 
-  public asPitch(): Pitch {
+  public asPitch(): Note {
     return this;
   }
 
-  public asPitchClass(): PitchClass {
-    return PitchClass.fromSemitones(pitchToPitchClass(this.midiNumber));
+  public asPitchClass(): NoteClass {
+    return NoteClass.fromSemitones(pitchToPitchClass(this.midiNumber));
   }
 
-  public transposeBy(interval: Interval): Pitch {
-    return new Pitch(this.midiNumber + interval.semitones);
+  public transposeBy(interval: Interval): Note {
+    return new Note(this.midiNumber + interval.semitones);
   }
 }
 
 // tslint:disable-next-line variable-name
-export const Pitches = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
-  (pitch) => new Pitch(pitch),
+export const Notes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(
+  (pitch) => new Note(pitch),
 );

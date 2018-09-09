@@ -1,9 +1,9 @@
 import {
   FlatNoteNames,
   Interval,
+  Note,
   NoteNames,
-  Pitch,
-  Pitches,
+  Notes,
   SharpNoteNames,
 } from '../src';
 import { semitonesToAccidentalString } from '../src/accidentals';
@@ -160,54 +160,54 @@ describe('name2midi', () =>
     expect(name2midi('G9')).toBe(127);
   }));
 
-describe('Pitch', () => {
+describe('Note', () => {
   it('should parse scientific notation', () => {
-    expect(Pitch.fromString('C4').midiNumber).toBe(60);
-    expect(Pitch.fromString('C5').midiNumber).toBe(72);
-    expect(Pitch.fromString('E4').midiNumber).toBe(64);
-    expect(Pitch.fromString('G5').midiNumber).toBe(79);
+    expect(Note.fromString('C4').midiNumber).toBe(60);
+    expect(Note.fromString('C5').midiNumber).toBe(72);
+    expect(Note.fromString('E4').midiNumber).toBe(64);
+    expect(Note.fromString('G5').midiNumber).toBe(79);
   });
 
   it('should parse Helmholtz notation', () => {
-    expect(Pitch.fromString('C,').midiNumber).toBe(24);
-    expect(Pitch.fromString('D,').midiNumber).toBe(26);
-    expect(Pitch.fromString('C').midiNumber).toBe(36);
-    expect(Pitch.fromString('c').midiNumber).toBe(48);
-    expect(Pitch.fromString('c♯').midiNumber).toBe(49);
-    expect(Pitch.fromString('c♭').midiNumber).toBe(47);
-    expect(Pitch.fromString("c'").midiNumber).toBe(60);
-    expect(Pitch.fromString("c'''").midiNumber).toBe(84);
-    expect(Pitch.fromString("d'''").midiNumber).toBe(86);
+    expect(Note.fromString('C,').midiNumber).toBe(24);
+    expect(Note.fromString('D,').midiNumber).toBe(26);
+    expect(Note.fromString('C').midiNumber).toBe(36);
+    expect(Note.fromString('c').midiNumber).toBe(48);
+    expect(Note.fromString('c♯').midiNumber).toBe(49);
+    expect(Note.fromString('c♭').midiNumber).toBe(47);
+    expect(Note.fromString("c'").midiNumber).toBe(60);
+    expect(Note.fromString("c'''").midiNumber).toBe(84);
+    expect(Note.fromString("d'''").midiNumber).toBe(86);
   });
 
   it('should intern instances', () => {
-    expect(Pitch.fromString('C4')).toBe(Pitch.fromString('C4'));
-    expect(Pitch.fromString('C4')).not.toBe(Pitch.fromString('D4'));
+    expect(Note.fromString('C4')).toBe(Note.fromString('C4'));
+    expect(Note.fromString('C4')).not.toBe(Note.fromString('D4'));
     // FIXME:
-    // expect(Pitch.fromString('C1')).toBe(Pitch.fromString('C,'));
-    expect(Pitch.fromString('C#4')).not.toBe(Pitch.fromString('Db4'));
+    // expect(Note.fromString('C1')).toBe(Note.fromString('C,'));
+    expect(Note.fromString('C#4')).not.toBe(Note.fromString('Db4'));
   });
 
   it('should implement toString', () => {
-    expect(Pitch.fromMidiNumber(60).toString()).toBe('C4');
-    expect(Pitch.fromMidiNumber(72).toString()).toBe('C5');
-    expect(Pitch.fromMidiNumber(64).toString()).toBe('E4');
-    expect(Pitch.fromMidiNumber(79).toString()).toBe('G5');
+    expect(Note.fromMidiNumber(60).toString()).toBe('C4');
+    expect(Note.fromMidiNumber(72).toString()).toBe('C5');
+    expect(Note.fromMidiNumber(64).toString()).toBe('E4');
+    expect(Note.fromMidiNumber(79).toString()).toBe('G5');
   });
 
   it('should add to an interval', () => {
     expect(
-      Pitch.fromString('C4')
+      Note.fromString('C4')
         .add(Interval.fromString('P1'))
         .toString(),
     ).toBe('C4');
     expect(
-      Pitch.fromString('C4')
+      Note.fromString('C4')
         .add(Interval.fromString('M2'))
         .toString(),
     ).toBe('D4');
     expect(
-      Pitch.fromString('C4')
+      Note.fromString('C4')
         .add(Interval.fromString('P8'))
         .toString(),
     ).toBe('C5');
@@ -215,7 +215,7 @@ describe('Pitch', () => {
 
   it('should implement transposeBy', () =>
     expect(
-      Pitch.fromString('C4')
+      Note.fromString('C4')
         .transposeBy(Interval.fromString('M2'))
         .toString(),
     ).toBe('D4'));
@@ -224,7 +224,7 @@ describe('Pitch', () => {
   // test.skip('#asPitchClass should its pitch class');
 });
 
-describe('Pitches', () =>
+describe('Notes', () =>
   it('should contain 12 pitches', () => {
-    expect(Pitches).toHaveLength(12);
+    expect(Notes).toHaveLength(12);
   }));

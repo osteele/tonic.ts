@@ -1,4 +1,4 @@
-import { Pitch, PitchClass, Scale, SpecificScale } from '../src';
+import { Note, NoteClass, Scale, SpecificScale } from '../src';
 
 describe('ScalePattern', () => {
   it('scales length', () => {
@@ -54,7 +54,7 @@ describe('ScalePattern', () => {
 
 describe('Scale', () => {
   describe('fromString', () => {
-    it('parses scales with Pitch tonics', () => {
+    it('parses scales with Note tonics', () => {
       expect(SpecificScale.fromString('E7 Diatonic Major')).toBeInstanceOf(
         SpecificScale,
       );
@@ -65,11 +65,11 @@ describe('Scale', () => {
 
       expect(
         SpecificScale.fromString('E7 Diatonic Major').tonic,
-      ).toBeInstanceOf(Pitch);
+      ).toBeInstanceOf(Note);
       expect(
         SpecificScale.fromString('E♯7 Diatonic Major').tonic,
-      ).toBeInstanceOf(Pitch);
-      expect(SpecificScale.fromString('E7').tonic).toBeInstanceOf(Pitch);
+      ).toBeInstanceOf(Note);
+      expect(SpecificScale.fromString('E7').tonic).toBeInstanceOf(Note);
 
       expect(SpecificScale.fromString('E7 Diatonic Major').tonic.name).toBe(
         'E7',
@@ -86,12 +86,12 @@ describe('Scale', () => {
       // expect(Scale.fromString('E Diatonic Major')).toBeInstanceOf(Scale);
 
       expect(SpecificScale.fromString('E Diatonic Major').tonic).toBeInstanceOf(
-        PitchClass,
+        NoteClass,
       );
       expect(
         SpecificScale.fromString('E♯ Diatonic Major').tonic,
-      ).toBeInstanceOf(PitchClass);
-      expect(SpecificScale.fromString('E').tonic).toBeInstanceOf(PitchClass);
+      ).toBeInstanceOf(NoteClass);
+      expect(SpecificScale.fromString('E').tonic).toBeInstanceOf(NoteClass);
 
       expect(SpecificScale.fromString('E Diatonic Major').tonic.name).toBe('E');
       // FIXME:
@@ -111,7 +111,7 @@ describe('Scale', () => {
 
       it('should have seven pitches', () => {
         expect(eMajor.pitches).toHaveLength(7);
-        const pitches = eMajor.pitches! as Pitch[];
+        const pitches = eMajor.pitches! as Note[];
         const pitchNames = pitches.map((pitch) => pitch.toString());
         expect(pitchNames).toEqual('E F♯ G♯ A B C♯ D♯'.split(/\s/));
       });

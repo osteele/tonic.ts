@@ -1,7 +1,7 @@
 import { ChordClass } from './ChordClass';
 import { Interval } from './Interval';
-import { Pitch } from './Pitch';
-import { PitchClass } from './PitchClass';
+import { Note } from './Note';
+import { NoteClass } from './NoteClass';
 import { PitchLike } from './PitchLike';
 import { rotateArray } from './utils';
 
@@ -10,11 +10,11 @@ const chordNameRegex2 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
 
 const inversionNames = ['a', 'c', 'd'];
 
-/** A set of pitches or pitch classes; equivalently, a set of intervals, and an
+/** A set of notes or note classes; equivalently, a set of intervals, and an
  * optional root. For example, "E Major" and "C Minor" name chords.
  *
- * A `Chord<Pitch>` is a set of specific pitches: for example, {C4, E4, G4}. A
- * `Chord<PitchClass>` is a set of pitch *classes*, without specifying octaves.
+ * A `Chord<Note>` is a set of specific notes: for example, {C4, E4, G4}. A
+ * `Chord<NoteClass>` is a set of note *classes*, without specifying octaves.
  *
  * See [Wikipedia: Chord](https://en.wikipedia.org/wiki/Chord_(music)).
  */
@@ -25,7 +25,7 @@ export class Chord<T extends PitchLike> {
    */
   public static fromString(
     name: string,
-  ): Chord<Pitch> | Chord<PitchClass> | ChordClass {
+  ): Chord<Note> | Chord<NoteClass> | ChordClass {
     const match = name.match(chordNameRegex1) || name.match(chordNameRegex2);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);
@@ -33,10 +33,10 @@ export class Chord<T extends PitchLike> {
     const rootName = match[1];
     const className = match[2];
     const chordClass = ChordClass.fromString(className || 'Major');
-    return rootName ? chordClass.at(Pitch.fromString(rootName)) : chordClass;
+    return rootName ? chordClass.at(Note.fromString(rootName)) : chordClass;
   }
 
-  /** Return the Chord that matches a set of pitches. The first pitch should be
+  /** Return the Chord that matches a set of notes. The first note should be
    * the root.
    */
   public static fromPitches<T extends PitchLike>(pitches: T[]): Chord<T> {

@@ -1,8 +1,8 @@
 import { Interval } from './Interval';
-import { Pitch } from './Pitch';
-import { PitchClass } from './PitchClass';
+import { Note } from './Note';
+import { NoteClass } from './NoteClass';
 
-/** Pitch and PitchClass implement this type. Chord and SpecificScale are
+/** Note and NoteClass implement this type. Chord and SpecificScale are
  * parameterized over it.
  */
 export interface PitchLike {
@@ -22,8 +22,8 @@ export function asPitchLike(pitch: string | PitchLike): PitchLike {
  */
 export function parsePitchLike(name: string): PitchLike {
   try {
-    return PitchClass.fromString(name);
+    return NoteClass.fromString(name);
   } catch {
-    return Pitch.fromString(name);
+    return Note.fromString(name);
   }
 }

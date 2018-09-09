@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Chord } from './Chord';
 import { FrettedInstrument, Instruments, StringFret } from './Instrument';
 import { Interval, Intervals } from './Interval';
-import { Pitch } from './Pitch';
+import { Note } from './Note';
 import { PitchLike } from './PitchLike';
 
 /** Also known as “guitar chords”; but generalized to fretted instruments.
@@ -112,7 +112,7 @@ export class FrettedChord {
   }
 
   /** Pitches in the chord, in order by string, with duplicates. */
-  get pitches(): Pitch[] {
+  get pitches(): Note[] {
     return this.positions.map(({ pitch }) => pitch);
   }
 
@@ -157,7 +157,7 @@ export class FrettedChord {
 export interface ChordFret extends StringFret {
   readonly degreeIndex: number;
   readonly intervalClass: Interval;
-  readonly pitch: Pitch;
+  readonly pitch: Note;
 }
 
 /** A barre, or bar, uses a single finger to fret two or more consecutive

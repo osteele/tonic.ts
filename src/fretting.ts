@@ -3,7 +3,7 @@ import { Chord } from './Chord';
 import { Barre, FrettedChord } from './FrettedChord';
 import { FrettedInstrument, Instruments, StringFret } from './Instrument';
 import { Interval } from './Interval';
-import { Pitch } from './Pitch';
+import { Note } from './Note';
 import { powerset } from './utils';
 
 // TODO: add options for strumming vs. fingerstyle; muting; stretch
@@ -27,7 +27,7 @@ type FretNumber = number;
 
 /** Return best fretting, sorted by default properties. */
 export function frettingFor(
-  chord: Chord<Pitch> | string,
+  chord: Chord<Note> | string,
   options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord | null {
   return allFrettings(chord, options)[0] || null;
@@ -35,12 +35,12 @@ export function frettingFor(
 
 /** Return frettings, sorted by default properties. */
 export function allFrettings(
-  chordOrName: Chord<Pitch> | string,
+  chordOrName: Chord<Note> | string,
   options: Partial<FrettingOptions> = defaultFrettingOptions,
 ): FrettedChord[] {
   const chord =
     typeof chordOrName === 'string'
-      ? (Chord.fromString(chordOrName) as Chord<Pitch>)
+      ? (Chord.fromString(chordOrName) as Chord<Note>)
       : chordOrName;
   const allOptions = { ...options, ...defaultFrettingOptions };
   let frettings = generateFrettings(chord, allOptions.instrument, allOptions);
@@ -56,7 +56,7 @@ export function allFrettings(
 /** Make an array of the fret positions whose pitch classes are in the chord.
  */
 function fretPositionsOnChord(
-  chord: Chord<Pitch>,
+  chord: Chord<Note>,
   instrument: FrettedInstrument,
 ): StringFret[] {
   const { root, intervals } = chord;
@@ -73,7 +73,7 @@ function fretPositionsOnChord(
 /** Make an array, indexed by string number, of fret numbers in the chord.
  */
 function fretsPerString(
-  chord: Chord<Pitch>,
+  chord: Chord<Note>,
   instrument: FrettedInstrument,
   options: FrettingOptions,
 ): FretNumber[][] {
@@ -119,7 +119,7 @@ function generateFretArrays(stringFrets: FretNumber[][]): FretArray[] {
 }
 
 function generateFrettings(
-  chord: Chord<Pitch>,
+  chord: Chord<Note>,
   instrument: FrettedInstrument,
   options: FrettingOptions,
 ): FrettedChord[] {

@@ -3,12 +3,11 @@ import {
   ChordClass,
   Interval,
   Intervals,
-  Pitch,
-  PitchClass,
+  Note,
+  NoteClass,
 } from '../src';
 
 const { P1, m3, M3, P5, m7, M7 } = Intervals;
-const m9 = Interval.fromString('m9');
 const M9 = Interval.fromString('M9');
 
 describe('ChordClass', () => {
@@ -100,19 +99,19 @@ describe('Chord', () => {
 
   describe('fromPitches', () => {
     it('should find the chord from an array of pitch classes', () => {
-      const pitches = ['A', 'C#', 'E'].map(PitchClass.fromString);
+      const pitches = ['A', 'C#', 'E'].map(NoteClass.fromString);
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A Major');
     });
 
     it('should find the chord from an array of pitches', () => {
-      const pitches = ['A3', 'C♯4', 'E4'].map(Pitch.fromString);
+      const pitches = ['A3', 'C♯4', 'E4'].map(Note.fromString);
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A3 Major');
     });
 
     it.skip('should recognize inversions', () => {
-      const pitches = ['C♯', 'A', 'E'].map(PitchClass.fromString);
+      const pitches = ['C♯', 'A', 'E'].map(NoteClass.fromString);
       const chord = Chord.fromPitches(pitches);
       expect(chord.name).toBe('A Major');
       expect(chord.inversion).toBe('a');
@@ -174,9 +173,7 @@ describe('Major Chord Class', () => {
 
     it('should have three pitches', () => {
       expect(chord.pitches).toHaveLength(3);
-      expect(chord.pitches).toEqual(
-        ['E', 'G#', 'B'].map(PitchClass.fromString),
-      );
+      expect(chord.pitches).toEqual(['E', 'G#', 'B'].map(NoteClass.fromString));
     });
 
     it('invert', () => {
@@ -187,15 +184,11 @@ describe('Major Chord Class', () => {
       expect(first.inversion).toBe(1);
       // TODO: expect(chord.root).toBe
       // TODO: expect(first.shortName).toBe('Ea');
-      expect(first.pitches).toEqual(
-        ['G#', 'B', 'E'].map(PitchClass.fromString),
-      );
+      expect(first.pitches).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
 
       const second = chord.invert('c');
       expect(second.inversion).toBe(2);
-      expect(first.pitches).toEqual(
-        ['G#', 'B', 'E'].map(PitchClass.fromString),
-      );
+      expect(first.pitches).toEqual(['G#', 'B', 'E'].map(NoteClass.fromString));
 
       // TODO: needs a 7th
       // const third = chord.invert('d');
@@ -225,7 +218,7 @@ describe('Major Chord Class', () => {
     it('should have an array of pitches', () => {
       expect(chord.pitches).toBeInstanceOf(Array);
       expect(chord.pitches).toHaveLength(3);
-      expect(chord.pitches).toEqual(['E4', 'G♯4', 'B4'].map(Pitch.fromString));
+      expect(chord.pitches).toEqual(['E4', 'G♯4', 'B4'].map(Note.fromString));
     });
   });
 });

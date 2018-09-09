@@ -1,4 +1,4 @@
-import { Pitch } from './Pitch';
+import { Note } from './Note';
 
 /** A (musical) Instrument currently has just a name, and subclasses.
  */
@@ -9,15 +9,15 @@ export class Instrument {
 /** A string instrument has an array of strings,
  */
 export class StringInstrument extends Instrument {
-  public readonly stringPitches: Pitch[];
+  public readonly stringPitches: Note[];
   public readonly stringCount: number;
   /** An array from [0…stringCount - 1], useful for enumerating over. */
   public readonly stringNumbers: number[];
-  constructor(name: string, _stringPitches: Pitch[] | string) {
+  constructor(name: string, _stringPitches: Note[] | string) {
     super(name);
     const stringPitches =
       typeof _stringPitches === 'string'
-        ? _stringPitches.split(/\s/).map(Pitch.fromString)
+        ? _stringPitches.split(/\s/).map(Note.fromString)
         : _stringPitches;
     this.stringPitches = stringPitches;
     this.stringCount = this.stringPitches.length;
@@ -28,7 +28,7 @@ export class StringInstrument extends Instrument {
 export class FrettedInstrument extends StringInstrument {
   constructor(
     name: string,
-    stringPitches: Pitch[] | string,
+    stringPitches: Note[] | string,
     readonly fretCount: number,
   ) {
     super(name, stringPitches);
@@ -53,7 +53,7 @@ export class FrettedInstrument extends StringInstrument {
   }
 
   public pitchAt({ stringNumber, fretNumber }: StringFret) {
-    return Pitch.fromMidiNumber(
+    return Note.fromMidiNumber(
       this.stringPitches[stringNumber].midiNumber + fretNumber,
     );
   }
