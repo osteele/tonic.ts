@@ -46,18 +46,15 @@ export class Interval {
     // FIXME: preserve the quality
     let semitones = 0;
     if (a instanceof Note && b instanceof Note) {
-      semitones = b.midiNumber - a.midiNumber;
+      semitones = Math.abs(b.midiNumber - a.midiNumber);
     } else if (a instanceof PitchClass && b instanceof PitchClass) {
       semitones = PitchClassParser.normalize(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
-      semitones = b - a;
+      semitones = Math.abs(b - a);
     } else {
       throw new Error(
         `Can't take the interval between different types ${a} and ${b}`,
       );
-    }
-    if (!(0 <= semitones && semitones < 12)) {
-      semitones = PitchClassParser.normalize(semitones);
     }
     return Interval.fromSemitones(semitones);
   }

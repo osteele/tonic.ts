@@ -120,7 +120,7 @@ describe('Interval', () => {
     const G4 = Note.fromString('G4');
     const C4 = Note.fromString('C4');
     const GA4 = Note.fromString('G#4');
-    const { P1, m2, m3, M3, P5 } = Intervals;
+    const { P1, m2, m3, M3, P4, P5 } = Intervals;
 
     it('should return the interval between two notes', () => {
       expect(Interval.between(E4, E4)).toBe(P1);
@@ -129,7 +129,11 @@ describe('Interval', () => {
       expect(Interval.between(E4, GA4)).toBe(M3);
     });
 
-    it('should return the interval between two note classes', () => {
+    it('should return the interval between two pitch numbers', () => {
+      expect(Interval.between(E4.midiNumber, F4.midiNumber)).toBe(m2);
+    });
+
+    it('should return the interval between two pitch classes', () => {
       const E = PitchClass.fromString('E');
       const F = PitchClass.fromString('F');
       const G = PitchClass.fromString('G');
@@ -140,8 +144,24 @@ describe('Interval', () => {
       expect(Interval.between(E, GA)).toBe(M3);
     });
 
-    it('should use modular arithmetic', () => {
-      expect(Interval.between(F4, C4)).toBe(P5);
+    it('should find the shortest distance between notes or pitches', () => {
+      expect(Interval.between(F4, C4)).toBe(P4);
+      expect(Interval.between(F4.midiNumber, C4.midiNumber)).toBe(P4);
+    });
+
+    it('should use modular arithmetic on pitch classes', () => {
+      expect(Interval.between(F4.asPitchClass(), C4.asPitchClass())).toBe(P5);
+    });
+
+    it('should return complex intervals', () => {
+      const C4 = Note.fromString('C4');
+      const D5 = Note.fromString('D5');
+      const D6 = Note.fromString('D6');
+      expect(Interval.between(C4, D5)).toBe(Interval.fromString('M9'));
+      expect(Interval.between(C4, D6)).toBe(Interval.fromString('M16'));
+
+      expect(Interval.between(D5, C4)).toBe(Interval.fromString('M9'));
+      expect(Interval.between(D6, C4)).toBe(Interval.fromString('M16'));
     });
 
     it.skip('should preserve the quality', () => {

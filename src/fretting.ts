@@ -59,10 +59,14 @@ function fretPositionsOnChord(
   chord: Chord<Note>,
   instrument: FrettedInstrument,
 ): StringFret[] {
-  const { root, intervals } = chord;
+  const root = chord.root.asPitchClass();
+  const { intervals } = chord;
   const positions = new Array<StringFret>();
   instrument.forEachStringFret((pos) => {
-    const interval = Interval.between(root, instrument.pitchAt(pos));
+    const interval = Interval.between(
+      root,
+      instrument.pitchAt(pos).asPitchClass(),
+    );
     if (intervals.indexOf(interval) >= 0) {
       positions.push(pos);
     }
@@ -141,9 +145,10 @@ function generateFrettings(
     const stringFrets = fretArray
       .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
       .filter(({ fretNumber }) => fretNumber !== null) as StringFret[];
+    const root = chord.root.asPitchClass();
     const chordFrets = stringFrets.map((pos) => {
       const pitch = instrument.pitchAt(pos);
-      const intervalClass = Interval.between(chord.root, pitch);
+      const intervalClass = Interval.between(root, pitch.asPitchClass());
       return {
         ...pos,
         degreeIndex: chord.intervals.indexOf(intervalClass),
