@@ -1,13 +1,7 @@
 import * as _ from 'lodash';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
-import {
-  accidentalToIntervalQuality,
-  intervalQualityName,
-  longIntervalNames,
-  parseInterval,
-  shortIntervalNames,
-} from './parsers/intervalParser';
+import * as intervals from './parsers/intervalParser';
 import * as PitchClassParser from './parsers/pitchClassParser';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
@@ -27,23 +21,24 @@ import { PitchLike } from './PitchLike';
  * See [Wikipedia: Interval
  * quality](https://en.wikipedia.org/wiki/Interval_(music)).
  */
-// TODO: Some of these methods assume or create simple intervals.
 export class Interval {
-  public static readonly names: ReadonlyArray<string> = shortIntervalNames;
-  public static readonly longNames: ReadonlyArray<string> = longIntervalNames;
+  public static readonly names: ReadonlyArray<string> =
+    intervals.shortIntervalNames;
+  public static readonly longNames: ReadonlyArray<string> =
+    intervals.longIntervalNames;
   public static fromSemitones(semitones: number, accidentals = 0): Interval {
     return new Interval(semitones, accidentals);
   }
 
   public static fromString(name: string): Interval {
-    const { semitones, accidentals } = parseInterval(name);
+    const { semitones, accidentals } = intervals.parseInterval(name);
     return Interval.fromSemitones(semitones, accidentals || 0);
   }
 
   public static between<T extends PitchLike>(a: T, b: T): Interval;
   public static between(a: number, b: number): Interval;
   public static between<T extends PitchLike | number>(a: T, b: T) {
-    // FIXME: preserve the quality
+    // FIXME: preserve the quality?
     let semitones = 0;
     if (a instanceof Note && b instanceof Note) {
       semitones = Math.abs(b.midiNumber - a.midiNumber);
@@ -64,7 +59,7 @@ export class Interval {
   // tslint:disable-next-line:member-ordering
   public static readonly all: Readonly<{
     [_: string]: Interval;
-  }> = shortIntervalNames.reduce(
+  }> = intervals.shortIntervalNames.reduce(
     (acc: { [_: string]: Interval }, name, semitones) => {
       acc[name] = new Interval(semitones);
       return acc;
@@ -92,7 +87,7 @@ export class Interval {
    */
   get number(): number | null {
     const dn = this.naturalSemitones;
-    const m = shortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
+    const m = intervals.shortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
     return m && Number(m[0]) + (dn > 12 ? 7 * Math.floor(dn / 12) : 0);
   }
 
@@ -100,7 +95,10 @@ export class Interval {
    * tritone, have a null quality.
    */
   get quality(): IntervalQuality | null {
-    return accidentalToIntervalQuality(this.accidentals, this.naturalSemitones);
+    return intervals.accidentalToIntervalQuality(
+      this.accidentals,
+      this.naturalSemitones,
+    );
   }
 
   /** The number of semitones. For example, A1 and m2 have one semitone. */
@@ -136,10 +134,10 @@ export class Interval {
     if (quality === null) {
       const semitones = this.semitones;
       return semitones === 6
-        ? shortIntervalNames[semitones]
+        ? intervals.shortIntervalNames[semitones]
         : _.times((semitones - 6) / 12, () => 'P8').join('+') + '+TT';
     }
-    return `${intervalQualityName(quality!)}${this.number}`;
+    return `${intervals.intervalQualityName(quality!)}${this.number}`;
     // if (this.semitones > 12) {
     // }
     // let s = shortIntervalNames[this.naturalSemitones];

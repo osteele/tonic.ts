@@ -190,21 +190,39 @@ describe('Interval', () => {
   });
 
   it('augment', () => {
-    const { M3 } = Intervals;
-    expect(M3.augment).toBe(Interval.fromString('A3'));
-    // TODO: M2.augment
+    const { M3, m3, P5 } = Intervals;
+    const d3 = Interval.fromString('d3');
+    const A3 = Interval.fromString('A3');
+    expect(d3.augment).toBe(m3);
+    // FIXME: augmented minor
+    // expect(m3.augment).toBe(M3);
+    expect(M3.augment).toBe(A3);
+
+    const d5 = Interval.fromString('d5');
+    const A5 = Interval.fromString('A5');
+    expect(d5.augment).toBe(P5);
+    expect(P5.augment).toBe(A5);
   });
 
   it('diminish', () => {
-    const { m3 } = Intervals;
-    expect(m3.diminish).toBe(Interval.fromString('d3'));
-    // TODO: M3.diminish
+    const { m3, M3 } = Intervals;
+    const d3 = Interval.fromString('d3');
+    const A3 = Interval.fromString('A3');
+    expect(m3.diminish).toBe(d3);
+    // FIXME: M3.diminish
+    // expect(M3.diminish).toBe((m3));
+    expect(A3.diminish).toBe(M3);
   });
 
   it('natural', () => {
-    const { M3 } = Intervals;
-    expect(Interval.fromString('A3').natural).toBe(M3);
-    // FIXME: expect(Interval.fromString('d3').natural).toBe(M3);
+    const { M3, m3 } = Intervals;
+    const d3 = Interval.fromString('d3');
+    const A3 = Interval.fromString('A3');
+    expect(m3.natural).toBe(m3);
+    expect(M3.natural).toBe(M3);
+    // FIXME: d3.natural
+    // expect(d3.natural).toBe(M3);
+    expect(A3.natural).toBe(M3);
   });
 
   it('compound interval', () => {
@@ -222,15 +240,13 @@ describe('Interval', () => {
 
     expect(Interval.fromString('M9').name).toBe('M9');
     expect(Interval.fromString('m9').name).toBe('m9');
-    // expect(Interval.fromString('A9').name).toBe('A9');
-    // expect(Interval.fromString('d9').name).toBe('d9');
-    // TODO: test tritone compounds
+    expect(Interval.fromString('A9').name).toBe('A9');
+    expect(Interval.fromString('d9').name).toBe('d9');
 
     expect(Interval.fromString('M9').number).toBe(9);
     expect(Interval.fromString('m9').number).toBe(9);
-    // FIXME:
-    // expect(Interval.fromString('A9').number).toBe(9);
-    // expect(Interval.fromString('d9').number).toBe(9);
+    expect(Interval.fromString('A9').number).toBe(9);
+    expect(Interval.fromString('d9').number).toBe(9);
 
     expect(Interval.fromString('M9').quality).toBe(IntervalQuality.Major);
     expect(Interval.fromString('m9').quality).toBe(IntervalQuality.Minor);
