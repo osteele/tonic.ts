@@ -19,8 +19,8 @@ const rootIntervalNumberToInversion: { [_: number]: number } = {
 
 /** An instance of `ChordClass` represents the intervals of the chord, without
  * the root. For example, Major, or Dom7. It represents the quality,
- * suspensions, and additions. A `ChordClass` is to a `Chord` as a `NoteClass`
- * is to a `Note`.
+ * suspensions, and additions. A `ChordClass` is to a [[Chord]] as a [[NoteClass]]
+ * is to a [[Note]].
  */
 export class ChordClass {
   /** Return the ChordClass that matches a set of intervals. */

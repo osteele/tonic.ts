@@ -11,6 +11,8 @@ import { PitchLike } from './PitchLike';
  * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
  * to implement sets of note classes.
  */
+// TODO: this is currently more like a pitch class than a note class.
+// Go all in on being a pitch class; or, add quality.
 export class NoteClass implements PitchLike {
   public static fromSemitones(semitones: number): NoteClass {
     semitones = PitchClass.normalize(semitones);
@@ -44,11 +46,6 @@ export class NoteClass implements PitchLike {
   public transposeBy(other: Interval): NoteClass {
     return this.add(other);
   }
-
-  // enharmonicizeTo: (scale) ->
-  //   for name, semitones in scale.noteNames()
-  //     return new PitchClass {name, semitones} if semitones == @semitones
-  //   return this
 
   public asPitch(octave = 0): Note {
     return Note.fromMidiNumber(this.semitones + 12 * octave);

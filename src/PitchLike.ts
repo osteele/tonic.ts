@@ -17,8 +17,8 @@ export function asPitchLike(pitch: string | PitchLike): PitchLike {
   return typeof pitch === 'string' ? parsePitchLike(pitch) : pitch;
 }
 
-/** Parse a string as a Pitch or PitchClass. In case of ambiguity (e.g. `"E"`),
- * PitchClass is preferred.
+/** Parse a string as a [[Pitch]] or [[PitchClass]]. In case of ambiguity (e.g.
+ * `"E"`), prefer `PitchClass`.
  */
 export function parsePitchLike(name: string): PitchLike {
   try {
