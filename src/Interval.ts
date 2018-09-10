@@ -8,8 +8,8 @@ import {
   longIntervalNames,
   parseInterval,
   shortIntervalNames,
-} from './parsers/intervals';
-import { PitchClass } from './PitchClass';
+} from './parsers/intervalParser';
+import * as PitchClassParser from './parsers/pitchClassParser';
 import { PitchLike } from './PitchLike';
 
 /** An Interval is the signed distance between two pitches or pitch classes.
@@ -48,7 +48,7 @@ export class Interval {
     if (a instanceof Note && b instanceof Note) {
       semitones = b.midiNumber - a.midiNumber;
     } else if (a instanceof NoteClass && b instanceof NoteClass) {
-      semitones = PitchClass.normalize(b.semitones - a.semitones);
+      semitones = PitchClassParser.normalize(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
       semitones = b - a;
     } else {
@@ -57,7 +57,7 @@ export class Interval {
       );
     }
     if (!(0 <= semitones && semitones < 12)) {
-      semitones = PitchClass.normalize(semitones);
+      semitones = PitchClassParser.normalize(semitones);
     }
     return Interval.fromSemitones(semitones);
   }
@@ -189,6 +189,6 @@ export function asInterval(n: Interval | number): Interval {
 export const Intervals: { [_: string]: Interval } = Interval.all;
 
 // The interval class (integer in [0...12]) between two pitch class numbers
-export function intervalClassDifference(a: PitchClass, b: PitchClass): number {
-  return PitchClass.normalize(b - a);
+export function intervalClassDifference(a: number, b: number): number {
+  return PitchClassParser.normalize(b - a);
 }

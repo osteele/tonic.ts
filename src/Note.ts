@@ -1,6 +1,6 @@
 import { Interval } from './Interval';
 import { NoteClass } from './NoteClass';
-import { PitchClass } from './PitchClass';
+import * as PitchClassParser from './parsers/pitchClassParser';
 import { PitchLike } from './PitchLike';
 
 /** A `Note` is a named pitch such as "E4" and "F♯5".
@@ -26,8 +26,8 @@ export class Note implements PitchLike {
    */
   public static fromString(name: string): Note {
     const midiNumber = (name.match(/\d/)
-      ? PitchClass.fromScientificNotation
-      : PitchClass.fromHelmholtzNotation)(name);
+      ? PitchClassParser.fromScientificNotation
+      : PitchClassParser.fromHelmholtzNotation)(name);
     return new Note(midiNumber, name);
   }
 
@@ -43,7 +43,7 @@ export class Note implements PitchLike {
 
   public readonly name: string;
   private constructor(readonly midiNumber: number, name?: string) {
-    this.name = name || PitchClass.toScientificNotation(midiNumber);
+    this.name = name || PitchClassParser.toScientificNotation(midiNumber);
     const instance = Note.instances.get(this.name);
     if (instance) {
       return instance;
@@ -66,7 +66,9 @@ export class Note implements PitchLike {
   }
 
   public asPitchClass(): NoteClass {
-    return NoteClass.fromSemitones(PitchClass.fromNumber(this.midiNumber));
+    return NoteClass.fromSemitones(
+      PitchClassParser.fromNumber(this.midiNumber),
+    );
   }
 
   public transposeBy(interval: Interval): Note {

@@ -1,6 +1,7 @@
 import { Interval } from './Interval';
 import { Note } from './Note';
-import { NoteNames, PitchClass } from './PitchClass';
+import * as PitchClassParser from './parsers/pitchClassParser';
+import { NoteNames } from './parsers/pitchClassParser';
 import { PitchLike } from './PitchLike';
 
 /** `NoteClass` represents a set of notes separated by octaves. For example, the
@@ -15,12 +16,12 @@ import { PitchLike } from './PitchLike';
 // Go all in on being a pitch class; or, add quality.
 export class NoteClass implements PitchLike {
   public static fromSemitones(semitones: number): NoteClass {
-    semitones = PitchClass.normalize(semitones);
+    semitones = PitchClassParser.normalize(semitones);
     return new NoteClass(semitones);
   }
 
   public static fromString(name: string): NoteClass {
-    return NoteClass.fromSemitones(PitchClass.fromString(name));
+    return NoteClass.fromSemitones(PitchClassParser.fromString(name));
   }
 
   private static instances = new Map<string, NoteClass>();

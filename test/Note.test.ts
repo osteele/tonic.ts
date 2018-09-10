@@ -1,17 +1,17 @@
+import { Interval, Note, Notes } from '../src';
 import {
   FlatNoteNames,
-  Interval,
-  Note,
   NoteNames,
-  Notes,
   SharpNoteNames,
-} from '../src';
+} from '../src/parsers/pitchClassParser';
 
 describe('FlatNoteNames', () => {
   it('should have 12 notes', () => {
     expect(FlatNoteNames).toHaveLength(12);
   });
-  it('should start with C', () => expect(FlatNoteNames[0]).toBe('C'));
+  it('should start with C', () => {
+    expect(FlatNoteNames[0]).toBe('C');
+  });
   it('should have five flats', () => {
     expect(FlatNoteNames[1]).toBe('D♭');
     expect(FlatNoteNames[3]).toBe('E♭');

@@ -1,7 +1,7 @@
 import { Chord } from './Chord';
 import { chordFromRomanNumeral } from './chordProgressions';
 import { Interval } from './Interval';
-import { PitchClass } from './PitchClass';
+import * as PitchClassParser from './parsers/pitchClassParser';
 import { asPitchLike, PitchLike } from './PitchLike';
 
 interface GenericScaleConstructorOptions {
@@ -235,7 +235,7 @@ const scaleMap = [
 function rotatePitchClasses(pitchClasses: number[], i: number) {
   i %= pitchClasses.length;
   pitchClasses = [...pitchClasses.slice(i), ...pitchClasses.slice(0, i)];
-  return pitchClasses.map((pc) => PitchClass.normalize(pc - pitchClasses[0]));
+  return pitchClasses.map((pc) => PitchClassParser.normalize(pc - pitchClasses[0]));
 }
 
 // Indexed by scale degree

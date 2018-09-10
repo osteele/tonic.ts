@@ -8,6 +8,5 @@ export * from './IntervalQuality';
 export * from './midi';
 export * from './Note';
 export * from './NoteClass';
-export * from './PitchClass';
 export * from './PitchLike';
 export * from './Scale';
