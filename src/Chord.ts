@@ -1,7 +1,7 @@
 import { ChordClass } from './ChordClass';
 import { Interval } from './Interval';
 import { Note } from './Note';
-import { NoteClass } from './NoteClass';
+import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 import { rotateArray } from './utils';
 
@@ -14,7 +14,7 @@ const inversionNames = ['a', 'c', 'd'];
  * optional root. For example, "E Major" and "C Minor" name chords.
  *
  * A `Chord<Note>` is a set of specific notes: for example, {C4, E4, G4}. A
- * `Chord<NoteClass>` is a set of note *classes*, without specifying octaves.
+ * `Chord<PitchClass>` is a set of note *classes*, without specifying octaves.
  *
  * See [Wikipedia: Chord](https://en.wikipedia.org/wiki/Chord_(music)).
  */
@@ -25,7 +25,7 @@ export class Chord<T extends PitchLike> {
    */
   public static fromString(
     name: string,
-  ): Chord<Note> | Chord<NoteClass> | ChordClass {
+  ): Chord<Note> | Chord<PitchClass> | ChordClass {
     const match = name.match(chordNameRegex1) || name.match(chordNameRegex2);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);

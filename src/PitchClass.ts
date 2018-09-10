@@ -4,47 +4,47 @@ import * as PitchClassParser from './parsers/pitchClassParser';
 import { NoteNames } from './parsers/pitchClassParser';
 import { PitchLike } from './PitchLike';
 
-/** `NoteClass` represents a set of notes separated by octaves. For example, the
- * note class "E" represents "E0", "E1", "E2", etc.
+/** A pitch class represents a set of pitches separated by octaves. For example,
+ * the pitch class "E" represents "E0", "E1", "E2", etc.
  *
- * Note classes are [interned](https://en.wikipedia.org/wiki/String_interning).
+ * Pitch classes are [interned](https://en.wikipedia.org/wiki/String_interning).
  * interned. This enables the use of the ECMAScript
  * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
  * to implement sets of note classes.
+ *
+ * See Wikipedia [pitch class](https://en.wikipedia.org/wiki/Pitch_class).
  */
-// TODO: this is currently more like a pitch class than a note class.
-// Go all in on being a pitch class; or, add quality.
-export class NoteClass implements PitchLike {
-  public static fromSemitones(semitones: number): NoteClass {
+export class PitchClass implements PitchLike {
+  public static fromSemitones(semitones: number): PitchClass {
     semitones = PitchClassParser.normalize(semitones);
-    return new NoteClass(semitones);
+    return new PitchClass(semitones);
   }
 
-  public static fromString(name: string): NoteClass {
-    return NoteClass.fromSemitones(PitchClassParser.fromString(name));
+  public static fromString(name: string): PitchClass {
+    return PitchClass.fromSemitones(PitchClassParser.fromString(name));
   }
 
-  private static instances = new Map<string, NoteClass>();
+  private static instances = new Map<string, PitchClass>();
 
   public readonly name: string;
   private constructor(readonly semitones: number, name?: string) {
     this.name = name || NoteNames[semitones];
-    const instance = NoteClass.instances.get(this.name);
+    const instance = PitchClass.instances.get(this.name);
     if (instance) {
       return instance;
     }
-    NoteClass.instances.set(this.name, this);
+    PitchClass.instances.set(this.name, this);
   }
 
   public toString(): string {
     return this.name;
   }
 
-  public add(other: Interval): NoteClass {
-    return NoteClass.fromSemitones(this.semitones + other.semitones);
+  public add(other: Interval): PitchClass {
+    return PitchClass.fromSemitones(this.semitones + other.semitones);
   }
 
-  public transposeBy(other: Interval): NoteClass {
+  public transposeBy(other: Interval): PitchClass {
     return this.add(other);
   }
 

@@ -1,6 +1,6 @@
 import { Interval } from './Interval';
-import { NoteClass } from './NoteClass';
 import * as PitchClassParser from './parsers/pitchClassParser';
+import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** A `Note` is a named pitch such as "E4" and "F♯5".
@@ -65,8 +65,8 @@ export class Note implements PitchLike {
     return this;
   }
 
-  public asPitchClass(): NoteClass {
-    return NoteClass.fromSemitones(
+  public asPitchClass(): PitchClass {
+    return PitchClass.fromSemitones(
       PitchClassParser.fromNumber(this.midiNumber),
     );
   }

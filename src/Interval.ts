@@ -1,6 +1,5 @@
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
-import { NoteClass } from './NoteClass';
 import { semitonesToAccidentalString } from './parsers/accidentals';
 import {
   accidentalToIntervalQuality,
@@ -10,6 +9,7 @@ import {
   shortIntervalNames,
 } from './parsers/intervalParser';
 import * as PitchClassParser from './parsers/pitchClassParser';
+import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
 /** An Interval is the signed distance between two pitches or pitch classes.
@@ -47,7 +47,7 @@ export class Interval {
     let semitones = 0;
     if (a instanceof Note && b instanceof Note) {
       semitones = b.midiNumber - a.midiNumber;
-    } else if (a instanceof NoteClass && b instanceof NoteClass) {
+    } else if (a instanceof PitchClass && b instanceof PitchClass) {
       semitones = PitchClassParser.normalize(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
       semitones = b - a;

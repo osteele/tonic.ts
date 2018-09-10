@@ -1,7 +1,7 @@
 import { Chord } from './Chord';
 import { asInterval, Interval } from './Interval';
 import { Note } from './Note';
-import { NoteClass } from './NoteClass';
+import { PitchClass } from './PitchClass';
 import { parsePitchLike, PitchLike } from './PitchLike';
 
 export interface ChordClassConstructorOptions {
@@ -19,7 +19,7 @@ const rootIntervalNumberToInversion: { [_: number]: number } = {
 
 /** An instance of `ChordClass` represents the intervals of the chord, without
  * the root. For example, Major, or Dom7. It represents the quality,
- * suspensions, and additions. A `ChordClass` is to a [[Chord]] as a [[NoteClass]]
+ * suspensions, and additions. A `ChordClass` is to a [[Chord]] as a [[PitchClass]]
  * is to a [[Note]].
  */
 export class ChordClass {
@@ -72,7 +72,7 @@ export class ChordClass {
   public at<T extends PitchLike>(root: T): Chord<T>;
   public at(root: string): Chord<PitchLike>;
   public at<T extends PitchLike | string>(
-    _root: Note | NoteClass | string,
+    _root: Note | PitchClass | string,
   ): Chord<PitchLike> {
     const root = typeof _root === 'string' ? parsePitchLike(_root) : _root;
     return new Chord(this, root);

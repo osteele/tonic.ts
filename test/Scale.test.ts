@@ -1,4 +1,4 @@
-import { Note, NoteClass, Scale, SpecificScale } from '../src';
+import { Note, PitchClass, Scale, SpecificScale } from '../src';
 
 describe('ScalePattern', () => {
   it('scales length', () => {
@@ -86,12 +86,12 @@ describe('Scale', () => {
       // expect(Scale.fromString('E Diatonic Major')).toBeInstanceOf(Scale);
 
       expect(SpecificScale.fromString('E Diatonic Major').tonic).toBeInstanceOf(
-        NoteClass,
+        PitchClass,
       );
       expect(
         SpecificScale.fromString('E♯ Diatonic Major').tonic,
-      ).toBeInstanceOf(NoteClass);
-      expect(SpecificScale.fromString('E').tonic).toBeInstanceOf(NoteClass);
+      ).toBeInstanceOf(PitchClass);
+      expect(SpecificScale.fromString('E').tonic).toBeInstanceOf(PitchClass);
 
       expect(SpecificScale.fromString('E Diatonic Major').tonic.name).toBe('E');
       // FIXME:

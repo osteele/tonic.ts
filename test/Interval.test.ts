@@ -4,7 +4,7 @@ import {
   IntervalQuality,
   Intervals,
   Note,
-  NoteClass,
+  PitchClass,
 } from '../src';
 
 describe('Interval', () => {
@@ -130,10 +130,10 @@ describe('Interval', () => {
     });
 
     it('should return the interval between two note classes', () => {
-      const E = NoteClass.fromString('E');
-      const F = NoteClass.fromString('F');
-      const G = NoteClass.fromString('G');
-      const GA = NoteClass.fromString('G#');
+      const E = PitchClass.fromString('E');
+      const F = PitchClass.fromString('F');
+      const G = PitchClass.fromString('G');
+      const GA = PitchClass.fromString('G#');
       expect(Interval.between(E, E)).toBe(P1);
       expect(Interval.between(E, F)).toBe(m2);
       expect(Interval.between(E, G)).toBe(m3);

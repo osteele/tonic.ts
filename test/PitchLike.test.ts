@@ -1,4 +1,4 @@
-import { asPitchLike, Note, NoteClass, parsePitchLike } from '../src';
+import { asPitchLike, Note, parsePitchLike, PitchClass } from '../src';
 
 describe('parsePitchLike', () => {
   it('parses note names', () => {
@@ -6,7 +6,7 @@ describe('parsePitchLike', () => {
   });
 
   it('parses note class names', () => {
-    expect(parsePitchLike('E')).toBeInstanceOf(NoteClass);
+    expect(parsePitchLike('E')).toBeInstanceOf(PitchClass);
   });
 
   it('throws exceptions', () => {
@@ -20,7 +20,7 @@ describe('asPitchLike', () => {
   });
 
   it('parses note class names', () => {
-    expect(asPitchLike('E')).toBeInstanceOf(NoteClass);
+    expect(asPitchLike('E')).toBeInstanceOf(PitchClass);
   });
 
   it('throws exceptions', () => {

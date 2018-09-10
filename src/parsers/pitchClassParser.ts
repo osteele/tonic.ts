@@ -2,7 +2,7 @@ import { accidentalValues } from './accidentals';
 
 /** A pitch class, represented as a number.
  *
- * See also [[NoteClass]], which represents pitch class as an class instance.
+ * See also [[PitchClass]], which represents pitch class as an class instance.
  *
  * See Wikipedia [pitch class](https://en.wikipedia.org/wiki/Pitch_class).
  */
