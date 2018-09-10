@@ -66,10 +66,14 @@ describe('Interval', () => {
   it('name', () => {
     expect(Interval.fromString('P1').name).toBe('P1');
     expect(Interval.fromString('m2').name).toBe('m2');
-    // FIXME:
-    // expect(Interval.fromString('d2').name).toBe('d2');
-    // expect(Interval.fromString('A2').name).toBe('A2');
+    expect(Interval.fromString('M2').name).toBe('M2');
+    expect(Interval.fromString('d2').name).toBe('d2');
+    expect(Interval.fromString('A2').name).toBe('A2');
     expect(Interval.fromString('TT').name).toBe('TT');
+    expect(Interval.fromSemitones(6).name).toBe('TT');
+    expect(Interval.fromSemitones(12).name).toBe('P8');
+    expect(Interval.fromSemitones(18).name).toBe('P8+TT');
+    expect(Interval.fromSemitones(30).name).toBe('P8+P8+TT');
   });
 
   it('number', () => {
@@ -96,10 +100,8 @@ describe('Interval', () => {
     expect(Interval.fromSemitones(1).toString()).toBe('m2');
     expect(Interval.fromSemitones(4).toString()).toBe('M3');
     expect(Interval.fromSemitones(12).toString()).toBe('P8');
-
-    // TODO: dim, aug
-    // expect(Interval.fromString('d3').toString()).toBe('d3');
-    // expect(Interval.fromString('A3').toString()).toBe('A3');
+    expect(Interval.fromString('d3').toString()).toBe('d3');
+    expect(Interval.fromString('A3').toString()).toBe('A3');
   });
 
   it('should be interned', () => {
@@ -153,7 +155,7 @@ describe('Interval', () => {
       expect(Interval.between(F4.asPitchClass(), C4.asPitchClass())).toBe(P5);
     });
 
-    it('should return complex intervals', () => {
+    it('should return compound intervals', () => {
       const C4 = Note.fromString('C4');
       const D5 = Note.fromString('D5');
       const D6 = Note.fromString('D6');

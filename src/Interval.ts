@@ -1,6 +1,6 @@
+import * as _ from 'lodash';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
-import { semitonesToAccidentalString } from './parsers/accidentals';
 import {
   accidentalToIntervalQuality,
   intervalQualityName,
@@ -130,14 +130,21 @@ export class Interval {
   }
 
   public toString(): string {
-    if (this.naturalSemitones > 12) {
-      return `${intervalQualityName(this.quality!)}${this.number}`;
+    const quality = this.quality;
+    if (quality === null) {
+      const semitones = this.semitones;
+      return semitones === 6
+        ? shortIntervalNames[semitones]
+        : _.times((semitones - 6) / 12, () => 'P8').join('+') + '+TT';
     }
-    let s = shortIntervalNames[this.naturalSemitones];
-    if (this.accidentals) {
-      s = semitonesToAccidentalString(this.accidentals) + s;
-    }
-    return s;
+    return `${intervalQualityName(quality!)}${this.number}`;
+    // if (this.semitones > 12) {
+    // }
+    // let s = shortIntervalNames[this.naturalSemitones];
+    // if (this.accidentals) {
+    //   s = semitonesToAccidentalString(this.accidentals) + s;
+    // }
+    // return s;
   }
 
   // Override the default implementation, to get readable Jest messages
