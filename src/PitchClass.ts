@@ -15,6 +15,10 @@ import { PitchLike } from './PitchLike';
  * See Wikipedia [pitch class](https://en.wikipedia.org/wiki/Pitch_class).
  */
 export class PitchClass implements PitchLike {
+  public static fromMidiNumber(midiNumber: number): PitchClass {
+    return this.fromSemitones(midiNumber);
+  }
+
   public static fromSemitones(semitones: number): PitchClass {
     semitones = PitchClassParser.normalize(semitones);
     return new PitchClass(semitones);
@@ -25,6 +29,11 @@ export class PitchClass implements PitchLike {
   }
 
   private static instances = new Map<string, PitchClass>();
+
+  // tslint:disable-next-line:member-ordering
+  public static all = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((pitch) =>
+    PitchClass.fromSemitones(pitch),
+  );
 
   public readonly name: string;
   private constructor(readonly semitones: number, name?: string) {

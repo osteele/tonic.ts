@@ -1,4 +1,4 @@
-import { Interval, Note, Notes } from '../src';
+import { Interval, Note } from '../src';
 import {
   FlatNoteNames,
   NoteNames,
@@ -88,10 +88,4 @@ describe('Note', () => {
 
   // test.skip('asPitch should return itself');
   // test.skip('asPitchClass should its pitch class');
-});
-
-describe('Notes', () => {
-  it('should have 12 notes', () => {
-    expect(Notes).toHaveLength(12);
-  });
 });

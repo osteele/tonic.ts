@@ -14,6 +14,13 @@ describe('PitchClass', () => {
     expect(PitchClass.fromSemitones(14).toString()).toBe('D');
   });
 
+  describe('all', () => {
+    it('should have 12 items', () => {
+      expect(PitchClass.all).toHaveLength(12);
+      expect(PitchClass.all[0]).toBeInstanceOf(PitchClass);
+    });
+  });
+
   // test.skip('#enharmonicizeTo should return the enharmonic equivalent within a scale');
 
   it('toString', () => {
