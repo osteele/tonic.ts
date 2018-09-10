@@ -3,13 +3,29 @@ import {
   intervalClassDifference,
   IntervalQuality,
   Intervals,
-  LongIntervalNames,
   Note,
   NoteClass,
-  ShortIntervalNames,
 } from '../src';
 
 describe('Interval', () => {
+  describe('names', () => {
+    it('should have 13 intervals', () => {
+      expect(Interval.names).toHaveLength(13);
+    });
+    it('should start with P1', () => expect(Interval.names[0]).toBe('P1'));
+    it('should end with P8', () => expect(Interval.names[12]).toBe('P8'));
+  });
+
+  describe('longNames', () => {
+    it('should have 13 intervals', () => {
+      expect(Interval.longNames).toHaveLength(13);
+    });
+    it('should start with Unison', () =>
+      expect(Interval.longNames[0]).toBe('Unison'));
+    it('should end with Octave', () =>
+      expect(Interval.longNames[12]).toBe('Octave'));
+  });
+
   it('fromString', () => {
     expect(Interval.fromString('P1').semitones).toBe(0);
     expect(Interval.fromString('m2').semitones).toBe(1);
@@ -199,24 +215,6 @@ describe('Interval', () => {
     expect(Interval.fromString('A9').quality).toBe(IntervalQuality.Augmented);
     expect(Interval.fromString('d9').quality).toBe(IntervalQuality.Diminished);
   });
-});
-
-describe('IntervalNames', () => {
-  it('should have 13 intervals', () => {
-    expect(ShortIntervalNames).toHaveLength(13);
-  });
-  it('should start with P1', () => expect(ShortIntervalNames[0]).toBe('P1'));
-  it('should end with P8', () => expect(ShortIntervalNames[12]).toBe('P8'));
-});
-
-describe('LongIntervalNames', () => {
-  it('should have 13 intervals', () => {
-    expect(LongIntervalNames).toHaveLength(13);
-  });
-  it('should start with Unison', () =>
-    expect(LongIntervalNames[0]).toBe('Unison'));
-  it('should end with Octave', () =>
-    expect(LongIntervalNames[12]).toBe('Octave'));
 });
 
 describe('intervalClassDifference', () =>

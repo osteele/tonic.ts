@@ -1,114 +1,18 @@
+import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
 import { NoteClass } from './NoteClass';
 import { semitonesToAccidentalString } from './parsers/accidentals';
+import {
+  accidentalToIntervalQuality,
+  intervalQualityName,
+  longIntervalNames,
+  parseInterval,
+  shortIntervalNames,
+} from './parsers/intervals';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
-// tslint:disable-next-line variable-name
-export const ShortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
-  /\s/,
-);
-
-// tslint:disable-next-line variable-name
-export const LongIntervalNames = [
-  'Unison',
-  'Minor 2nd',
-  'Major 2nd',
-  'Minor 3rd',
-  'Major 3rd',
-  'Perfect 4th',
-  'Tritone',
-  'Perfect 5th',
-  'Minor 6th',
-  'Major 6th',
-  'Minor 7th',
-  'Major 7th',
-  'Octave',
-];
-
-/** The *quality* distinguishes between [major and
- * minor](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords)
- * intervals, and further augments or diminishes an interval. See [Wikipedia:
- * Interval quality](https://en.wikipedia.org/wiki/Interval_(music)#Quality).
- */
-export enum IntervalQuality {
-  DoublyDiminished,
-  /** A
-   * [diminished](https://en.wikipedia.org/wiki/Diminution#Diminution_of_intervals)
-   * interval is narrowed by a chromatic semitone.
-   */
-  Diminished,
-  /** A [minor](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords) interval. */
-  Minor,
-  Perfect,
-  /** A [major](https://en.wikipedia.org/wiki/Major_and_minor#Intervals_and_chords) interval. */
-  Major,
-  /** An
-   * [augmented](https://en.wikipedia.org/wiki/Augmentation_(music)#Augmentation_of_intervals)
-   * interval is widened by a chromatic semitone.
-   */
-  Augmented,
-  DoublyAugmented,
-}
-
-// ar[semitones + 2] = IntervalQuality | null.
-// ar[0 + 2] = null, since this is ambiguous among Major, Minor, and Perfect,
-// depending on the interval's (diatonic) number.
-const accidentalsToQuality: Array<IntervalQuality | null> = [
-  IntervalQuality.DoublyDiminished,
-  IntervalQuality.Diminished,
-  null,
-  IntervalQuality.Augmented,
-  IntervalQuality.DoublyAugmented,
-];
-
-const qualityAbbrList: Array<[IntervalQuality, string]> = [
-  [IntervalQuality.Major, 'M'],
-  [IntervalQuality.Minor, 'm'],
-  [IntervalQuality.Perfect, 'P'],
-  [IntervalQuality.Augmented, 'A'],
-  [IntervalQuality.Diminished, 'd'],
-  [IntervalQuality.DoublyAugmented, 'AA'],
-  [IntervalQuality.DoublyDiminished, 'dd'],
-];
-
-const abbrevToQuality = new Map<string, IntervalQuality>(
-  qualityAbbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
-);
-
-const qualityAbbrs = new Map<IntervalQuality, string>(
-  qualityAbbrList.map(([abbr, q]) => [abbr, q] as [IntervalQuality, string]),
-);
-
-// Arrays of ar[diatonicNumber] to semitone counts. `Interval.fromString` uses
-// these. They're initialized below.
-const majorSemitones = new Array<number>(8);
-const minorSemitones = new Array<number>(8);
-const perfectSemitones = new Array<number>(8);
-
-// Initialize majorSemitones, minorSemitones, and perfectSemitones from
-// ShortIntervalNames.
-ShortIntervalNames.forEach((name, semitones) => {
-  const m = name.match(/(.)(\d)/);
-  if (m) {
-    const ar =
-      ({ P: perfectSemitones, M: majorSemitones, m: minorSemitones } as {
-        [_: string]: number[];
-      })[m[1]] || [];
-    const num = +m[2];
-    ar[num] = semitones;
-  }
-});
-
-const lowerCaseQualities: { [_: string]: number } = {
-  a: 1,
-  augmented: 1,
-  d: -1,
-  diminished: -1,
-};
-
-/** An Interval is the signed distance between two pitches or pitch classes. See
- * [Interval](https://en.wikipedia.org/wiki/Interval_(music)).
+/** An Interval is the signed distance between two pitches or pitch classes.
  *
  * An instance of Interval is a musical *simple diatonic interval*, that spans
  * at most a single octave.
@@ -119,39 +23,21 @@ const lowerCaseQualities: { [_: string]: number } = {
  * distinct from each other and from TT. This enables the use of the ECMAScript
  * [Set](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Set)
  * to implement sets of intervals.
+ *
+ * See [Wikipedia: Interval
+ * quality](https://en.wikipedia.org/wiki/Interval_(music)).
  */
-// TODO: these are interval classes, limited to P1–P8. Allow complex intervals.
+// TODO: Some of these methods assume or create simple intervals.
 export class Interval {
+  public static names = shortIntervalNames;
+  public static longNames = longIntervalNames;
   public static fromSemitones(semitones: number, accidentals = 0): Interval {
     return new Interval(semitones, accidentals);
   }
 
   public static fromString(name: string): Interval {
-    let semitones = ShortIntervalNames.indexOf(name);
-    if (semitones >= 0) {
-      return Interval.fromSemitones(semitones);
-    }
-    semitones = LongIntervalNames.indexOf(name);
-    if (semitones >= 0) {
-      return Interval.fromSemitones(semitones);
-    }
-    const m =
-      name.match(/^([AMPmd])(\d+)$/) ||
-      name.match(/^(augmented|diminished)\s*(\d+)$/i);
-    if (!m) {
-      throw new Error(`No interval named ${name}`);
-    }
-    const qualityAbbr = m[1];
-    const dn = Number(m[2]); // diatonic number
-    if (dn > 8) {
-      const simplex = Interval.fromString(`${qualityAbbr}${dn - 7}`);
-      return new Interval(simplex.semitones + 12, simplex.accidentals);
-    }
-    const accidentals = lowerCaseQualities[qualityAbbr.toLowerCase()] || 0;
-    semitones =
-      (accidentals < 0 ? minorSemitones : majorSemitones)[dn] ||
-      perfectSemitones[dn];
-    return new Interval(semitones, accidentals);
+    const { semitones, accidentals } = parseInterval(name);
+    return Interval.fromSemitones(semitones, accidentals || 0);
   }
 
   public static between<T extends PitchLike>(a: T, b: T): Interval;
@@ -179,7 +65,7 @@ export class Interval {
   private static bySemitone = new Array<Map<number, Interval>>();
 
   // tslint:disable-next-line:member-ordering
-  public static all = ShortIntervalNames.reduce(
+  public static all = shortIntervalNames.reduce(
     (acc: { [_: string]: Interval }, name, semitones) => {
       acc[name] = new Interval(semitones);
       return acc;
@@ -207,7 +93,7 @@ export class Interval {
    */
   get number(): number | null {
     const dn = this.naturalSemitones;
-    const m = ShortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
+    const m = shortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
     return m && Number(m[0]) + (dn > 12 ? 7 * Math.floor(dn / 12) : 0);
   }
 
@@ -215,11 +101,7 @@ export class Interval {
    * tritone, have a null quality.
    */
   get quality(): IntervalQuality | null {
-    if (this.accidentals === 0) {
-      const m = ShortIntervalNames[this.naturalSemitones % 12].match(/./);
-      return (m && abbrevToQuality.get(m[0])) || null;
-    }
-    return accidentalsToQuality[this.accidentals + 2];
+    return accidentalToIntervalQuality(this.accidentals, this.naturalSemitones);
   }
 
   /** The number of semitones. For example, A1 and m2 have one semitone. */
@@ -250,14 +132,11 @@ export class Interval {
     return Interval.fromSemitones(this.naturalSemitones);
   }
 
-  // TODO: add properties number, quality (enum P M m A d; and doubles)
-  // TODO: add methods natural, augment, diminish
-
   public toString(): string {
     if (this.naturalSemitones > 12) {
-      return `${qualityAbbrs.get(this.quality!)}${this.number}`;
+      return `${intervalQualityName(this.quality!)}${this.number}`;
     }
-    let s = ShortIntervalNames[this.naturalSemitones];
+    let s = shortIntervalNames[this.naturalSemitones];
     if (this.accidentals) {
       s = semitonesToAccidentalString(this.accidentals) + s;
     }
