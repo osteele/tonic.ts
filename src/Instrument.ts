@@ -13,10 +13,10 @@ export class Instrument {
 // TODO: add a key?
 export class StringInstrument extends Instrument {
   // TODO: This should probably be a Pitch[]
-  public readonly stringPitches: Note[];
+  public readonly stringPitches: ReadonlyArray<Note>;
   public readonly stringCount: number;
   /** An array from [0…stringCount-1]. This is useful for enumerating over. */
-  public readonly stringNumbers: number[];
+  public readonly stringNumbers: ReadonlyArray<number>;
   constructor(name: string, _stringPitches: Note[] | string) {
     super(name);
     const stringPitches =

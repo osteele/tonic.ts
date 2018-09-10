@@ -6,9 +6,9 @@ import { asPitchLike, PitchLike } from './PitchLike';
 
 interface GenericScaleConstructorOptions {
   name: string;
-  pitchClasses: number[];
+  pitchClasses: ReadonlyArray<number>;
   parent?: Scale | string | null;
-  modeNames?: string[];
+  modeNames?: ReadonlyArray<string>;
 }
 
 interface ScaleConstructorOptions<T extends PitchLike>
@@ -28,13 +28,13 @@ class GenericScale<T extends PitchLike | null> {
   // }
 
   public readonly name: string;
-  public readonly pitchClasses: number[];
+  public readonly pitchClasses: ReadonlyArray<number>;
   /** For a minor scale, this is the relative major. For a mode, it's the
    * deriving scale.
    */
   public readonly parent: Scale | null;
-  public readonly modes: Scale[] = [];
-  public readonly intervals: Interval[];
+  public readonly modes: ReadonlyArray<Scale> = [];
+  public readonly intervals: ReadonlyArray<Interval>;
   constructor({
     name,
     pitchClasses,
@@ -45,7 +45,9 @@ class GenericScale<T extends PitchLike | null> {
     this.parent =
       typeof parent === 'string' ? Scale.fromString(parent) : parent;
     this.pitchClasses = pitchClasses;
-    this.intervals = this.pitchClasses.map((semitones) => Interval.fromSemitones(semitones));
+    this.intervals = this.pitchClasses.map((semitones) =>
+      Interval.fromSemitones(semitones),
+    );
     this.modes = modeNames.map(
       (modeName, i) =>
         new Scale({
@@ -117,7 +119,7 @@ export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
   }
 
   public readonly tonic: T;
-  public readonly notes: T[];
+  public readonly notes: ReadonlyArray<T>;
 
   constructor(options: ScaleConstructorOptions<T>) {
     super(options);
@@ -232,10 +234,12 @@ const scaleMap = [
 ].forEach((options) => Scale.addScale(new Scale(options)));
 // tslint:enable: object-literal-sort-keys
 
-function rotatePitchClasses(pitchClasses: number[], i: number) {
+function rotatePitchClasses(pitchClasses: ReadonlyArray<number>, i: number) {
   i %= pitchClasses.length;
   pitchClasses = [...pitchClasses.slice(i), ...pitchClasses.slice(0, i)];
-  return pitchClasses.map((pc) => PitchClassParser.normalize(pc - pitchClasses[0]));
+  return pitchClasses.map((pc) =>
+    PitchClassParser.normalize(pc - pitchClasses[0]),
+  );
 }
 
 // Indexed by scale degree

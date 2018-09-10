@@ -39,7 +39,9 @@ export class Chord<T extends PitchLike> {
   /** Return the Chord that matches a set of notes. The first note should be
    * the root.
    */
-  public static fromPitches<T extends PitchLike>(pitches: T[]): Chord<T> {
+  public static fromPitches<T extends PitchLike>(
+    pitches: ReadonlyArray<T>,
+  ): Chord<T> {
     const root = pitches[0];
     const intervals = pitches.map((pitch) => Interval.between(root, pitch));
     return ChordClass.fromIntervals(intervals).at(root);
@@ -47,9 +49,9 @@ export class Chord<T extends PitchLike> {
 
   /** The preferred abbreviation. */
   public readonly abbr: string;
-  public readonly abbrs: string[];
-  public readonly notes: T[];
-  public readonly intervals: Interval[];
+  public readonly abbrs: ReadonlyArray<string>;
+  public readonly notes: ReadonlyArray<T>;
+  public readonly intervals: ReadonlyArray<Interval>;
   constructor(
     readonly chordClass: ChordClass,
     readonly root: T,

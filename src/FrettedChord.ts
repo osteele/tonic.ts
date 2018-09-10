@@ -62,15 +62,15 @@ export class FrettedChord {
   }
 
   // Fingering positions, ascending by string number
-  public readonly positions: ChordFret[];
-  public readonly properties: { [_: string]: any };
+  public readonly positions: ReadonlyArray<ChordFret>;
+  public readonly properties: Readonly<{ [_: string]: any }>;
 
   private _fretString: string | null = null;
   constructor(
     readonly chord: Chord<PitchLike>,
     readonly instrument: FrettedInstrument,
     positions: ChordFret[],
-    readonly barres: Barre[] = [],
+    readonly barres: ReadonlyArray<Barre> = [],
   ) {
     this.positions = [...positions].sort(
       (a: StringFret, b: StringFret) => a.stringNumber - b.stringNumber,

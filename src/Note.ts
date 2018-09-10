@@ -34,7 +34,7 @@ export class Note implements PitchLike {
   // Indexed by name not midiNumber, in order to preserve the distinction
   // between enharmonic equivalents.
   // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
-  private static instances = new Map<string, Note>();
+  private static readonly instances = new Map<string, Note>();
 
   public readonly name: string;
   private constructor(readonly midiNumber: number, name?: string) {

@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Interval } from './Interval';
 import { Note } from './Note';
 import * as PitchClassParser from './parsers/pitchClassParser';
@@ -28,11 +29,11 @@ export class PitchClass implements PitchLike {
     return PitchClass.fromSemitones(PitchClassParser.fromString(name));
   }
 
-  private static instances = new Map<string, PitchClass>();
+  private static readonly instances = new Map<string, PitchClass>();
 
   // tslint:disable-next-line:member-ordering
-  public static all = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((pitch) =>
-    PitchClass.fromSemitones(pitch),
+  public static readonly all: ReadonlyArray<PitchClass> = _.times(12).map(
+    (pitch) => PitchClass.fromSemitones(pitch),
   );
 
   public readonly name: string;

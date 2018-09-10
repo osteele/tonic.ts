@@ -1,4 +1,4 @@
-export function powerset<T>(array: T[]): T[][] {
+export function powerset<T>(array: ReadonlyArray<T>): T[][] {
   if (!array.length) {
     return [[]];
   }
@@ -7,7 +7,7 @@ export function powerset<T>(array: T[]): T[][] {
   return [...tail, ...tail.map((ys) => [x, ...ys])];
 }
 
-export function rotateArray<T>(array: T[], n: number): T[] {
+export function rotateArray<T>(array: ReadonlyArray<T>, n: number): T[] {
   return [...array.slice(n), ...array.slice(0, n)];
 }
 

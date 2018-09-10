@@ -7,8 +7,8 @@ import { parsePitchLike, PitchLike } from './PitchLike';
 export interface ChordClassConstructorOptions {
   name: string;
   fullName?: string;
-  abbrs?: string[];
-  intervals: Interval[];
+  abbrs?: ReadonlyArray<string>;
+  intervals: ReadonlyArray<Interval>;
   inversion?: number | null;
 }
 
@@ -53,9 +53,9 @@ export class ChordClass {
   public readonly name: string;
   public readonly fullName: string | null;
   public readonly abbr: string | null;
-  public readonly abbrs: string[];
+  public readonly abbrs: ReadonlyArray<string>;
   /** Intervals relative to the root. */
-  public readonly intervals: Interval[];
+  public readonly intervals: ReadonlyArray<Interval>;
   public readonly inversion: number | null;
   constructor(private readonly options: ChordClassConstructorOptions) {
     this.name = options.name;

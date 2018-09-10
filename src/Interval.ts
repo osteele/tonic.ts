@@ -29,8 +29,8 @@ import { PitchLike } from './PitchLike';
  */
 // TODO: Some of these methods assume or create simple intervals.
 export class Interval {
-  public static names = shortIntervalNames;
-  public static longNames = longIntervalNames;
+  public static readonly names: ReadonlyArray<string> = shortIntervalNames;
+  public static readonly longNames: ReadonlyArray<string> = longIntervalNames;
   public static fromSemitones(semitones: number, accidentals = 0): Interval {
     return new Interval(semitones, accidentals);
   }
@@ -59,10 +59,12 @@ export class Interval {
     return Interval.fromSemitones(semitones);
   }
 
-  private static bySemitone = new Array<Map<number, Interval>>();
+  private static readonly instances = new Array<Map<number, Interval>>();
 
   // tslint:disable-next-line:member-ordering
-  public static all = shortIntervalNames.reduce(
+  public static readonly all: Readonly<{
+    [_: string]: Interval;
+  }> = shortIntervalNames.reduce(
     (acc: { [_: string]: Interval }, name, semitones) => {
       acc[name] = new Interval(semitones);
       return acc;
@@ -168,10 +170,10 @@ export class Interval {
     accidentals: number,
     instance: Interval | null,
   ): Interval | null {
-    let dict = Interval.bySemitone[semitones];
+    let dict = Interval.instances[semitones];
     if (!dict) {
       dict = new Map<number, Interval>();
-      Interval.bySemitone[semitones] = dict;
+      Interval.instances[semitones] = dict;
     }
     const interval = dict.get(accidentals);
     if (interval) {
