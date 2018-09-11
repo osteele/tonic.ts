@@ -1,4 +1,5 @@
 import { IntervalQuality } from '../IntervalQuality';
+import { reverseMap } from '../utils';
 
 export const shortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
   /\s/,
@@ -31,7 +32,7 @@ const accidentalsToQuality: Array<IntervalQuality | null> = [
   IntervalQuality.DoublyAugmented,
 ];
 
-const qualityAbbrList: Array<[IntervalQuality, string]> = [
+const qualityAbbrs = new Map<IntervalQuality, string>([
   [IntervalQuality.Major, 'M'],
   [IntervalQuality.Minor, 'm'],
   [IntervalQuality.Perfect, 'P'],
@@ -39,15 +40,9 @@ const qualityAbbrList: Array<[IntervalQuality, string]> = [
   [IntervalQuality.Diminished, 'd'],
   [IntervalQuality.DoublyAugmented, 'AA'],
   [IntervalQuality.DoublyDiminished, 'dd'],
-];
+]);
 
-const abbrevToQuality = new Map<string, IntervalQuality>(
-  qualityAbbrList.map(([abbr, q]) => [q, abbr] as [string, IntervalQuality]),
-);
-
-const qualityAbbrs = new Map<IntervalQuality, string>(
-  qualityAbbrList.map(([abbr, q]) => [abbr, q] as [IntervalQuality, string]),
-);
+const abbrevToQuality = reverseMap(qualityAbbrs);
 
 // Arrays of ar[diatonicNumber] to semitone counts. `Interval.fromString` uses
 // these. They're initialized below.
