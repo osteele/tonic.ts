@@ -6,13 +6,32 @@ import { Interval } from './Interval';
 import { Note } from './Note';
 import { powerset } from './utils';
 
+//
+// Public API
+//
+
 // TODO: add options for strumming vs. fingerstyle; muting; stretch
 interface FrettingOptions {
   filter: boolean;
+  /** If true (the default), fingerings are limited to those that require no
+   * more than four fingers.
+   *
+   * TODO: this optional probably doesn't make any sense. If it does it needs a
+   * better name.
+   */
+  /** If true, fingerings with muted medial or treble
+   * strings are rejected.
+   *
+   * TODO: this optional probably doesn't make any sense.
+   */
   fingerPicking: boolean;
+  /** The instrument. This defaults to a six-string guitar in standard tuning.
+   */
   instrument: FrettedInstrument;
+  /** Maximum fret number. Defaults to 4. */
   maxFretNumber: number;
-  maxFretSpread: number;
+  /** Maximum distance between frets. Defaults to 3. */
+  span: number;
 }
 
 const defaultFrettingOptions: FrettingOptions = {
@@ -20,10 +39,8 @@ const defaultFrettingOptions: FrettingOptions = {
   fingerPicking: false,
   instrument: Instruments.Guitar,
   maxFretNumber: 4,
-  maxFretSpread: 3,
+  span: 3,
 };
-
-type FretNumber = number;
 
 /** Return best fretting, sorted by default properties. */
 export function frettingFor(
@@ -48,6 +65,16 @@ export function allFrettings(
   frettings = sortFingerings(frettings);
   return frettings;
 }
+
+//
+// Implementation
+//
+
+// For internal documentation
+type FretNumber = number;
+
+/** An array of candidate fret positions on a string. */
+type FretArray = Array<FretNumber | null>;
 
 //
 // Generate frettings
@@ -94,9 +121,6 @@ function fretsPerString(
   return result;
 }
 
-/** An array of candidate fret positions on a string. */
-type FretArray = Array<FretNumber | null>;
-
 /** in: an array[stringNumber] = candidates: fretNumber[]
  * out: an array of array[stringNumber] = fret
  */
@@ -137,7 +161,7 @@ function generateFrettings(
     .filter(
       (fretArray) => countPitchClasses(instrument, fretArray) === pitchClassCount,
     )
-    .filter((fretArray) => computeFretSpread(fretArray) <= options.maxFretSpread);
+    .filter((fretArray) => computeFretSpread(fretArray) <= options.span);
   // Transform the candidates into FretPositions, find barres, and create a
   // Fingering for each combination.
   const frettings = [];
@@ -258,7 +282,7 @@ function getFilters(options: FilterOptions): Filter[] {
   return filters;
 }
 
-/**Filter by all the filters in the list, except ignore filters that would
+/** Filter by all the filters in the list, except ignore filters that would
  * eliminate remaining fingers.
  */
 function selectFrettings(
@@ -281,7 +305,8 @@ function selectFrettings(
 // Sort
 //
 
-// An ordered list of preferences, from most to least important.
+/** An ordered list of preferences, from most to least important.
+ */
 const sortingPreferences: Array<{
   key: FrettedChordProjection<boolean | number>;
   descending?: true | null;
@@ -292,7 +317,7 @@ const sortingPreferences: Array<{
   { key: fingerCount },
 ];
 
-/** Return a function that returns the sort key, for use in `_.sortBy`.
+/** Returns a function that returns the sort key, for use in `_.sortBy`.
  *
  * 0 is sorted before 1, and `true` is sorted before `false`, unless
  * `descending` is true, in which case the key is complemented so that the sort
