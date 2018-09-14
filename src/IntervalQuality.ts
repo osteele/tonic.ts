@@ -88,7 +88,7 @@ export function toString(q: IntervalQuality, fullName = false): string {
   return (fullName ? qualityToName : qualityToAbbr)[q];
 }
 
-const orderedPerfect = [
+const perfectOrder = [
   IntervalQuality.DoublyDiminished,
   IntervalQuality.Diminished,
   IntervalQuality.Perfect,
@@ -96,7 +96,7 @@ const orderedPerfect = [
   IntervalQuality.DoublyAugmented,
 ];
 
-const orderedImperfect = [
+const imperfectOrder = [
   IntervalQuality.DoublyDiminished,
   IntervalQuality.Diminished,
   IntervalQuality.Minor,
@@ -104,6 +104,10 @@ const orderedImperfect = [
   IntervalQuality.Augmented,
   IntervalQuality.DoublyAugmented,
 ];
+
+function qualityOrder(perfect: boolean) {
+  return perfect ? perfectOrder : imperfectOrder;
+}
 
 function widen(
   q: IntervalQuality | null,
@@ -113,12 +117,9 @@ function widen(
   if (q === null) {
     return fromSemitones(delta);
   }
-  const ordered =
-    perfect || q === IntervalQuality.Perfect
-      ? orderedPerfect
-      : orderedImperfect;
-  const index = ordered.indexOf(q);
-  return ordered[index + delta] || null;
+  const order = qualityOrder(perfect || q === IntervalQuality.Perfect);
+  const index = order.indexOf(q);
+  return order[index + delta] || null;
 }
 
 export function augment(
@@ -136,10 +137,9 @@ export function diminish(
 }
 
 export function inverse(q: IntervalQuality | null): IntervalQuality | null {
-  const ordered =
-    q === IntervalQuality.Perfect ? orderedPerfect : orderedImperfect;
-  const index = ordered.indexOf(q!);
-  return index >= 0 ? ordered[ordered.length - 1 - index] : null;
+  const order = qualityOrder(q === IntervalQuality.Perfect);
+  const index = order.indexOf(q!);
+  return index >= 0 ? order[order.length - 1 - index] : null;
 }
 
 /** The closest major or minor quality. */

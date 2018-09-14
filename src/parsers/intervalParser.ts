@@ -64,7 +64,7 @@ export function parseInterval(
   const qualityName = m[1];
   const degree = Number(m[2]);
   if (degree <= 8) {
-    // Augmented or diminished. Find the closest natural.
+    // Augmented or diminished. Find the closest natural, and adjust from there.
     pitchClass = shorthandNames.indexOf(`P${degree}`);
     if (pitchClass < 0) {
       const quality = qualities.fromString(qualityName);
