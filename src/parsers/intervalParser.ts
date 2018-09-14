@@ -1,9 +1,21 @@
+import * as qualities from '../IntervalQuality';
 import { IntervalQuality } from '../IntervalQuality';
-import { reverseMap } from '../utils';
 
-export const shortIntervalNames = 'P1 m2 M2 m3 M3 P4 TT P5 m6 M6 m7 M7 P8'.split(
-  /\s/,
-);
+export const shortIntervalNames = [
+  'P1',
+  'm2',
+  'M2',
+  'm3',
+  'M3',
+  'P4',
+  'TT',
+  'P5',
+  'm6',
+  'M6',
+  'm7',
+  'M7',
+  'P8',
+];
 
 export const longIntervalNames = [
   'Unison',
@@ -21,81 +33,26 @@ export const longIntervalNames = [
   'Octave',
 ];
 
-// ar[semitones + 2] = IntervalQuality | null.
-// ar[0 + 2] = null, since this is ambiguous among Major, Minor, and Perfect,
-// depending on the interval's (diatonic) number.
-const accidentalsToQuality: Array<IntervalQuality | null> = [
-  IntervalQuality.DoublyDiminished,
-  IntervalQuality.Diminished,
-  null,
-  IntervalQuality.Augmented,
-  IntervalQuality.DoublyAugmented,
-];
+// Major scale degree indexed by pitch class. The tritone has a null degree.
+export const semitoneDegrees: Array<number | null> = shortIntervalNames
+  .map((s) => s.match(/\d+/))
+  .map((m) => m && Number(m[0]));
 
-const qualityAbbrs = new Map<IntervalQuality, string>([
-  [IntervalQuality.Major, 'M'],
-  [IntervalQuality.Minor, 'm'],
-  [IntervalQuality.Perfect, 'P'],
-  [IntervalQuality.Augmented, 'A'],
-  [IntervalQuality.Diminished, 'd'],
-  [IntervalQuality.DoublyAugmented, 'AA'],
-  [IntervalQuality.DoublyDiminished, 'dd'],
-]);
-
-const abbrevToQuality = reverseMap(qualityAbbrs);
-
-// Arrays of ar[diatonicNumber] to semitone counts. `Interval.fromString` uses
-// these. They're initialized below.
-const majorSemitones = new Array<number>(8);
-const minorSemitones = new Array<number>(8);
-const perfectSemitones = new Array<number>(8);
-
-// Initialize majorSemitones, minorSemitones, and perfectSemitones from
-// ShortIntervalNames.
-shortIntervalNames.forEach((name, semitones) => {
-  const m = name.match(/(.)(\d)/);
-  if (m) {
-    const ar =
-      ({ P: perfectSemitones, M: majorSemitones, m: minorSemitones } as {
-        [_: string]: number[];
-      })[m[1]] || [];
-    const num = +m[2];
-    ar[num] = semitones;
-  }
-});
-
-const lowerCaseQualities: { [_: string]: number } = {
-  a: 1,
-  augmented: 1,
-  d: -1,
-  diminished: -1,
-};
-
-export function intervalQualityName(q: IntervalQuality): string {
-  return qualityAbbrs.get(q)!;
-}
-
-export function accidentalToIntervalQuality(
-  n: number,
-  naturalSemitones: number,
-): IntervalQuality | null {
-  if (n === 0) {
-    const m = shortIntervalNames[naturalSemitones % 12].match(/./);
-    return (m && abbrevToQuality.get(m[0])) || null;
-  }
-  return accidentalsToQuality[n + 2];
-}
+// Interval qualities indexed by pitch class. The tritone has a null quality.
+export const semitoneQualities: Array<IntervalQuality | null> = shortIntervalNames
+  .map((s) => s.match(/[AMPmd]/))
+  .map((m) => m && qualities.fromString(m[0]));
 
 export function parseInterval(
   name: string,
-): { semitones: number; accidentals?: number } {
-  let semitones = shortIntervalNames.indexOf(name);
-  if (semitones >= 0) {
-    return { semitones };
+): { semitones: number; quality: IntervalQuality | null } {
+  // base case / fast path
+  let pitchClass = shortIntervalNames.indexOf(name);
+  if (pitchClass < 0) {
+    pitchClass = longIntervalNames.indexOf(name);
   }
-  semitones = longIntervalNames.indexOf(name);
-  if (semitones >= 0) {
-    return { semitones };
+  if (pitchClass >= 0) {
+    return { semitones: pitchClass, quality: semitoneQualities[pitchClass] };
   }
   const m =
     name.match(/^([AMPmd])(\d+)$/) ||
@@ -103,18 +60,28 @@ export function parseInterval(
   if (!m) {
     throw new Error(`No interval named ${name}`);
   }
-  const qualityAbbr = m[1];
-  const dn = Number(m[2]); // diatonic number
-  if (dn > 8) {
-    const simplex = parseInterval(`${qualityAbbr}${dn - 7}`);
+  const qualityName = m[1];
+  const degree = Number(m[2]);
+  if (degree <= 8) {
+    // Augmented or diminished. Find the closest natural.
+    pitchClass = shortIntervalNames.indexOf(`P${degree}`);
+    if (pitchClass < 0) {
+      const quality = qualities.fromString(qualityName);
+      const nat = qualities.closestNatural(quality!);
+      pitchClass = shortIntervalNames.indexOf(
+        `${qualities.toString(nat!)}${degree}`,
+      );
+    }
     return {
-      accidentals: simplex.accidentals,
-      semitones: simplex.semitones + 12,
+      quality: qualities.fromString(qualityName),
+      semitones: pitchClass,
+    };
+  } else {
+    // complex interval (also, maybe augmented or diminished)
+    const simple = parseInterval(`${qualityName}${degree - 7}`);
+    return {
+      quality: simple.quality,
+      semitones: simple.semitones + 12,
     };
   }
-  const accidentals = lowerCaseQualities[qualityAbbr.toLowerCase()] || 0;
-  semitones =
-    (accidentals < 0 ? minorSemitones : majorSemitones)[dn] ||
-    perfectSemitones[dn];
-  return { semitones, accidentals };
 }

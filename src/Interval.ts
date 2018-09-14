@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as quality from './IntervalQuality';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
 import * as intervals from './parsers/intervalParser';
@@ -26,13 +27,15 @@ export class Interval {
     intervals.shortIntervalNames;
   public static readonly longNames: ReadonlyArray<string> =
     intervals.longIntervalNames;
-  public static fromSemitones(semitones: number, accidentals = 0): Interval {
-    return new Interval(semitones, accidentals);
+
+  /** Semitones doesn't include narrowing or widening by quality. */
+  public static fromSemitones(semitones: number): Interval {
+    return new Interval(semitones, intervals.semitoneQualities[semitones % 12]);
   }
 
   public static fromString(name: string): Interval {
-    const { semitones, accidentals } = intervals.parseInterval(name);
-    return Interval.fromSemitones(semitones, accidentals || 0);
+    const { semitones, quality } = intervals.parseInterval(name);
+    return new Interval(semitones, quality);
   }
 
   public static between<T extends PitchLike>(a: T, b: T): Interval;
@@ -54,14 +57,16 @@ export class Interval {
     return Interval.fromSemitones(semitones);
   }
 
-  private static readonly instances = new Array<Map<number, Interval>>();
+  private static readonly instances = new Array<
+    Map<IntervalQuality | null, Interval>
+  >();
 
   // tslint:disable-next-line:member-ordering
   public static readonly all: Readonly<{
     [_: string]: Interval;
   }> = intervals.shortIntervalNames.reduce(
     (acc: { [_: string]: Interval }, name, semitones) => {
-      acc[name] = new Interval(semitones);
+      acc[name] = Interval.fromSemitones(semitones);
       return acc;
     },
     {},
@@ -73,9 +78,19 @@ export class Interval {
    */
   private constructor(
     private readonly naturalSemitones: number,
-    readonly accidentals = 0,
+    readonly quality: IntervalQuality | null = null,
   ) {
-    return this.interned(naturalSemitones, accidentals, this);
+    let dict = Interval.instances[naturalSemitones];
+    if (!dict) {
+      dict = new Map<IntervalQuality | null, Interval>();
+      Interval.instances[naturalSemitones] = dict;
+    }
+    const instance = dict.get(quality);
+    if (instance) {
+      return instance;
+    }
+    dict.set(quality, this);
+    return this;
   }
 
   get name(): string {
@@ -91,19 +106,9 @@ export class Interval {
     return m && Number(m[0]) + (dn > 12 ? 7 * Math.floor(dn / 12) : 0);
   }
 
-  /** Accidentals greater than double-augmented and double-diminished, and the
-   * tritone, have a null quality.
-   */
-  get quality(): IntervalQuality | null {
-    return intervals.accidentalToIntervalQuality(
-      this.accidentals,
-      this.naturalSemitones,
-    );
-  }
-
   /** The number of semitones. For example, A1 and m2 have one semitone. */
   get semitones(): number {
-    return this.naturalSemitones + this.accidentals;
+    return this.naturalSemitones + quality.toSemitones(this.quality);
   }
 
   /** The inverse interval, such that this interval and its inverse add to
@@ -111,18 +116,22 @@ export class Interval {
    * and TT and TT.
    */
   get inverse(): Interval {
-    return Interval.fromSemitones(
+    return new Interval(
       12 - this.naturalSemitones,
-      -this.accidentals,
+      quality.inverse(this.quality),
     );
   }
 
-  get augment(): Interval {
-    return Interval.fromSemitones(this.naturalSemitones, this.accidentals + 1);
+  get augment(): Interval | null {
+    const perfect = this.natural.quality === IntervalQuality.Perfect;
+    const q = quality.augment(this.quality, perfect);
+    return q === null ? null : new Interval(this.naturalSemitones, q);
   }
 
-  get diminish(): Interval {
-    return Interval.fromSemitones(this.naturalSemitones, this.accidentals - 1);
+  get diminish(): Interval | null {
+    const perfect = this.natural.quality === IntervalQuality.Perfect;
+    const q = quality.diminish(this.quality, perfect);
+    return q === null ? null : new Interval(this.naturalSemitones, q);
   }
 
   get natural(): Interval {
@@ -130,25 +139,19 @@ export class Interval {
   }
 
   public toString(): string {
-    const quality = this.quality;
-    if (quality === null) {
+    const q = this.quality;
+    if (q === null) {
+      // Tritone, or complex interval that includes one
       const semitones = this.semitones;
       return semitones === 6
         ? intervals.shortIntervalNames[semitones]
         : _.times((semitones - 6) / 12, () => 'P8').join('+') + '+TT';
     }
-    return `${intervals.intervalQualityName(quality!)}${this.number}`;
-    // if (this.semitones > 12) {
-    // }
-    // let s = shortIntervalNames[this.naturalSemitones];
-    // if (this.accidentals) {
-    //   s = semitonesToAccidentalString(this.accidentals) + s;
-    // }
-    // return s;
+    return `${quality.toString(q)}${this.number}`;
   }
 
   // Override the default implementation, to get readable Jest messages
-  public toJSON() {
+  public xtoJSON() {
     return `Interval::${this.toString()}`;
   }
 
@@ -156,31 +159,6 @@ export class Interval {
     return Interval.fromSemitones(
       this.naturalSemitones + other.naturalSemitones,
     );
-  }
-
-  private interned<T extends Interval | null>(
-    semitones: number,
-    accidentals: number,
-    instance: T,
-  ): T;
-  private interned<T extends Interval | null>(
-    semitones: number,
-    accidentals: number,
-    instance: Interval | null,
-  ): Interval | null {
-    let dict = Interval.instances[semitones];
-    if (!dict) {
-      dict = new Map<number, Interval>();
-      Interval.instances[semitones] = dict;
-    }
-    const interval = dict.get(accidentals);
-    if (interval) {
-      return interval;
-    }
-    if (instance) {
-      dict.set(accidentals, this);
-    }
-    return instance;
   }
 }
 

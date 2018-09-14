@@ -6,6 +6,67 @@ import {
   Note,
   PitchClass,
 } from '../src';
+import * as q from '../src/IntervalQuality';
+
+describe('IntervalQuality', () => {
+  const Q = IntervalQuality;
+
+  describe('fromSemitones', () => {
+    expect(q.fromSemitones(-2)).toBe(Q.DoublyDiminished);
+    expect(q.fromSemitones(-1)).toBe(Q.Diminished);
+    expect(q.fromSemitones(0)).toBe(null);
+    expect(q.fromSemitones(1)).toBe(Q.Augmented);
+    expect(q.fromSemitones(2)).toBe(Q.DoublyAugmented);
+  });
+
+  describe('toSemitones', () => {
+    expect(q.toSemitones(Q.Major)).toBe(0);
+    expect(q.toSemitones(Q.Minor)).toBe(0);
+    expect(q.toSemitones(Q.Perfect)).toBe(0);
+    expect(q.toSemitones(Q.Augmented)).toBe(1);
+    expect(q.toSemitones(Q.Diminished)).toBe(-1);
+    expect(q.toSemitones(Q.DoublyAugmented)).toBe(2);
+    expect(q.toSemitones(Q.DoublyDiminished)).toBe(-2);
+    expect(q.toSemitones(null)).toBe(0);
+  });
+
+  describe('inverse', () => {
+    expect(q.inverse(Q.Major)).toBe(Q.Minor);
+    expect(q.inverse(Q.Minor)).toBe(Q.Major);
+    expect(q.inverse(Q.Perfect)).toBe(Q.Perfect);
+    expect(q.inverse(Q.Augmented)).toBe(Q.Diminished);
+    expect(q.inverse(Q.Diminished)).toBe(Q.Augmented);
+    expect(q.inverse(Q.DoublyAugmented)).toBe(Q.DoublyDiminished);
+    expect(q.inverse(Q.DoublyDiminished)).toBe(Q.DoublyAugmented);
+    expect(q.inverse(null)).toBe(null);
+  });
+
+  describe('augment', () => {
+    expect(q.augment(Q.DoublyDiminished)).toBe(Q.Diminished);
+    expect(q.augment(Q.Diminished)).toBe(Q.Minor);
+    expect(q.augment(Q.Minor)).toBe(Q.Major);
+    expect(q.augment(Q.Major)).toBe(Q.Augmented);
+    expect(q.augment(Q.Augmented)).toBe(Q.DoublyAugmented);
+    expect(q.augment(Q.DoublyAugmented)).toBe(null);
+
+    expect(q.augment(Q.Diminished, true)).toBe(Q.Perfect);
+    expect(q.augment(Q.Perfect)).toBe(Q.Augmented);
+    expect(q.augment(null)).toBe(Q.Augmented);
+  });
+
+  describe('diminish', () => {
+    expect(q.diminish(Q.DoublyDiminished)).toBe(null);
+    expect(q.diminish(Q.Diminished)).toBe(Q.DoublyDiminished);
+    expect(q.diminish(Q.Minor)).toBe(Q.Diminished);
+    expect(q.diminish(Q.Major)).toBe(Q.Minor);
+    expect(q.diminish(Q.Augmented)).toBe(Q.Major);
+    expect(q.diminish(Q.DoublyAugmented)).toBe(Q.Augmented);
+
+    expect(q.diminish(Q.Augmented, true)).toBe(Q.Perfect);
+    expect(q.diminish(Q.Perfect)).toBe(Q.Diminished);
+    expect(q.diminish(null)).toBe(Q.Diminished);
+  });
+});
 
 describe('Interval', () => {
   describe('names', () => {
@@ -58,6 +119,9 @@ describe('Interval', () => {
 
     expect(Interval.fromString('Unison').semitones).toBe(0);
     expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
+    expect(Interval.fromString('Tritone').semitones).toBe(6);
+    expect(Interval.fromString('Perfect 5th').semitones).toBe(7);
+    expect(Interval.fromString('Octave').semitones).toBe(12);
 
     // TODO: semitone, half tone, half step
     // TODO: tone, whole tone, whole step
@@ -70,6 +134,9 @@ describe('Interval', () => {
     expect(Interval.fromString('d2').name).toBe('d2');
     expect(Interval.fromString('A2').name).toBe('A2');
     expect(Interval.fromString('TT').name).toBe('TT');
+    expect(Interval.fromString('P8').name).toBe('P8');
+    expect(Interval.fromString('m11').name).toBe('m11');
+    expect(Interval.fromString('M11').name).toBe('M11');
     expect(Interval.fromSemitones(6).name).toBe('TT');
     expect(Interval.fromSemitones(12).name).toBe('P8');
     expect(Interval.fromSemitones(18).name).toBe('P8+TT');
@@ -84,6 +151,9 @@ describe('Interval', () => {
     expect(Interval.fromString('A2').number).toBe(2);
     expect(Interval.fromString('TT').number).toBe(null);
     expect(Interval.fromString('P8').number).toBe(8);
+    // FIXME: expect 9, received 7
+    // expect(Interval.fromString('P9').number).toBe(9);
+    expect(Interval.fromString('P11').number).toBe(11);
   });
 
   it('quality', () => {
@@ -193,25 +263,32 @@ describe('Interval', () => {
     const { M3, m3, P5 } = Intervals;
     const d3 = Interval.fromString('d3');
     const A3 = Interval.fromString('A3');
+    const d5 = Interval.fromString('d5');
+    const A5 = Interval.fromString('A5');
+
     expect(d3.augment).toBe(m3);
-    // FIXME: augmented minor
+    // TODO:
     // expect(m3.augment).toBe(M3);
     expect(M3.augment).toBe(A3);
 
-    const d5 = Interval.fromString('d5');
-    const A5 = Interval.fromString('A5');
     expect(d5.augment).toBe(P5);
     expect(P5.augment).toBe(A5);
   });
 
   it('diminish', () => {
-    const { m3, M3 } = Intervals;
+    const { m3, M3, P5 } = Intervals;
     const d3 = Interval.fromString('d3');
     const A3 = Interval.fromString('A3');
+    const d5 = Interval.fromString('d5');
+    const A5 = Interval.fromString('A5');
+
     expect(m3.diminish).toBe(d3);
-    // FIXME: M3.diminish
-    // expect(M3.diminish).toBe((m3));
+    // TODO:
+    // expect(M3.diminish).toBe(m3);
     expect(A3.diminish).toBe(M3);
+
+    expect(P5.diminish).toBe(d5);
+    expect(A5.diminish).toBe(P5);
   });
 
   it('natural', () => {
