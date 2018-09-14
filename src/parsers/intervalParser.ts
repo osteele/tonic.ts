@@ -1,7 +1,7 @@
 import * as qualities from '../IntervalQuality';
 import { IntervalQuality } from '../IntervalQuality';
 
-export const shortIntervalNames = [
+export const shorthandNames = [
   'P1',
   'm2',
   'M2',
@@ -34,20 +34,21 @@ export const longIntervalNames = [
 ];
 
 // Major scale degree indexed by pitch class. The tritone has a null degree.
-export const semitoneDegrees: Array<number | null> = shortIntervalNames
+export const semitoneDegrees: Array<number | null> = shorthandNames
   .map((s) => s.match(/\d+/))
   .map((m) => m && Number(m[0]));
 
 // Interval qualities indexed by pitch class. The tritone has a null quality.
-export const semitoneQualities: Array<IntervalQuality | null> = shortIntervalNames
+export const semitoneQualities: Array<IntervalQuality | null> = shorthandNames
   .map((s) => s.match(/[AMPmd]/))
   .map((m) => m && qualities.fromString(m[0]));
 
+// TODO: P and M optional; test perf, min, maj, dim, aug; ordinals
 export function parseInterval(
   name: string,
 ): { semitones: number; quality: IntervalQuality | null } {
   // base case / fast path
-  let pitchClass = shortIntervalNames.indexOf(name);
+  let pitchClass = shorthandNames.indexOf(name);
   if (pitchClass < 0) {
     pitchClass = longIntervalNames.indexOf(name);
   }
@@ -64,11 +65,11 @@ export function parseInterval(
   const degree = Number(m[2]);
   if (degree <= 8) {
     // Augmented or diminished. Find the closest natural.
-    pitchClass = shortIntervalNames.indexOf(`P${degree}`);
+    pitchClass = shorthandNames.indexOf(`P${degree}`);
     if (pitchClass < 0) {
       const quality = qualities.fromString(qualityName);
       const nat = qualities.closestNatural(quality!);
-      pitchClass = shortIntervalNames.indexOf(
+      pitchClass = shorthandNames.indexOf(
         `${qualities.toString(nat!)}${degree}`,
       );
     }

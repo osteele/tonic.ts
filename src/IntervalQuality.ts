@@ -7,6 +7,7 @@ import * as _ from 'lodash';
  * See [Wikipedia: Interval
  * quality](https://en.wikipedia.org/wiki/Interval_(music)#Quality).
  */
+// TODO: add triply-{augmented, diminished}, to represent A♯-E𝄫
 export enum IntervalQuality {
   DoublyDiminished = 'dd',
   /** A
@@ -47,18 +48,8 @@ export function fromSemitones(n: number): IntervalQuality | null {
  * Note that Minor, Major, and Perfect all return 0.
  */
 export function toSemitones(q: IntervalQuality | null): number {
-  switch (q) {
-    case IntervalQuality.DoublyDiminished:
-      return -2;
-    case IntervalQuality.Diminished:
-      return -1;
-    case IntervalQuality.Augmented:
-      return 1;
-    case IntervalQuality.DoublyAugmented:
-      return 2;
-    default:
-      return 0; // major, minor, perfect, or null (tritone)
-  }
+  const index = semitoneQualities.indexOf(q);
+  return index >= 0 ? index - 2 : 0;
 }
 
 const abbrToQuality: { [_: string]: IntervalQuality } = {
@@ -145,24 +136,10 @@ export function diminish(
 }
 
 export function inverse(q: IntervalQuality | null): IntervalQuality | null {
-  switch (q) {
-    case IntervalQuality.Perfect:
-      return IntervalQuality.Perfect;
-    case IntervalQuality.Major:
-      return IntervalQuality.Minor;
-    case IntervalQuality.Minor:
-      return IntervalQuality.Major;
-    case IntervalQuality.Augmented:
-      return IntervalQuality.Diminished;
-    case IntervalQuality.Diminished:
-      return IntervalQuality.Augmented;
-    case IntervalQuality.DoublyDiminished:
-      return IntervalQuality.DoublyAugmented;
-    case IntervalQuality.DoublyAugmented:
-      return IntervalQuality.DoublyDiminished;
-    default:
-      return null;
-  }
+  const ordered =
+    q === IntervalQuality.Perfect ? orderedPerfect : orderedImperfect;
+  const index = ordered.indexOf(q!);
+  return index >= 0 ? ordered[ordered.length - 1 - index] : null;
 }
 
 /** The closest major or minor quality. */

@@ -151,9 +151,14 @@ describe('Interval', () => {
     expect(Interval.fromString('A2').number).toBe(2);
     expect(Interval.fromString('TT').number).toBe(null);
     expect(Interval.fromString('P8').number).toBe(8);
-    // FIXME: expect 9, received 7
-    // expect(Interval.fromString('P9').number).toBe(9);
+    expect(Interval.fromString('m9').number).toBe(9);
+    expect(Interval.fromString('M9').number).toBe(9);
+    expect(Interval.fromString('M10').number).toBe(10);
     expect(Interval.fromString('P11').number).toBe(11);
+    expect(Interval.fromString('P12').number).toBe(12);
+    expect(Interval.fromString('M13').number).toBe(13);
+    expect(Interval.fromString('M14').number).toBe(14);
+    expect(Interval.fromString('P15').number).toBe(15);
   });
 
   it('quality', () => {
@@ -163,6 +168,46 @@ describe('Interval', () => {
     expect(Interval.fromString('d2').quality).toBe(IntervalQuality.Diminished);
     expect(Interval.fromString('A2').quality).toBe(IntervalQuality.Augmented);
     expect(Interval.fromString('TT').quality).toBe(null);
+  });
+
+  it('semitones', () => {
+    // toString tests simple intervals
+    expect(Interval.fromString('m9').semitones).toBe(13);
+    expect(Interval.fromString('M9').semitones).toBe(14);
+    expect(Interval.fromString('m10').semitones).toBe(15);
+    expect(Interval.fromString('M10').semitones).toBe(16);
+    expect(Interval.fromString('P11').semitones).toBe(17);
+    expect(Interval.fromString('P12').semitones).toBe(19);
+    expect(Interval.fromString('m13').semitones).toBe(20);
+    expect(Interval.fromString('M13').semitones).toBe(21);
+    expect(Interval.fromString('m14').semitones).toBe(22);
+    expect(Interval.fromString('M14').semitones).toBe(23);
+    expect(Interval.fromString('P15').semitones).toBe(24);
+
+    expect(Interval.fromString('d9').semitones).toBe(12);
+    expect(Interval.fromString('A8').semitones).toBe(13);
+    expect(Interval.fromString('d10').semitones).toBe(14);
+    expect(Interval.fromString('A9').semitones).toBe(15);
+    expect(Interval.fromString('d11').semitones).toBe(16);
+    expect(Interval.fromString('A10').semitones).toBe(17);
+    expect(Interval.fromString('d12').semitones).toBe(18);
+    expect(Interval.fromString('A11').semitones).toBe(18);
+  });
+
+  it('simple & complex', () => {
+    expect(Interval.fromString('P5').isSimple).toBe(true);
+    expect(Interval.fromString('P8').isSimple).toBe(true);
+    expect(Interval.fromString('A8').isSimple).toBe(true);
+    expect(Interval.fromString('d9').isSimple).toBe(false);
+    expect(Interval.fromString('m9').isSimple).toBe(false);
+    expect(Interval.fromString('P15').isSimple).toBe(false);
+
+    expect(Interval.fromString('P5').isComplex).toBe(false);
+    expect(Interval.fromString('P8').isComplex).toBe(false);
+    expect(Interval.fromString('A8').isComplex).toBe(false);
+    expect(Interval.fromString('d9').isComplex).toBe(true);
+    expect(Interval.fromString('m9').isComplex).toBe(true);
+    expect(Interval.fromString('P15').isComplex).toBe(true);
   });
 
   it('toString', () => {
