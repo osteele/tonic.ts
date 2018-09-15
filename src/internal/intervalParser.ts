@@ -46,14 +46,22 @@ export const semitoneQualities: Array<IntervalQuality | null> = shorthandNames
 // TODO: P and M optional; test perf, min, maj, dim, aug; ordinals
 export function parseInterval(
   name: string,
-): { semitones: number; quality: IntervalQuality | null } {
+): {
+  degree: number | null;
+  semitones: number;
+  quality: IntervalQuality | null;
+} {
   // base case / fast path
-  let pitchClass = shorthandNames.indexOf(name);
-  if (pitchClass < 0) {
-    pitchClass = longIntervalNames.indexOf(name);
+  let pc = shorthandNames.indexOf(name);
+  if (pc < 0) {
+    pc = longIntervalNames.indexOf(name);
   }
-  if (pitchClass >= 0) {
-    return { semitones: pitchClass, quality: semitoneQualities[pitchClass] };
+  if (pc >= 0) {
+    return {
+      degree: semitoneDegrees[pc],
+      quality: semitoneQualities[pc],
+      semitones: pc,
+    };
   }
   const m =
     name.match(/^([AMPmd])(\d+)$/) ||
@@ -65,22 +73,22 @@ export function parseInterval(
   const degree = Number(m[2]);
   if (degree <= 8) {
     // Augmented or diminished. Find the closest natural, and adjust from there.
-    pitchClass = shorthandNames.indexOf(`P${degree}`);
-    if (pitchClass < 0) {
+    pc = shorthandNames.indexOf(`P${degree}`);
+    if (pc < 0) {
       const quality = qualities.fromString(qualityName);
       const nat = qualities.closestNatural(quality!);
-      pitchClass = shorthandNames.indexOf(
-        `${qualities.toString(nat!)}${degree}`,
-      );
+      pc = shorthandNames.indexOf(`${qualities.toString(nat!)}${degree}`);
     }
     return {
+      degree: semitoneDegrees[pc],
       quality: qualities.fromString(qualityName),
-      semitones: pitchClass,
+      semitones: pc,
     };
   } else {
-    // complex interval (also, maybe augmented or diminished)
+    // complex interval. May also be augmented or diminished.
     const simple = parseInterval(`${qualityName}${degree - 7}`);
     return {
+      degree: simple.degree! + 7,
       quality: simple.quality,
       semitones: simple.semitones + 12,
     };

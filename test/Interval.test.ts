@@ -87,41 +87,60 @@ describe('Interval', () => {
       expect(Interval.longNames[12]).toBe('Octave'));
   });
 
-  it('fromString', () => {
-    expect(Interval.fromString('P1').semitones).toBe(0);
-    expect(Interval.fromString('m2').semitones).toBe(1);
-    expect(Interval.fromString('M2').semitones).toBe(2);
-    expect(Interval.fromString('m3').semitones).toBe(3);
-    expect(Interval.fromString('M3').semitones).toBe(4);
-    expect(Interval.fromString('P4').semitones).toBe(5);
-    expect(Interval.fromString('TT').semitones).toBe(6);
-    expect(Interval.fromString('P5').semitones).toBe(7);
-    expect(Interval.fromString('m6').semitones).toBe(8);
-    expect(Interval.fromString('M6').semitones).toBe(9);
-    expect(Interval.fromString('m7').semitones).toBe(10);
-    expect(Interval.fromString('M7').semitones).toBe(11);
-    expect(Interval.fromString('P8').semitones).toBe(12);
+  describe('fromString', () => {
+    it('should handle diatonic intervals', () => {
+      expect(Interval.fromString('P1').semitones).toBe(0);
+      expect(Interval.fromString('m2').semitones).toBe(1);
+      expect(Interval.fromString('M2').semitones).toBe(2);
+      expect(Interval.fromString('m3').semitones).toBe(3);
+      expect(Interval.fromString('M3').semitones).toBe(4);
+      expect(Interval.fromString('P4').semitones).toBe(5);
+      expect(Interval.fromString('TT').semitones).toBe(6);
+      expect(Interval.fromString('P5').semitones).toBe(7);
+      expect(Interval.fromString('m6').semitones).toBe(8);
+      expect(Interval.fromString('M6').semitones).toBe(9);
+      expect(Interval.fromString('m7').semitones).toBe(10);
+      expect(Interval.fromString('M7').semitones).toBe(11);
+      expect(Interval.fromString('P8').semitones).toBe(12);
+    });
 
-    expect(Interval.fromString('A1').semitones).toBe(1);
-    expect(Interval.fromString('A2').semitones).toBe(3);
-    expect(Interval.fromString('A3').semitones).toBe(5);
-    expect(Interval.fromString('A4').semitones).toBe(6);
-    expect(Interval.fromString('A5').semitones).toBe(8);
-    expect(Interval.fromString('A6').semitones).toBe(10);
-    expect(Interval.fromString('A7').semitones).toBe(12);
-    expect(Interval.fromString('d2').semitones).toBe(0);
-    expect(Interval.fromString('d3').semitones).toBe(2);
-    expect(Interval.fromString('d4').semitones).toBe(4);
-    expect(Interval.fromString('d5').semitones).toBe(6);
-    expect(Interval.fromString('d6').semitones).toBe(7);
-    expect(Interval.fromString('d7').semitones).toBe(9);
-    expect(Interval.fromString('d8').semitones).toBe(11);
+    it('should handle augmented and diminished intervals', () => {
+      expect(Interval.fromString('A1').semitones).toBe(1);
+      expect(Interval.fromString('A2').semitones).toBe(3);
+      expect(Interval.fromString('A3').semitones).toBe(5);
+      expect(Interval.fromString('A4').semitones).toBe(6);
+      expect(Interval.fromString('A5').semitones).toBe(8);
+      expect(Interval.fromString('A6').semitones).toBe(10);
+      expect(Interval.fromString('A7').semitones).toBe(12);
+      expect(Interval.fromString('d2').semitones).toBe(0);
+      expect(Interval.fromString('d3').semitones).toBe(2);
+      expect(Interval.fromString('d4').semitones).toBe(4);
+      expect(Interval.fromString('d5').semitones).toBe(6);
+      expect(Interval.fromString('d6').semitones).toBe(7);
+      expect(Interval.fromString('d7').semitones).toBe(9);
+      expect(Interval.fromString('d8').semitones).toBe(11);
+    });
 
-    expect(Interval.fromString('Unison').semitones).toBe(0);
-    expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
-    expect(Interval.fromString('Tritone').semitones).toBe(6);
-    expect(Interval.fromString('Perfect 5th').semitones).toBe(7);
-    expect(Interval.fromString('Octave').semitones).toBe(12);
+    it('should handle long interval names', () => {
+      expect(Interval.fromString('Unison').semitones).toBe(0);
+      expect(Interval.fromString('Minor 2nd').semitones).toBe(1);
+      expect(Interval.fromString('Tritone').semitones).toBe(6);
+      expect(Interval.fromString('Perfect 5th').semitones).toBe(7);
+      expect(Interval.fromString('Octave').semitones).toBe(12);
+    });
+
+    it('should reject invalid number/quality combinations', () => {
+      expect(() => Interval.fromString('M1')).toThrow();
+      expect(() => Interval.fromString('m1')).toThrow();
+      expect(() => Interval.fromString('P2')).toThrow();
+      expect(() => Interval.fromString('m4')).toThrow();
+      expect(() => Interval.fromString('M5')).toThrow();
+      expect(() => Interval.fromString('M8')).toThrow();
+      expect(() => Interval.fromString('P9')).toThrow();
+      expect(() => Interval.fromString('P10')).toThrow();
+      expect(() => Interval.fromString('m11')).toThrow();
+      expect(() => Interval.fromString('M12')).toThrow();
+    });
 
     // TODO: semitone, half tone, half step
     // TODO: tone, whole tone, whole step
@@ -135,8 +154,8 @@ describe('Interval', () => {
     expect(Interval.fromString('A2').name).toBe('A2');
     expect(Interval.fromString('TT').name).toBe('TT');
     expect(Interval.fromString('P8').name).toBe('P8');
-    expect(Interval.fromString('m11').name).toBe('m11');
-    expect(Interval.fromString('M11').name).toBe('M11');
+    expect(Interval.fromString('m10').name).toBe('m10');
+    expect(Interval.fromString('M13').name).toBe('M13');
     expect(Interval.fromSemitones(6).name).toBe('TT');
     expect(Interval.fromSemitones(12).name).toBe('P8');
     expect(Interval.fromSemitones(18).name).toBe('P8+TT');

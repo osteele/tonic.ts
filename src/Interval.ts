@@ -48,7 +48,18 @@ export class Interval {
   }
 
   public static fromString(name: string): Interval {
-    const { semitones, quality } = intervals.parseInterval(name);
+    const { degree, semitones, quality } = intervals.parseInterval(name);
+    const perfectDegree = degree && [0, 3, 4].indexOf((degree - 1) % 7) >= 0;
+    function isMajorMinor(q: IntervalQuality | null) {
+      return q === IntervalQuality.Major || q === IntervalQuality.Minor;
+    }
+    if (
+      perfectDegree
+        ? isMajorMinor(quality)
+        : quality === IntervalQuality.Perfect
+    ) {
+      throw new Error(`No interval named ${name}`);
+    }
     return new Interval(semitones, quality);
   }
 

@@ -21,33 +21,35 @@ export class PitchClass implements PitchLike {
   }
 
   public static fromSemitones(semitones: number): PitchClass {
-    semitones = PitchClassParser.normalize(semitones);
-    return new PitchClass(semitones);
+    const n = PitchClassParser.normalize(semitones);
+    let instance = PitchClass.instances.get(n);
+    if (!instance) {
+      instance = new PitchClass(n);
+      PitchClass.instances.set(n, instance);
+    }
+    return instance;
   }
 
   public static fromString(name: string): PitchClass {
     return PitchClass.fromSemitones(PitchClassParser.fromString(name));
   }
 
-  private static readonly instances = new Map<string, PitchClass>();
+  private static readonly instances = new Map<number, PitchClass>();
 
+  /** An array of pitch classes, indexed by pitch class number [0…12]. */
   // tslint:disable-next-line:member-ordering
   public static readonly all: ReadonlyArray<PitchClass> = _.times(12).map(
-    (pitch) => PitchClass.fromSemitones(pitch),
+    PitchClass.fromSemitones,
   );
 
-  public readonly name: string;
-  private constructor(readonly semitones: number, name?: string) {
-    this.name = name || NoteNames[semitones];
-    const instance = PitchClass.instances.get(this.name);
-    if (instance) {
-      return instance;
-    }
-    PitchClass.instances.set(this.name, this);
-  }
+  private constructor(readonly semitones: number) {}
 
   public toString(): string {
     return this.name;
+  }
+
+  get name(): string {
+    return NoteNames[this.semitones];
   }
 
   public add(other: Interval): PitchClass {
