@@ -1,5 +1,5 @@
-import { accidentalValues } from './internal/accidentals';
-import { NoteNames } from './internal/pitchClassParser';
+import { accidentalValues } from './accidentals';
+import { NoteNames } from './pitchClassParser';
 
 export type MidiNumber = number;
 
