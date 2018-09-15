@@ -1,43 +1,4 @@
 import { Interval, Note } from '../src';
-import {
-  FlatNoteNames,
-  NoteNames,
-  SharpNoteNames,
-} from '../src/internal/pitchClassParser';
-
-describe('FlatNoteNames', () => {
-  it('should have 12 notes', () => {
-    expect(FlatNoteNames).toHaveLength(12);
-  });
-  it('should start with C', () => {
-    expect(FlatNoteNames[0]).toBe('C');
-  });
-  it('should have five flats', () => {
-    expect(FlatNoteNames[1]).toBe('D♭');
-    expect(FlatNoteNames[3]).toBe('E♭');
-    expect(FlatNoteNames[6]).toBe('G♭');
-    expect(FlatNoteNames[8]).toBe('A♭');
-    expect(FlatNoteNames[10]).toBe('B♭');
-  });
-});
-
-describe('SharpNoteNames', () => {
-  it('should have 12 notes', () => {
-    expect(SharpNoteNames).toHaveLength(12);
-  });
-  it('should start with C', () => expect(SharpNoteNames[0]).toBe('C'));
-  it('should have five flats', () => {
-    expect(SharpNoteNames[1]).toBe('C♯');
-    expect(SharpNoteNames[3]).toBe('D♯');
-    expect(SharpNoteNames[6]).toBe('F♯');
-    expect(SharpNoteNames[8]).toBe('G♯');
-    expect(SharpNoteNames[10]).toBe('A♯');
-  });
-});
-
-describe('NoteNames', () =>
-  it('should equal SharpNoteNames', () =>
-    expect(NoteNames).toEqual(SharpNoteNames)));
 
 describe('Note', () => {
   it('should parse scientific notation', () => {

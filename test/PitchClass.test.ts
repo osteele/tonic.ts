@@ -1,6 +1,13 @@
 import { Interval, PitchClass } from '../src';
 
 describe('PitchClass', () => {
+  describe('all', () => {
+    it('should have 12 items', () => {
+      expect(PitchClass.all).toHaveLength(12);
+      expect(PitchClass.all[0]).toBeInstanceOf(PitchClass);
+    });
+  });
+
   it('fromString', () => {
     expect(PitchClass.fromString('C').semitones).toBe(0);
     expect(PitchClass.fromString('E').semitones).toBe(4);
@@ -13,15 +20,6 @@ describe('PitchClass', () => {
     expect(PitchClass.fromSemitones(12).toString()).toBe('C');
     expect(PitchClass.fromSemitones(14).toString()).toBe('D');
   });
-
-  describe('all', () => {
-    it('should have 12 items', () => {
-      expect(PitchClass.all).toHaveLength(12);
-      expect(PitchClass.all[0]).toBeInstanceOf(PitchClass);
-    });
-  });
-
-  // test.skip('#enharmonicizeTo should return the enharmonic equivalent within a scale');
 
   it('toString', () => {
     expect(PitchClass.fromSemitones(0).toString()).toBe('C');
