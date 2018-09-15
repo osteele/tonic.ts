@@ -2,9 +2,9 @@ import * as _ from 'lodash';
 import { Chord } from './Chord';
 import { Barre, FrettedChord } from './FrettedChord';
 import { FrettedInstrument, Instruments, StringFret } from './Instrument';
+import { powerset } from './internal/utils';
 import { Interval } from './Interval';
 import { Note } from './Note';
-import { powerset } from './utils';
 
 //
 // Public API

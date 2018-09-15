@@ -1,4 +1,4 @@
-import { powerset, reverseMap, rotateArray } from '../src/utils';
+import { powerset, reverseMap, rotateArray } from '../../src/internal/utils';
 
 describe('powerset', () => {
   it('on an empty set', () => {
