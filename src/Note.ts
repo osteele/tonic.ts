@@ -1,5 +1,5 @@
+import * as PitchClassParser from './internal/pitchClassParser';
 import { Interval } from './Interval';
-import * as PitchClassParser from './parsers/pitchClassParser';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 

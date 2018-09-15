@@ -3,7 +3,7 @@ import {
   FlatNoteNames,
   NoteNames,
   SharpNoteNames,
-} from '../src/parsers/pitchClassParser';
+} from '../src/internal/pitchClassParser';
 
 describe('FlatNoteNames', () => {
   it('should have 12 notes', () => {

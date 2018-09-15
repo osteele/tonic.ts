@@ -1,9 +1,9 @@
 import * as _ from 'lodash';
+import * as intervals from './internal/intervalParser';
+import * as PitchClassParser from './internal/pitchClassParser';
 import * as quality from './IntervalQuality';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
-import * as intervals from './parsers/intervalParser';
-import * as PitchClassParser from './parsers/pitchClassParser';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 

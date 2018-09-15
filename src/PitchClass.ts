@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
+import * as PitchClassParser from './internal/pitchClassParser';
+import { NoteNames } from './internal/pitchClassParser';
 import { Interval } from './Interval';
 import { Note } from './Note';
-import * as PitchClassParser from './parsers/pitchClassParser';
-import { NoteNames } from './parsers/pitchClassParser';
 import { PitchLike } from './PitchLike';
 
 /** A pitch class represents a set of pitches separated by octaves. For example,
