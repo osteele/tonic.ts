@@ -39,7 +39,7 @@ JavaScript, there's better alternatives (link TBD) for that.
 
 ### Guitar Chord Calculator
 
-[[bestFretting]] finds [guitar chords](https://en.wikipedia.org/wiki/Guitar_chord)
+[[frettingFor]] and [[allFrettings]] find [guitar chords](https://en.wikipedia.org/wiki/Guitar_chord)
 (or chords on other polyphonic fretted stringed instruments) for a chord.
 
 Chords are filtered and sorted according to voicing and play-ability metrics:
