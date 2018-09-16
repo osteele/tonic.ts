@@ -28,12 +28,18 @@
   },
   "include": ["src", "index.js", "./typings.d.ts", "types"],
   "typedocOptions": {
-    "mode": "file",
+    /* Options from https://github.com/TypeStrong/typedoc#readme */
+    /* Arguments */
     "out": "docs/api",
+    "mode": "file",
+    /* Source file handling */
+    "exclude": ["**/parsers/*.ts", "**/utils.ts", "**/graphics/*.ts"],
     "excludeNotExported": true,
+    "excludeExternals": true,
     "excludePrivate": true,
     "excludeProtected": true,
-    "excludeExternals": true,
-    "exclude": ["**/parsers/*.ts", "**/utils.ts", "**/graphics/*.ts"]
+    /* Theming */
+    "name": "tonic.ts",
+    "readme": "docs/index.md"
   }
 }
