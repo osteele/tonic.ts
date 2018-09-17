@@ -4,7 +4,7 @@ import { Note } from './Note';
 import { PitchClass } from './PitchClass';
 import { parsePitchLike, PitchLike } from './PitchLike';
 
-export interface ChordClassConstructorOptions {
+export interface ChordQualityOptions {
   name: string;
   fullName?: string;
   abbrs?: ReadonlyArray<string>;
@@ -17,18 +17,22 @@ const rootIntervalNumberToInversion: { [_: number]: number } = {
   5: 2,
 };
 
-/** An instance of `ChordClass` represents the intervals of the chord, without
- * the root. For example, Major, or Dom7. It represents the quality,
- * suspensions, and additions. A `ChordClass` is to a [[Chord]] as a [[PitchClass]]
- * is to a [[Note]].
+/** A `ChordQuality` represents the qualities of a chord's component intervals,
+ * its suspensions, and additions. Unlike a [[Chord]], a `ChordQuality` does not
+ * include the root.
+ *
+ * Major, Minor, and Dom7 are examples of chord qualities.
+ *
+ * See Wikipedia [chord
+ * quality](https://en.wikipedia.org/wiki/Chord_names_and_symbols_(popular_music)#Chord_quality).
  */
-export class ChordClass {
-  /** Return the ChordClass that matches a set of intervals. */
-  public static fromIntervals(_intervals: Interval[] | number[]): ChordClass {
+export class ChordQuality {
+  /** Return the ChordQuality that matches a set of intervals. */
+  public static fromIntervals(_intervals: Interval[] | number[]): ChordQuality {
     const intervals = (_intervals as Array<Interval | number>).map(asInterval);
     const semitones = intervals.map((interval: Interval) => interval.semitones);
     const key = semitones.sort().join(',');
-    const instance = ChordClass.chordMap.get(key);
+    const instance = ChordQuality.chordMap.get(key);
     if (!instance) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
     }
@@ -36,9 +40,9 @@ export class ChordClass {
     return inversion ? instance.invert(inversion) : instance;
   }
 
-  /** Return a `ChordClass` identified by name, e.g. "Major". */
-  public static fromString(name: string): ChordClass {
-    const instance = ChordClass.chordMap.get(name);
+  /** Return a `ChordQuality` identified by name, e.g. "Major". */
+  public static fromString(name: string): ChordQuality {
+    const instance = ChordQuality.chordMap.get(name);
     if (!instance) {
       throw new Error(`“${name}” is not a chord name`);
     }
@@ -48,7 +52,7 @@ export class ChordClass {
   // `Chords` is indexed by name, abbreviation, and pitch classes. Pitch class are
   // represented as comma-separated semitone numbers, e.g. '0,4,7' to represent a
   // major triad.
-  protected static readonly chordMap = new Map<string, ChordClass>();
+  protected static readonly chordMap = new Map<string, ChordQuality>();
 
   public readonly name: string;
   public readonly fullName: string | null;
@@ -57,7 +61,7 @@ export class ChordClass {
   /** Intervals relative to the root. */
   public readonly intervals: ReadonlyArray<Interval>;
   public readonly inversion: number | null;
-  constructor(private readonly options: ChordClassConstructorOptions) {
+  constructor(private readonly options: ChordQualityOptions) {
     this.name = options.name;
     this.fullName = options.fullName ? options.fullName : null;
     this.abbrs = options.abbrs || [];
@@ -78,17 +82,17 @@ export class ChordClass {
     return new Chord(this, root);
   }
 
-  public invert(inversion: number): ChordClass {
+  public invert(inversion: number): ChordQuality {
     // TODO:
     // if (this.inversion) {
     //   throw Exception('unimplemented: invert an inverted chord');
     // }
-    return new ChordClass({ inversion, ...this.options });
+    return new ChordQuality({ inversion, ...this.options });
   }
 }
 
-class ChordClassAccessor extends ChordClass {
-  public static addChord(chordClass: ChordClass) {
+class ChordClassAccessor extends ChordQuality {
+  public static addChord(chordClass: ChordQuality) {
     const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
     [
       chordClass.name,
@@ -97,14 +101,14 @@ class ChordClassAccessor extends ChordClass {
       pitchKey,
     ].forEach((key) => {
       if (key) {
-        ChordClass.chordMap.set(key, chordClass);
+        ChordQuality.chordMap.set(key, chordClass);
       }
     });
   }
 }
 
 // tslint:disable:object-literal-sort-keys
-const chordClassArray: ChordClass[] = [
+const chordClassArray: ChordQuality[] = [
   { name: 'Major', abbrs: ['', 'M'], intervals: '047' },
   { name: 'Minor', abbrs: ['m'], intervals: '037' },
   { name: 'Augmented', abbrs: ['+', 'aug'], intervals: '048' },
@@ -144,7 +148,7 @@ const chordClassArray: ChordClass[] = [
         const semitones = left != null ? left : Number(c);
         return Interval.fromSemitones(semitones);
       });
-  return new ChordClass({
+  return new ChordQuality({
     abbrs,
     fullName: name,
     intervals: intervalInstances,

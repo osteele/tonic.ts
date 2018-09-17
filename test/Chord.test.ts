@@ -1,6 +1,6 @@
 import {
   Chord,
-  ChordClass,
+  ChordQuality,
   Interval,
   Intervals,
   Note,
@@ -10,69 +10,83 @@ import {
 const { P1, m3, M3, P5, m7, M7 } = Intervals;
 const M9 = Interval.fromString('M9');
 
-describe('ChordClass', () => {
+describe('ChordQuality', () => {
   describe('fromString', () => {
     it('should convert from chord class names', () => {
-      expect(ChordClass.fromString('Major')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('Minor')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('Augmented')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('Diminished')).toBeInstanceOf(ChordClass);
+      expect(ChordQuality.fromString('Major')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('Minor')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('Augmented')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('Diminished')).toBeInstanceOf(
+        ChordQuality,
+      );
     });
 
     it('should recognize abbreviations', () => {
-      expect(ChordClass.fromString('M')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('aug')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('°')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('maj7')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('min7')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('M7')).toBeInstanceOf(ChordClass);
-      expect(ChordClass.fromString('m7')).toBeInstanceOf(ChordClass);
+      expect(ChordQuality.fromString('M')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('aug')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('°')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('maj7')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('min7')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('M7')).toBeInstanceOf(ChordQuality);
+      expect(ChordQuality.fromString('m7')).toBeInstanceOf(ChordQuality);
     });
   });
 
   it('name', () => {
-    expect(ChordClass.fromString('Major').name).toBe('Major');
-    expect(ChordClass.fromString('Minor').name).toBe('Minor');
+    expect(ChordQuality.fromString('Major').name).toBe('Major');
+    expect(ChordQuality.fromString('Minor').name).toBe('Minor');
   });
 
   it('intervals', () => {
-    expect(ChordClass.fromString('Major').intervals).toEqual([P1, M3, P5]);
-    expect(ChordClass.fromString('Minor').intervals).toEqual([P1, m3, P5]);
-    expect(ChordClass.fromString('M7').intervals).toEqual([P1, M3, P5, M7]);
-    expect(ChordClass.fromString('m7').intervals).toEqual([P1, m3, P5, m7]);
-    expect(ChordClass.fromString('M9').intervals).toEqual([P1, M3, P5, M7, M9]);
-    expect(ChordClass.fromString('m9').intervals).toEqual([P1, m3, P5, m7, M9]);
+    expect(ChordQuality.fromString('Major').intervals).toEqual([P1, M3, P5]);
+    expect(ChordQuality.fromString('Minor').intervals).toEqual([P1, m3, P5]);
+    expect(ChordQuality.fromString('M7').intervals).toEqual([P1, M3, P5, M7]);
+    expect(ChordQuality.fromString('m7').intervals).toEqual([P1, m3, P5, m7]);
+    expect(ChordQuality.fromString('M9').intervals).toEqual([
+      P1,
+      M3,
+      P5,
+      M7,
+      M9,
+    ]);
+    expect(ChordQuality.fromString('m9').intervals).toEqual([
+      P1,
+      m3,
+      P5,
+      m7,
+      M9,
+    ]);
   });
 });
 
 describe('fromIntervals', () => {
   it('should find the chord class from an array of semitones', () => {
-    let chordClass = ChordClass.fromIntervals([0, 3, 7]);
-    expect(chordClass).toBeInstanceOf(ChordClass);
+    let chordClass = ChordQuality.fromIntervals([0, 3, 7]);
+    expect(chordClass).toBeInstanceOf(ChordQuality);
     expect(chordClass.name).toBe('Minor');
 
-    chordClass = ChordClass.fromIntervals([0, 4, 7]);
-    expect(chordClass).toBeInstanceOf(ChordClass);
+    chordClass = ChordQuality.fromIntervals([0, 4, 7]);
+    expect(chordClass).toBeInstanceOf(ChordQuality);
     expect(chordClass.name).toBe('Major');
   });
 
   it('should find the chord class from an array of intervals', () => {
-    let chordClass = ChordClass.fromIntervals([P1, M3, P5]);
+    let chordClass = ChordQuality.fromIntervals([P1, M3, P5]);
     expect(chordClass.name).toBe('Major');
 
-    chordClass = ChordClass.fromIntervals([P1, m3, P5]);
+    chordClass = ChordQuality.fromIntervals([P1, m3, P5]);
     expect(chordClass.name).toBe('Minor');
   });
 
   it('should recognize inversions', () => {
-    const root = ChordClass.fromIntervals([P1, M3, P5]);
+    const root = ChordQuality.fromIntervals([P1, M3, P5]);
     expect(root.inversion).toBe(null);
 
-    const first = ChordClass.fromIntervals([M3, P1, P5]);
+    const first = ChordQuality.fromIntervals([M3, P1, P5]);
     expect(first.name).toBe('Major');
     expect(first.inversion).toBe(1);
 
-    const second = ChordClass.fromIntervals([P5, P1, M3]);
+    const second = ChordQuality.fromIntervals([P5, P1, M3]);
     expect(second.name).toBe('Major');
     expect(second.inversion).toBe(2);
   });
@@ -126,7 +140,7 @@ describe('Chord', () => {
 });
 
 describe('Major Chord Class', () => {
-  const chordClass = ChordClass.fromString('Major');
+  const chordClass = ChordQuality.fromString('Major');
 
   it('should exist', () => expect(chordClass).toBeTruthy());
 
@@ -224,7 +238,7 @@ describe('Major Chord Class', () => {
 });
 
 describe('Minor Chord', () => {
-  const chordClass = ChordClass.fromString('Minor');
+  const chordClass = ChordQuality.fromString('Minor');
 
   describe('at C', () => {
     const chord = chordClass.at('C');

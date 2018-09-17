@@ -1,4 +1,4 @@
-import { ChordClass } from './ChordClass';
+import { ChordQuality } from './ChordQuality';
 import { rotateArray } from './internal/utils';
 import { Interval } from './Interval';
 import { Note } from './Note';
@@ -19,20 +19,20 @@ const inversionNames = ['a', 'c', 'd'];
  * See [Wikipedia: Chord](https://en.wikipedia.org/wiki/Chord_(music)).
  */
 export class Chord<T extends PitchLike> {
-  /** Return either a `Chord` or a `ChordClass`, depending on whether `name`
+  /** Return either a `Chord` or a `ChordQuality`, depending on whether `name`
    * specifies a pitch or pitch class (e.g. "E Major" or "E7 Major"), or just a
    * chord class (e.g. "Major").
    */
   public static fromString(
     name: string,
-  ): Chord<Note> | Chord<PitchClass> | ChordClass {
+  ): Chord<Note> | Chord<PitchClass> | ChordQuality {
     const match = name.match(chordNameRegex1) || name.match(chordNameRegex2);
     if (!match) {
       throw new Error(`“${name}” is not a chord name`);
     }
     const rootName = match[1];
     const className = match[2];
-    const chordClass = ChordClass.fromString(className || 'Major');
+    const chordClass = ChordQuality.fromString(className || 'Major');
     return rootName ? chordClass.at(Note.fromString(rootName)) : chordClass;
   }
 
@@ -44,7 +44,7 @@ export class Chord<T extends PitchLike> {
   ): Chord<T> {
     const root = pitches[0];
     const intervals = pitches.map((pitch) => Interval.between(root, pitch));
-    return ChordClass.fromIntervals(intervals).at(root);
+    return ChordQuality.fromIntervals(intervals).at(root);
   }
 
   /** The preferred abbreviation. */
@@ -53,7 +53,7 @@ export class Chord<T extends PitchLike> {
   public readonly notes: ReadonlyArray<T>;
   public readonly intervals: ReadonlyArray<Interval>;
   constructor(
-    readonly chordClass: ChordClass,
+    readonly chordClass: ChordQuality,
     readonly root: T,
     readonly inversion = 0,
   ) {

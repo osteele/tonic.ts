@@ -1,5 +1,5 @@
 export * from './Chord';
-export * from './ChordClass';
+export * from './ChordQuality';
 export * from './FrettedChord';
 export * from './fretting';
 export * from './Instrument';

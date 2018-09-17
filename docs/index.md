@@ -17,11 +17,13 @@ pitch constellation diagrams, and calculating guitar chord fingerings.
 * [[Interval]] represents a musical interval, such as a minor third or a perfect
   fifth, between two notes. The difference between two pitch-like instances of the same type is an
   Interval. A pitch-like instance can be transposed by an interval.
-* [[Chord<PitchLike>]] is a set of intervals from a root. A chord has a name, a
-  set of intervals, a set pitches (or pitch classes), and an inversion. For
-  example, "E Major" and "C Minor" name chords.
-* [[ChordClass]] is an equivalence class of Chords, modded out by their tonics.
-  For example, "Major" and "Minor" are chord patterns.
+* [[Chord<PitchLike>]] is a set of intervals from a root. A chord has a tonic, a
+  a (chord quality), and an inversion. From these can be derived a set of
+  [[Note]]s (or pitch classes), and a name. For example, "E Major" and "C Minor"
+  name chords.
+* [[ChordQuality]] represents the qualities of a chord's component intervals,
+  its suspensions, and additions. The qualities named by "Major", "Minor", and
+  "Dom7" are examples of chord qualities.
 * [[Scale]] is a named sequence of intervals from an (unspecified) tonic. For
   example, "Diatonic Major" names a scale.
 * [[SpecificScale]] is a scale that starts at a specific node or pitch
