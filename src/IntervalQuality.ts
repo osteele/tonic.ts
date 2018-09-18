@@ -39,19 +39,6 @@ const semitoneQualities: Array<IntervalQuality | null> = [
   IntervalQuality.DoublyAugmented,
 ];
 
-export function fromSemitones(n: number): IntervalQuality | null {
-  return semitoneQualities[n + 2];
-}
-
-/** The signed distance in semitones from the diatonic note.
- *
- * Note that Minor, Major, and Perfect all return 0.
- */
-export function toSemitones(q: IntervalQuality | null): number {
-  const index = semitoneQualities.indexOf(q);
-  return index >= 0 ? index - 2 : 0;
-}
-
 const abbrToQuality: { [_: string]: IntervalQuality } = {
   M: IntervalQuality.Major,
   m: IntervalQuality.Minor,
@@ -80,14 +67,6 @@ const nameToQuality: { [_: string]: IntervalQuality } = {
 const qualityToAbbr = _.invert(abbrToQuality);
 const qualityToName = _.invert(nameToQuality);
 
-export function fromString(name: string): IntervalQuality | null {
-  return abbrToQuality[name] || nameToQuality[name.toLowerCase()];
-}
-
-export function toString(q: IntervalQuality, fullName = false): string {
-  return (fullName ? qualityToName : qualityToAbbr)[q];
-}
-
 const perfectOrder = [
   IntervalQuality.DoublyDiminished,
   IntervalQuality.Diminished,
@@ -115,45 +94,68 @@ function widen(
   delta: number,
 ): IntervalQuality | null {
   if (q === null) {
-    return fromSemitones(delta);
+    return IntervalQuality.fromSemitones(delta);
   }
   const order = qualityOrder(perfect || q === IntervalQuality.Perfect);
   const index = order.indexOf(q);
   return order[index + delta] || null;
 }
 
-export function augment(
-  q: IntervalQuality | null,
-  perfect = false,
-): IntervalQuality | null {
-  return widen(q, perfect, 1);
-}
+export namespace IntervalQuality {
+  export function fromSemitones(n: number): IntervalQuality | null {
+    return semitoneQualities[n + 2];
+  }
 
-export function diminish(
-  q: IntervalQuality | null,
-  perfect = false,
-): IntervalQuality | null {
-  return widen(q, perfect, -1);
-}
+  /** The signed distance in semitones from the diatonic note.
+   *
+   * Note that Minor, Major, and Perfect all return 0.
+   */
+  export function toSemitones(q: IntervalQuality | null): number {
+    const index = semitoneQualities.indexOf(q);
+    return index >= 0 ? index - 2 : 0;
+  }
 
-export function inverse(q: IntervalQuality | null): IntervalQuality | null {
-  const order = qualityOrder(q === IntervalQuality.Perfect);
-  const index = order.indexOf(q!);
-  return index >= 0 ? order[order.length - 1 - index] : null;
-}
+  export function fromString(name: string): IntervalQuality | null {
+    return abbrToQuality[name] || nameToQuality[name.toLowerCase()];
+  }
 
-/** The closest major or minor quality. */
-export function closestNatural(q: IntervalQuality): IntervalQuality | null {
-  switch (q) {
-    case IntervalQuality.DoublyDiminished:
-    case IntervalQuality.Diminished:
-    case IntervalQuality.Minor:
-      return IntervalQuality.Minor;
-    case IntervalQuality.DoublyAugmented:
-    case IntervalQuality.Augmented:
-    case IntervalQuality.Major:
-      return IntervalQuality.Major;
-    default:
-      return null;
+  export function toString(q: IntervalQuality, fullName = false): string {
+    return (fullName ? qualityToName : qualityToAbbr)[q];
+  }
+
+  export function augment(
+    q: IntervalQuality | null,
+    perfect = false,
+  ): IntervalQuality | null {
+    return widen(q, perfect, 1);
+  }
+
+  export function diminish(
+    q: IntervalQuality | null,
+    perfect = false,
+  ): IntervalQuality | null {
+    return widen(q, perfect, -1);
+  }
+
+  export function inverse(q: IntervalQuality | null): IntervalQuality | null {
+    const order = qualityOrder(q === IntervalQuality.Perfect);
+    const index = order.indexOf(q!);
+    return index >= 0 ? order[order.length - 1 - index] : null;
+  }
+
+  /** The closest major or minor quality. */
+  export function closestNatural(q: IntervalQuality): IntervalQuality | null {
+    switch (q) {
+      case IntervalQuality.DoublyDiminished:
+      case IntervalQuality.Diminished:
+      case IntervalQuality.Minor:
+        return IntervalQuality.Minor;
+      case IntervalQuality.DoublyAugmented:
+      case IntervalQuality.Augmented:
+      case IntervalQuality.Major:
+        return IntervalQuality.Major;
+      default:
+        return null;
+    }
   }
 }

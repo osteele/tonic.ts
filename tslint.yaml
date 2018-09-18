@@ -4,6 +4,7 @@ jsRules: {}
 rules:
   interface-name: [true, 'never-prefix']
   quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
+  no-namespace: false
   variable-name:
     [true, 'ban-keywords', 'check-format', 'allow-leading-underscore']
 

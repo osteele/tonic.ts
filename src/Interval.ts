@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import * as intervals from './internal/intervalParser';
 import * as PitchClassParser from './internal/pitchClassParser';
-import * as quality from './IntervalQuality';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
 import { PitchClass } from './PitchClass';
@@ -133,7 +132,7 @@ export class Interval {
 
   /** The number of semitones. For example, A1 and m2 have one semitone. */
   get semitones(): number {
-    return this.naturalSemitones + quality.toSemitones(this.quality);
+    return this.naturalSemitones + IntervalQuality.toSemitones(this.quality);
   }
 
   get isSimple(): boolean {
@@ -151,19 +150,19 @@ export class Interval {
   get inverse(): Interval {
     return new Interval(
       12 - this.naturalSemitones,
-      quality.inverse(this.quality),
+      IntervalQuality.inverse(this.quality),
     );
   }
 
   get augment(): Interval | null {
     const perfect = this.natural.quality === IntervalQuality.Perfect;
-    const q = quality.augment(this.quality, perfect);
+    const q = IntervalQuality.augment(this.quality, perfect);
     return q === null ? null : new Interval(this.naturalSemitones, q);
   }
 
   get diminish(): Interval | null {
     const perfect = this.natural.quality === IntervalQuality.Perfect;
-    const q = quality.diminish(this.quality, perfect);
+    const q = IntervalQuality.diminish(this.quality, perfect);
     return q === null ? null : new Interval(this.naturalSemitones, q);
   }
 
@@ -180,7 +179,7 @@ export class Interval {
         ? intervals.shorthandNames[semitones]
         : _.times((semitones - 6) / 12, () => 'P8').join('+') + '+TT';
     }
-    return `${quality.toString(q)}${this.number}`;
+    return `${IntervalQuality.toString(q)}${this.number}`;
   }
 
   // Override the default implementation, to get readable Jest messages

@@ -6,67 +6,6 @@ import {
   Note,
   PitchClass,
 } from '../src';
-import * as q from '../src/IntervalQuality';
-
-describe('IntervalQuality', () => {
-  const Q = IntervalQuality;
-
-  describe('fromSemitones', () => {
-    expect(q.fromSemitones(-2)).toBe(Q.DoublyDiminished);
-    expect(q.fromSemitones(-1)).toBe(Q.Diminished);
-    expect(q.fromSemitones(0)).toBe(null);
-    expect(q.fromSemitones(1)).toBe(Q.Augmented);
-    expect(q.fromSemitones(2)).toBe(Q.DoublyAugmented);
-  });
-
-  describe('toSemitones', () => {
-    expect(q.toSemitones(Q.Major)).toBe(0);
-    expect(q.toSemitones(Q.Minor)).toBe(0);
-    expect(q.toSemitones(Q.Perfect)).toBe(0);
-    expect(q.toSemitones(Q.Augmented)).toBe(1);
-    expect(q.toSemitones(Q.Diminished)).toBe(-1);
-    expect(q.toSemitones(Q.DoublyAugmented)).toBe(2);
-    expect(q.toSemitones(Q.DoublyDiminished)).toBe(-2);
-    expect(q.toSemitones(null)).toBe(0);
-  });
-
-  describe('inverse', () => {
-    expect(q.inverse(Q.Major)).toBe(Q.Minor);
-    expect(q.inverse(Q.Minor)).toBe(Q.Major);
-    expect(q.inverse(Q.Perfect)).toBe(Q.Perfect);
-    expect(q.inverse(Q.Augmented)).toBe(Q.Diminished);
-    expect(q.inverse(Q.Diminished)).toBe(Q.Augmented);
-    expect(q.inverse(Q.DoublyAugmented)).toBe(Q.DoublyDiminished);
-    expect(q.inverse(Q.DoublyDiminished)).toBe(Q.DoublyAugmented);
-    expect(q.inverse(null)).toBe(null);
-  });
-
-  describe('augment', () => {
-    expect(q.augment(Q.DoublyDiminished)).toBe(Q.Diminished);
-    expect(q.augment(Q.Diminished)).toBe(Q.Minor);
-    expect(q.augment(Q.Minor)).toBe(Q.Major);
-    expect(q.augment(Q.Major)).toBe(Q.Augmented);
-    expect(q.augment(Q.Augmented)).toBe(Q.DoublyAugmented);
-    expect(q.augment(Q.DoublyAugmented)).toBe(null);
-
-    expect(q.augment(Q.Diminished, true)).toBe(Q.Perfect);
-    expect(q.augment(Q.Perfect)).toBe(Q.Augmented);
-    expect(q.augment(null)).toBe(Q.Augmented);
-  });
-
-  describe('diminish', () => {
-    expect(q.diminish(Q.DoublyDiminished)).toBe(null);
-    expect(q.diminish(Q.Diminished)).toBe(Q.DoublyDiminished);
-    expect(q.diminish(Q.Minor)).toBe(Q.Diminished);
-    expect(q.diminish(Q.Major)).toBe(Q.Minor);
-    expect(q.diminish(Q.Augmented)).toBe(Q.Major);
-    expect(q.diminish(Q.DoublyAugmented)).toBe(Q.Augmented);
-
-    expect(q.diminish(Q.Augmented, true)).toBe(Q.Perfect);
-    expect(q.diminish(Q.Perfect)).toBe(Q.Diminished);
-    expect(q.diminish(null)).toBe(Q.Diminished);
-  });
-});
 
 describe('Interval', () => {
   describe('names', () => {

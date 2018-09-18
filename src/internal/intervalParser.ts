@@ -1,4 +1,3 @@
-import * as qualities from '../IntervalQuality';
 import { IntervalQuality } from '../IntervalQuality';
 
 export const shorthandNames = [
@@ -41,7 +40,7 @@ export const semitoneDegrees: Array<number | null> = shorthandNames
 // Interval qualities indexed by pitch class. The tritone has a null quality.
 export const semitoneQualities: Array<IntervalQuality | null> = shorthandNames
   .map((s) => s.match(/[AMPmd]/))
-  .map((m) => m && qualities.fromString(m[0]));
+  .map((m) => m && IntervalQuality.fromString(m[0]));
 
 // TODO: P and M optional; test perf, min, maj, dim, aug; ordinals
 export function parseInterval(
@@ -75,13 +74,13 @@ export function parseInterval(
     // Augmented or diminished. Find the closest natural, and adjust from there.
     pc = shorthandNames.indexOf(`P${degree}`);
     if (pc < 0) {
-      const quality = qualities.fromString(qualityName);
-      const nat = qualities.closestNatural(quality!);
-      pc = shorthandNames.indexOf(`${qualities.toString(nat!)}${degree}`);
+      const quality = IntervalQuality.fromString(qualityName);
+      const nat = IntervalQuality.closestNatural(quality!);
+      pc = shorthandNames.indexOf(`${IntervalQuality.toString(nat!)}${degree}`);
     }
     return {
       degree: semitoneDegrees[pc],
-      quality: qualities.fromString(qualityName),
+      quality: IntervalQuality.fromString(qualityName),
       semitones: pc,
     };
   } else {
