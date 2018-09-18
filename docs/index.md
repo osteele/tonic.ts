@@ -12,7 +12,7 @@ pitch constellation diagrams, and calculating guitar chord fingerings.
 * [[PitchClass]] represents a pitch class: a musical pitch modulo its octave. For
   example, the pitch class "E" represents "E0", "E1", "E2", etc.
 * [[PitchLike]] is an interface that includes [[Note]] and [[PitchClass]]. [[Chord]]
-  and [[SpecificScale]] (below) can be specialized to either a pitch or a pitch
+  and [[Key]] (below) can be specialized to either a pitch or a pitch
   class; this interface defines their common type.
 * [[Interval]] represents a musical interval, such as a minor third or a perfect
   fifth, between two notes. The difference between two pitch-like instances of the same type is an
@@ -26,14 +26,14 @@ pitch constellation diagrams, and calculating guitar chord fingerings.
   "Dom7" are examples of chord qualities.
 * [[Scale]] is a named sequence of intervals from an (unspecified) tonic. For
   example, "Diatonic Major" names a scale.
-* [[SpecificScale]] is a scale that starts at a specific node or pitch
+* [[Key]] is a scale that starts at a specific node or pitch
   class.
 
-[[Chord]] and [[SpecificScale]] are generic classes, that can be instantiated at
+[[Chord]] and [[Key]] are generic classes, that can be instantiated at
 either [[Note]] or [[PitchClass]].
 
 A [[ChordClass]] is to a [[Chord]] (and its *root*) as a [[Scale]] is to a
-[[SpecificScale]] (and its *tonic*). The class name hide this symmetry, but
+[[Key]] (and its *tonic*). The class name hide this symmetry, but
 they're the names from the domain of music theory.
 
 The API makes use of TypeScript generics. Although it can be used from straight

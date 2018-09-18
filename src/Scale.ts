@@ -16,7 +16,8 @@ interface ScaleConstructorOptions<T extends PitchLike>
   tonic: T;
 }
 
-// A scale is a named collection, either of intervals or notes.
+/** A scale is a named collection, either of intervals or notes.
+ */
 class GenericScale<T extends PitchLike | null> {
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
@@ -59,10 +60,10 @@ class GenericScale<T extends PitchLike | null> {
   }
 
   /** Return a specific scale of the same scale class, at the specified tonic. */
-  public at(tonic: string): SpecificScale<PitchLike>;
-  public at<T extends PitchLike>(tonic: T): SpecificScale<T>;
-  public at(tonic: PitchLike | string): SpecificScale<PitchLike> {
-    return new SpecificScale({
+  public at(tonic: string): Key<PitchLike>;
+  public at<T extends PitchLike>(tonic: T): Key<T>;
+  public at(tonic: PitchLike | string): Key<PitchLike> {
+    return new Key({
       name: this.name,
       pitchClasses: this.pitchClasses,
       tonic: asPitchLike(tonic),
@@ -80,6 +81,7 @@ class GenericScale<T extends PitchLike | null> {
  * notes' melodic functions — I think).
  *
  * References:
+ *
  * * Wikipedia [musical scale](https://en.wikipedia.org/wiki/Scale_(music))
  * * Wikipedia [musical key](https://en.wikipedia.org/wiki/Key_(music))
  * * Wikipedia [musical mode](https://en.wikipedia.org/wiki/Mode_(music))
@@ -104,9 +106,12 @@ export class Scale extends GenericScale<null> {
   private static readonly instances = new Map<string, Scale>();
 }
 
-/** `SpecificScale<PitchLike>` is a scale that starts at a specific tonic. */
-export class SpecificScale<T extends PitchLike> extends GenericScale<T> {
-  public static fromString(name: string): SpecificScale<PitchLike> {
+/** A `Key<PitchLike>` is a scale that starts at a specific tonic.
+ *
+ * Wikipedia [musical key](https://en.wikipedia.org/wiki/Key_(music))
+ */
+export class Key<T extends PitchLike> extends GenericScale<T> {
+  public static fromString(name: string): Key<PitchLike> {
     const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
     if (match) {
       const [tonicName, scaleName] = match.slice(1);

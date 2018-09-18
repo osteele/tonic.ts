@@ -20,8 +20,10 @@ constellations](https://en.wikipedia.org/wiki/Chromatic_circle#Pitch_constellati
 
 ## Status
 
-* The API might change. In particular, `Scale` vs. `SpecificScale`; and `FrettedChord` might change back to `Fingering`.
-* The graphics functions haven’t been tested since being ported from CoffeeScript.
+* The API might change. In particular, `FrettedChord` might change back to
+  `Fingering`.
+* The graphics functions haven’t been tested since being ported from
+  CoffeeScript.
 
 ## Other Languages
 

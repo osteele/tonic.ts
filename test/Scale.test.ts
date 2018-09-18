@@ -1,4 +1,4 @@
-import { Note, PitchClass, Scale, SpecificScale } from '../src';
+import { Key, Note, PitchClass, Scale } from '../src';
 
 describe('ScalePattern', () => {
   it('scales length', () => {
@@ -52,32 +52,20 @@ describe('ScalePattern', () => {
   });
 });
 
-describe('Scale', () => {
+describe('Key', () => {
   describe('fromString', () => {
     it('parses scales with Note tonics', () => {
-      expect(SpecificScale.fromString('E7 Diatonic Major')).toBeInstanceOf(
-        SpecificScale,
-      );
-      expect(SpecificScale.fromString('E♯7 Diatonic Major')).toBeInstanceOf(
-        SpecificScale,
-      );
-      expect(SpecificScale.fromString('E7')).toBeInstanceOf(SpecificScale);
+      expect(Key.fromString('E7 Diatonic Major')).toBeInstanceOf(Key);
+      expect(Key.fromString('E♯7 Diatonic Major')).toBeInstanceOf(Key);
+      expect(Key.fromString('E7')).toBeInstanceOf(Key);
 
-      expect(
-        SpecificScale.fromString('E7 Diatonic Major').tonic,
-      ).toBeInstanceOf(Note);
-      expect(
-        SpecificScale.fromString('E♯7 Diatonic Major').tonic,
-      ).toBeInstanceOf(Note);
-      expect(SpecificScale.fromString('E7').tonic).toBeInstanceOf(Note);
+      expect(Key.fromString('E7 Diatonic Major').tonic).toBeInstanceOf(Note);
+      expect(Key.fromString('E♯7 Diatonic Major').tonic).toBeInstanceOf(Note);
+      expect(Key.fromString('E7').tonic).toBeInstanceOf(Note);
 
-      expect(SpecificScale.fromString('E7 Diatonic Major').tonic.name).toBe(
-        'E7',
-      );
-      expect(SpecificScale.fromString('E♯7 Diatonic Major').tonic.name).toBe(
-        'E♯7',
-      );
-      expect(SpecificScale.fromString('E7').tonic.name).toBe('E7');
+      expect(Key.fromString('E7 Diatonic Major').tonic.name).toBe('E7');
+      expect(Key.fromString('E♯7 Diatonic Major').tonic.name).toBe('E♯7');
+      expect(Key.fromString('E7').tonic.name).toBe('E7');
     });
 
     it('parses scales with PitchClass tonics', () => {
@@ -85,18 +73,18 @@ describe('Scale', () => {
       // expect(Scale.fromString('E♯ Diatonic Major')).toBeInstanceOf(Scale);
       // expect(Scale.fromString('E Diatonic Major')).toBeInstanceOf(Scale);
 
-      expect(SpecificScale.fromString('E Diatonic Major').tonic).toBeInstanceOf(
+      expect(Key.fromString('E Diatonic Major').tonic).toBeInstanceOf(
         PitchClass,
       );
-      expect(
-        SpecificScale.fromString('E♯ Diatonic Major').tonic,
-      ).toBeInstanceOf(PitchClass);
-      expect(SpecificScale.fromString('E').tonic).toBeInstanceOf(PitchClass);
+      expect(Key.fromString('E♯ Diatonic Major').tonic).toBeInstanceOf(
+        PitchClass,
+      );
+      expect(Key.fromString('E').tonic).toBeInstanceOf(PitchClass);
 
-      expect(SpecificScale.fromString('E Diatonic Major').tonic.name).toBe('E');
+      expect(Key.fromString('E Diatonic Major').tonic.name).toBe('E');
       // FIXME:
       // expect(Scale.fromString('E♯ Diatonic Major').tonic.name).toBe('E♯');
-      expect(SpecificScale.fromString('E').tonic.name).toBe('E');
+      expect(Key.fromString('E').tonic.name).toBe('E');
     });
   });
 

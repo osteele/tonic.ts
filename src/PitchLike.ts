@@ -3,7 +3,7 @@ import { Note } from './Note';
 import { PitchClass } from './PitchClass';
 
 /** [[Note]] and [[PitchClass]] implement this type. [[Chord]] and
- * [[SpecificScale]] are parameterized over it.
+ * [[Key]] are parameterized over it.
  */
 export interface PitchLike {
   readonly name: string;
