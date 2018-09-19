@@ -182,11 +182,6 @@ export class Interval {
     return `${IntervalQuality.toString(q)}${this.number}`;
   }
 
-  // Override the default implementation, to get readable Jest messages
-  public xtoJSON() {
-    return `Interval::${this.toString()}`;
-  }
-
   public add(other: Interval): Interval {
     return Interval.fromSemitones(
       this.naturalSemitones + other.naturalSemitones,
@@ -198,9 +193,68 @@ export function asInterval(n: Interval | number): Interval {
   return n instanceof Interval ? n : Interval.fromSemitones(n);
 }
 
-// TODO: change these to constants in a namespace?
-// tslint:disable-next-line variable-name
-export const Intervals: { [_: string]: Interval } = Interval.all;
+export namespace Intervals {
+  // simple diatonic intervals
+  export const P1 = Interval.fromString('P1');
+  export const m2 = Interval.fromString('m2');
+  export const M2 = Interval.fromString('M2');
+  export const m3 = Interval.fromString('m3');
+  export const M3 = Interval.fromString('M3');
+  export const P4 = Interval.fromString('P4');
+  export const TT = Interval.fromString('TT');
+  export const P5 = Interval.fromString('P5');
+  export const m6 = Interval.fromString('m6');
+  export const M6 = Interval.fromString('M6');
+  export const m7 = Interval.fromString('m7');
+  export const M7 = Interval.fromString('M7');
+  export const P8 = Interval.fromString('P8');
+
+  // augmented and diminished intervals
+  // TODO:
+  // export const a1 = Interval.fromString('a1');
+  export const d2 = Interval.fromString('d2');
+  export const A2 = Interval.fromString('A2');
+  export const d3 = Interval.fromString('d3');
+  export const A3 = Interval.fromString('A3');
+  export const d4 = Interval.fromString('d4');
+  export const A4 = Interval.fromString('A4');
+  export const d5 = Interval.fromString('d5');
+  export const A5 = Interval.fromString('A5');
+  export const d6 = Interval.fromString('d6');
+  export const A6 = Interval.fromString('A6');
+  export const d7 = Interval.fromString('d7');
+  export const A7 = Interval.fromString('A7');
+  export const d8 = Interval.fromString('d8');
+  export const A8 = Interval.fromString('A8');
+
+  // compound intervals
+  export const m9 = Interval.fromString('m9');
+  export const M9 = Interval.fromString('M9');
+  export const m10 = Interval.fromString('m10');
+  export const M10 = Interval.fromString('M10');
+  export const P11 = Interval.fromString('P11');
+  export const P12 = Interval.fromString('P12');
+  export const m13 = Interval.fromString('m13');
+  export const M13 = Interval.fromString('M13');
+  export const m14 = Interval.fromString('m14');
+  export const M14 = Interval.fromString('M14');
+  export const P15 = Interval.fromString('P15');
+
+  export const d9 = Interval.fromString('d9');
+  export const A9 = Interval.fromString('A9');
+  export const d10 = Interval.fromString('d10');
+  export const A10 = Interval.fromString('A10');
+  export const d11 = Interval.fromString('d11');
+  export const A11 = Interval.fromString('A11');
+  export const d12 = Interval.fromString('d12');
+  export const A12 = Interval.fromString('A12');
+  export const d13 = Interval.fromString('d13');
+  export const A13 = Interval.fromString('A13');
+  export const d14 = Interval.fromString('d14');
+  export const A14 = Interval.fromString('A14');
+  export const d15 = Interval.fromString('d15');
+  export const A15 = Interval.fromString('A15');
+}
 
 // The interval class (integer in [0...12]) between two pitch class numbers
 export function intervalClassDifference(a: number, b: number): number {

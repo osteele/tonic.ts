@@ -1,4 +1,4 @@
-import { Interval, Note, PitchClass } from '../src';
+import { Intervals, Note, PitchClass } from '../src';
 
 describe('Note', () => {
   describe('fromMidiNumber', () => {
@@ -60,14 +60,14 @@ describe('Note', () => {
 
   it('add', () => {
     const C4 = Note.fromString('C4');
-    expect(C4.add(Interval.fromString('P1')).toString()).toBe('C4');
-    expect(C4.add(Interval.fromString('M2')).toString()).toBe('D4');
-    expect(C4.add(Interval.fromString('P8')).toString()).toBe('C5');
+    expect(C4.add(Intervals.P1).toString()).toBe('C4');
+    expect(C4.add(Intervals.M2).toString()).toBe('D4');
+    expect(C4.add(Intervals.P8).toString()).toBe('C5');
   });
 
   it('transposeBy', () => {
     const C4 = Note.fromString('C4');
-    expect(C4.transposeBy(Interval.fromString('M2')).toString()).toBe('D4');
+    expect(C4.transposeBy(Intervals.M2).toString()).toBe('D4');
   });
 
   test('asPitch', () => {

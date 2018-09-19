@@ -86,15 +86,15 @@ describe('Interval', () => {
   });
 
   it('name', () => {
-    expect(Interval.fromString('P1').name).toBe('P1');
-    expect(Interval.fromString('m2').name).toBe('m2');
-    expect(Interval.fromString('M2').name).toBe('M2');
-    expect(Interval.fromString('d2').name).toBe('d2');
-    expect(Interval.fromString('A2').name).toBe('A2');
-    expect(Interval.fromString('TT').name).toBe('TT');
-    expect(Interval.fromString('P8').name).toBe('P8');
-    expect(Interval.fromString('m10').name).toBe('m10');
-    expect(Interval.fromString('M13').name).toBe('M13');
+    expect(Intervals.P1.name).toBe('P1');
+    expect(Intervals.m2.name).toBe('m2');
+    expect(Intervals.M2.name).toBe('M2');
+    expect(Intervals.d2.name).toBe('d2');
+    expect(Intervals.A2.name).toBe('A2');
+    expect(Intervals.TT.name).toBe('TT');
+    expect(Intervals.P8.name).toBe('P8');
+    expect(Intervals.m10.name).toBe('m10');
+    expect(Intervals.M13.name).toBe('M13');
     expect(Interval.fromSemitones(6).name).toBe('TT');
     expect(Interval.fromSemitones(12).name).toBe('P8');
     expect(Interval.fromSemitones(18).name).toBe('P8+TT');
@@ -102,70 +102,70 @@ describe('Interval', () => {
   });
 
   it('number', () => {
-    expect(Interval.fromString('P1').number).toBe(1);
-    expect(Interval.fromString('m2').number).toBe(2);
-    expect(Interval.fromString('M2').number).toBe(2);
-    expect(Interval.fromString('d2').number).toBe(2);
-    expect(Interval.fromString('A2').number).toBe(2);
-    expect(Interval.fromString('TT').number).toBe(null);
-    expect(Interval.fromString('P8').number).toBe(8);
-    expect(Interval.fromString('m9').number).toBe(9);
-    expect(Interval.fromString('M9').number).toBe(9);
-    expect(Interval.fromString('M10').number).toBe(10);
-    expect(Interval.fromString('P11').number).toBe(11);
-    expect(Interval.fromString('P12').number).toBe(12);
-    expect(Interval.fromString('M13').number).toBe(13);
-    expect(Interval.fromString('M14').number).toBe(14);
-    expect(Interval.fromString('P15').number).toBe(15);
+    expect(Intervals.P1.number).toBe(1);
+    expect(Intervals.m2.number).toBe(2);
+    expect(Intervals.M2.number).toBe(2);
+    expect(Intervals.d2.number).toBe(2);
+    expect(Intervals.A2.number).toBe(2);
+    expect(Intervals.TT.number).toBe(null);
+    expect(Intervals.P8.number).toBe(8);
+    expect(Intervals.m9.number).toBe(9);
+    expect(Intervals.M9.number).toBe(9);
+    expect(Intervals.M10.number).toBe(10);
+    expect(Intervals.P11.number).toBe(11);
+    expect(Intervals.P12.number).toBe(12);
+    expect(Intervals.M13.number).toBe(13);
+    expect(Intervals.M14.number).toBe(14);
+    expect(Intervals.P15.number).toBe(15);
   });
 
   it('quality', () => {
-    expect(Interval.fromString('P1').quality).toBe(IntervalQuality.Perfect);
-    expect(Interval.fromString('m2').quality).toBe(IntervalQuality.Minor);
-    expect(Interval.fromString('M2').quality).toBe(IntervalQuality.Major);
-    expect(Interval.fromString('d2').quality).toBe(IntervalQuality.Diminished);
-    expect(Interval.fromString('A2').quality).toBe(IntervalQuality.Augmented);
-    expect(Interval.fromString('TT').quality).toBe(null);
+    expect(Intervals.P1.quality).toBe(IntervalQuality.Perfect);
+    expect(Intervals.m2.quality).toBe(IntervalQuality.Minor);
+    expect(Intervals.M2.quality).toBe(IntervalQuality.Major);
+    expect(Intervals.d2.quality).toBe(IntervalQuality.Diminished);
+    expect(Intervals.A2.quality).toBe(IntervalQuality.Augmented);
+    expect(Intervals.TT.quality).toBe(null);
   });
 
   it('semitones', () => {
     // toString tests simple intervals
-    expect(Interval.fromString('m9').semitones).toBe(13);
-    expect(Interval.fromString('M9').semitones).toBe(14);
-    expect(Interval.fromString('m10').semitones).toBe(15);
-    expect(Interval.fromString('M10').semitones).toBe(16);
-    expect(Interval.fromString('P11').semitones).toBe(17);
-    expect(Interval.fromString('P12').semitones).toBe(19);
-    expect(Interval.fromString('m13').semitones).toBe(20);
-    expect(Interval.fromString('M13').semitones).toBe(21);
-    expect(Interval.fromString('m14').semitones).toBe(22);
-    expect(Interval.fromString('M14').semitones).toBe(23);
-    expect(Interval.fromString('P15').semitones).toBe(24);
+    expect(Intervals.m9.semitones).toBe(13);
+    expect(Intervals.M9.semitones).toBe(14);
+    expect(Intervals.m10.semitones).toBe(15);
+    expect(Intervals.M10.semitones).toBe(16);
+    expect(Intervals.P11.semitones).toBe(17);
+    expect(Intervals.P12.semitones).toBe(19);
+    expect(Intervals.m13.semitones).toBe(20);
+    expect(Intervals.M13.semitones).toBe(21);
+    expect(Intervals.m14.semitones).toBe(22);
+    expect(Intervals.M14.semitones).toBe(23);
+    expect(Intervals.P15.semitones).toBe(24);
 
-    expect(Interval.fromString('d9').semitones).toBe(12);
-    expect(Interval.fromString('A8').semitones).toBe(13);
-    expect(Interval.fromString('d10').semitones).toBe(14);
-    expect(Interval.fromString('A9').semitones).toBe(15);
-    expect(Interval.fromString('d11').semitones).toBe(16);
-    expect(Interval.fromString('A10').semitones).toBe(17);
-    expect(Interval.fromString('d12').semitones).toBe(18);
-    expect(Interval.fromString('A11').semitones).toBe(18);
+    expect(Intervals.d9.semitones).toBe(12);
+    expect(Intervals.A8.semitones).toBe(13);
+    expect(Intervals.d10.semitones).toBe(14);
+    expect(Intervals.A9.semitones).toBe(15);
+    expect(Intervals.d11.semitones).toBe(16);
+    expect(Intervals.A10.semitones).toBe(17);
+    expect(Intervals.d12.semitones).toBe(18);
+    expect(Intervals.A11.semitones).toBe(18);
   });
 
   it('simple & complex', () => {
-    expect(Interval.fromString('P5').isSimple).toBe(true);
-    expect(Interval.fromString('P8').isSimple).toBe(true);
-    expect(Interval.fromString('A8').isSimple).toBe(true);
-    expect(Interval.fromString('d9').isSimple).toBe(false);
-    expect(Interval.fromString('m9').isSimple).toBe(false);
-    expect(Interval.fromString('P15').isSimple).toBe(false);
+    expect(Intervals.P5.isSimple).toBe(true);
+    expect(Intervals.P8.isSimple).toBe(true);
+    expect(Intervals.A8.isSimple).toBe(true);
+    expect(Intervals.d9.isSimple).toBe(false);
+    expect(Intervals.m9.isSimple).toBe(false);
+    expect(Intervals.P15.isSimple).toBe(false);
 
-    expect(Interval.fromString('P5').isComplex).toBe(false);
-    expect(Interval.fromString('P8').isComplex).toBe(false);
-    expect(Interval.fromString('A8').isComplex).toBe(false);
-    expect(Interval.fromString('d9').isComplex).toBe(true);
-    expect(Interval.fromString('m9').isComplex).toBe(true);
-    expect(Interval.fromString('P15').isComplex).toBe(true);
+    expect(Intervals.P5.isComplex).toBe(false);
+    expect(Intervals.P8.isComplex).toBe(false);
+    expect(Intervals.A8.isComplex).toBe(false);
+    expect(Intervals.d9.isComplex).toBe(true);
+    expect(Intervals.m9.isComplex).toBe(true);
+    expect(Intervals.P15.isComplex).toBe(true);
   });
 
   it('toString', () => {
@@ -173,21 +173,19 @@ describe('Interval', () => {
     expect(Interval.fromSemitones(1).toString()).toBe('m2');
     expect(Interval.fromSemitones(4).toString()).toBe('M3');
     expect(Interval.fromSemitones(12).toString()).toBe('P8');
-    expect(Interval.fromString('d3').toString()).toBe('d3');
-    expect(Interval.fromString('A3').toString()).toBe('A3');
+    expect(Intervals.d3.toString()).toBe('d3');
+    expect(Intervals.A3.toString()).toBe('A3');
   });
 
   it('should be interned', () => {
-    expect(Interval.fromString('P1')).toBe(Interval.fromString('P1'));
-    expect(Interval.fromString('M2')).toBe(Interval.fromString('M2'));
-    expect(Interval.fromString('P1')).not.toBe(Interval.fromString('M2'));
+    expect(Interval.fromString('P1')).toBe(Intervals.P1);
+    expect(Interval.fromString('M2')).toBe(Intervals.M2);
+    expect(Interval.fromString('P1')).not.toBe(Intervals.M2);
   });
 
   describe('add', () =>
     it('should add to an interval', () =>
-      expect(
-        Interval.fromString('m2').add(Interval.fromString('M2')).semitones,
-      ).toBe(3)));
+      expect(Intervals.m2.add(Intervals.M2).semitones).toBe(3)));
 
   describe('between', () => {
     const E4 = Note.fromString('E4');
@@ -232,10 +230,10 @@ describe('Interval', () => {
       const C4 = Note.fromString('C4');
       const D5 = Note.fromString('D5');
       const D6 = Note.fromString('D6');
-      expect(Interval.between(C4, D5)).toBe(Interval.fromString('M9'));
+      expect(Interval.between(C4, D5)).toBe(Intervals.M9);
       expect(Interval.between(C4, D6)).toBe(Interval.fromString('M16'));
 
-      expect(Interval.between(D5, C4)).toBe(Interval.fromString('M9'));
+      expect(Interval.between(D5, C4)).toBe(Intervals.M9);
       expect(Interval.between(D6, C4)).toBe(Interval.fromString('M16'));
     });
 
@@ -249,28 +247,21 @@ describe('Interval', () => {
   });
 
   it('inverse', () => {
-    const { P1, P5, m2, m3, M3, m6, M6, M7, P4, P8, TT } = Intervals;
+    const { P1, m2, d2, m3, M3, P4, TT, P5, m6, M6, M7, A7, P8 } = Intervals;
     expect(P1.inverse).toBe(P8);
     expect(m2.inverse).toBe(M7);
     expect(M3.inverse).toBe(m6);
     expect(m3.inverse).toBe(M6);
     expect(P4.inverse).toBe(P5);
     expect(TT.inverse).toBe(TT);
-
-    const d2 = Interval.fromString('d2');
-    const A7 = Interval.fromString('A7');
     expect(d2.inverse).toBe(A7);
   });
 
   it('augment', () => {
-    const { M3, m3, P5 } = Intervals;
-    const d3 = Interval.fromString('d3');
-    const A3 = Interval.fromString('A3');
-    const d5 = Interval.fromString('d5');
-    const A5 = Interval.fromString('A5');
+    const { d3, m3, M3, A3, d5, P5, A5 } = Intervals;
 
     expect(d3.augment).toBe(m3);
-    // TODO:
+    // FIXME: m3.augment
     // expect(m3.augment).toBe(M3);
     expect(M3.augment).toBe(A3);
 
@@ -279,14 +270,10 @@ describe('Interval', () => {
   });
 
   it('diminish', () => {
-    const { m3, M3, P5 } = Intervals;
-    const d3 = Interval.fromString('d3');
-    const A3 = Interval.fromString('A3');
-    const d5 = Interval.fromString('d5');
-    const A5 = Interval.fromString('A5');
+    const { d3, m3, M3, A3, d5, P5, A5 } = Intervals;
 
     expect(m3.diminish).toBe(d3);
-    // TODO:
+    // FIXME: M3.diminish
     // expect(M3.diminish).toBe(m3);
     expect(A3.diminish).toBe(M3);
 
@@ -295,9 +282,7 @@ describe('Interval', () => {
   });
 
   it('natural', () => {
-    const { M3, m3 } = Intervals;
-    const d3 = Interval.fromString('d3');
-    const A3 = Interval.fromString('A3');
+    const { d3, m3, M3, A3 } = Intervals;
     expect(m3.natural).toBe(m3);
     expect(M3.natural).toBe(M3);
     // FIXME: d3.natural

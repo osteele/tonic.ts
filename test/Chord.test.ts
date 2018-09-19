@@ -1,14 +1,6 @@
-import {
-  Chord,
-  ChordQuality,
-  Interval,
-  Intervals,
-  Note,
-  PitchClass,
-} from '../src';
+import { Chord, ChordQuality, Intervals, Note, PitchClass } from '../src';
 
-const { P1, m3, M3, P5, m7, M7 } = Intervals;
-const M9 = Interval.fromString('M9');
+const { P1, m3, M3, P5, m7, M7, M9 } = Intervals;
 
 describe('ChordQuality', () => {
   describe('fromString', () => {

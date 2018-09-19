@@ -1,4 +1,4 @@
-import { Interval, PitchClass } from '../src';
+import { Intervals, PitchClass } from '../src';
 
 describe('PitchClass', () => {
   describe('all', () => {
@@ -17,8 +17,8 @@ describe('PitchClass', () => {
   });
 
   it('fromSemitones', () => {
-    expect(PitchClass.fromSemitones(12).toString()).toBe('C');
-    expect(PitchClass.fromSemitones(14).toString()).toBe('D');
+    expect(PitchClass.fromSemitones(12).name).toBe('C');
+    expect(PitchClass.fromSemitones(14).name).toBe('D');
   });
 
   it('toString', () => {
@@ -36,7 +36,7 @@ describe('PitchClass', () => {
 
   it('add', () => {
     const c = PitchClass.fromString('C');
-    const m2 = Interval.fromString('M2');
-    expect(c.add(m2).toString()).toBe('D');
+    expect(c.add(Intervals.m2).name).toBe('C♯');
+    expect(c.add(Intervals.M2).name).toBe('D');
   });
 });

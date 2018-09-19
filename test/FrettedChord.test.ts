@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { allFrettings, FrettedChord, frettingFor, Interval } from '../src';
+import { allFrettings, FrettedChord, frettingFor, Intervals } from '../src';
 
 describe('allFrettings', () => {
   const eMajor = allFrettings('E Major');
@@ -173,39 +173,27 @@ describe('frettingFor', () => {
       expect(fingering.positions).toHaveLength(6);
       expect(fingering.positions[0].stringNumber).toBe(0); // 'finger #1 string'
       expect(fingering.positions[0].fretNumber).toBe(0); // 'finger #1 fret'
-      expect(fingering.positions[0].intervalClass).toBe(
-        Interval.fromString('P1'),
-      );
+      expect(fingering.positions[0].intervalClass).toBe(Intervals.P1);
 
       expect(fingering.positions[1].stringNumber).toBe(1); // 'finger #2 string'
       expect(fingering.positions[1].fretNumber).toBe(2); // 'finger #2 fret'
-      expect(fingering.positions[1].intervalClass).toBe(
-        Interval.fromString('P5'),
-      );
+      expect(fingering.positions[1].intervalClass).toBe(Intervals.P5);
 
       expect(fingering.positions[2].stringNumber).toBe(2); // 'finger #3 string'
       expect(fingering.positions[2].fretNumber).toBe(2); // 'finger #3 fret'
-      expect(fingering.positions[2].intervalClass).toBe(
-        Interval.fromString('P1'),
-      );
+      expect(fingering.positions[2].intervalClass).toBe(Intervals.P1);
 
       expect(fingering.positions[3].stringNumber).toBe(3); // 'finger #4 string'
       expect(fingering.positions[3].fretNumber).toBe(1); // 'finger #4 fret'
-      expect(fingering.positions[3].intervalClass).toBe(
-        Interval.fromString('M3'),
-      );
+      expect(fingering.positions[3].intervalClass).toBe(Intervals.M3);
 
       expect(fingering.positions[4].stringNumber).toBe(4); // 'finger #5 string'
       expect(fingering.positions[4].fretNumber).toBe(0); // 'finger #5 fret'
-      expect(fingering.positions[4].intervalClass).toBe(
-        Interval.fromString('P5'),
-      );
+      expect(fingering.positions[4].intervalClass).toBe(Intervals.P5);
 
       expect(fingering.positions[5].stringNumber).toBe(5); // 'finger #6 string'
       expect(fingering.positions[5].fretNumber).toBe(0); // 'finger #6 fret'
-      expect(fingering.positions[5].intervalClass).toBe(
-        Interval.fromString('P1'),
-      );
+      expect(fingering.positions[5].intervalClass).toBe(Intervals.P1);
     });
 
     it('should have no barres', () => {
