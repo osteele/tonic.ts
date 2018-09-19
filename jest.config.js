@@ -1,12 +1,11 @@
 module.exports = {
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest'
-  },
-  testPathIgnorePatterns: ['/node_modules/'],
+  // Enable TypeScript
+  moduleFileExtensions: ['js', 'jsx', 'json', 'node', 'ts', 'tsx'],
+  transform: { '^.+\\.tsx?$': 'ts-jest' },
+  // Where are the test files?
   testMatch: [
     '**/__tests__/**/*.(js|ts)?(x)',
     '**/?(*.)+(spec|test).(js|ts)?(x)'
   ],
-  testURL: 'http://localhost/'
+  testPathIgnorePatterns: ['./dist/', '/node_modules/']
 };

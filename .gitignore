@@ -2,3 +2,4 @@ node_modules
 dist
 docs/api
 *.log
+test/docs.test.ts
