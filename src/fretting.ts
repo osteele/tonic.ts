@@ -11,14 +11,14 @@ import { Note } from './Note';
 //
 
 // TODO: add options for strumming vs. fingerstyle; muting; stretch
-interface FrettingOptions {
-  filter: boolean;
+export interface FrettingOptions {
   /** If true (the default), fingerings are limited to those that require no
    * more than four fingers.
    *
    * TODO: this optional probably doesn't make any sense. If it does it needs a
    * better name.
    */
+  filter: boolean;
   /** If true, fingerings with muted medial or treble
    * strings are rejected.
    *
