@@ -1,6 +1,14 @@
 import * as fs from 'fs';
 import * as process from 'process';
 
+const PREAMBLE = `// DO NOTE EDIT THIS FILE!
+//
+// This file is generated from $(files).
+// You will lose your changes.
+
+// tslint:disable:ordered-imports quotemark
+`;
+
 function updateImports(src: string): string {
   src = src.replace(/^import (.+) from 'tonic'/gm, "import $1 from '../src'");
   src = src.replace(/^$/m, "import { stringify } from './docTestHelpers';\n");
@@ -17,7 +25,8 @@ function replaceArrows(src: string): string {
   return src;
 }
 
-const content: string = fs.readFileSync('./README.md', 'utf8');
+const SOURCE_PATH = './README.md';
+const content: string = fs.readFileSync(SOURCE_PATH, 'utf8');
 const m = content.match(/^\s*```\s*typescript\n(.+?)```/ims);
 
 if (m === null) {
@@ -33,11 +42,13 @@ src = src.replace(
   `$1
 
 describe('README', () => {
-  it('checks out', () => {
+  describe('fenced code block #1', () => {
+    it('matches output', () => {
 $2
+    });
   });
 });\n`,
 );
-src = '// tslint:disable:ordered-imports quotemark\n' + src;
-// src += fs.readFileSync('./test/docTestHelpers.ts', 'utf8');
+src = PREAMBLE.replace('$(files)', SOURCE_PATH) + src;
 fs.writeFileSync('./test/docs.test.ts', src);
+console.log(`Wrote ${SOURCE_PATH}`);
