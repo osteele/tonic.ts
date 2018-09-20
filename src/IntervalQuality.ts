@@ -102,8 +102,21 @@ function widen(
 }
 
 export namespace IntervalQuality {
-  export function fromSemitones(n: number): IntervalQuality | null {
-    return semitoneQualities[n + 2];
+  export function fromString(name: string): IntervalQuality | null {
+    return abbrToQuality[name] || nameToQuality[name.toLowerCase()];
+  }
+
+  export function toString(q: IntervalQuality, fullName = false): string {
+    return (fullName ? qualityToName : qualityToAbbr)[q];
+  }
+
+  /** If `n === 0`, the value of `natural` is returned. */
+  export function fromSemitones(
+    n: number,
+    natural?: IntervalQuality,
+  ): IntervalQuality | null {
+    const q = semitoneQualities[n + 2];
+    return (q === null ? natural : q) || null;
   }
 
   /** The signed distance in semitones from the diatonic note.
@@ -115,12 +128,22 @@ export namespace IntervalQuality {
     return index >= 0 ? index - 2 : 0;
   }
 
-  export function fromString(name: string): IntervalQuality | null {
-    return abbrToQuality[name] || nameToQuality[name.toLowerCase()];
-  }
-
-  export function toString(q: IntervalQuality, fullName = false): string {
-    return (fullName ? qualityToName : qualityToAbbr)[q];
+  export function add(
+    a: IntervalQuality,
+    b: IntervalQuality,
+  ): IntervalQuality | null {
+    const table: { [_: string]: IntervalQuality } = {
+      MM: IntervalQuality.Augmented,
+      MP: IntervalQuality.Major,
+      PP: IntervalQuality.Perfect,
+      Pm: IntervalQuality.Minor,
+      mm: IntervalQuality.Diminished,
+    };
+    const key = [qualityToAbbr[a], qualityToAbbr[b]].sort().join('');
+    const q = table[key];
+    return q !== undefined
+      ? q
+      : fromSemitones(toSemitones(a) + toSemitones(b), IntervalQuality.Perfect);
   }
 
   export function augment(
@@ -144,18 +167,18 @@ export namespace IntervalQuality {
   }
 
   /** The closest major or minor quality. */
-  export function closestNatural(q: IntervalQuality): IntervalQuality | null {
+  export function closestNatural(q: IntervalQuality, isPerfect?: boolean): IntervalQuality {
     switch (q) {
+      case IntervalQuality.Perfect:
+        return IntervalQuality.Perfect;
       case IntervalQuality.DoublyDiminished:
       case IntervalQuality.Diminished:
       case IntervalQuality.Minor:
-        return IntervalQuality.Minor;
+        return isPerfect ? IntervalQuality.Perfect : IntervalQuality.Minor;
       case IntervalQuality.DoublyAugmented:
       case IntervalQuality.Augmented:
       case IntervalQuality.Major:
-        return IntervalQuality.Major;
-      default:
-        return null;
+        return isPerfect ? IntervalQuality.Perfect : IntervalQuality.Major;
     }
   }
 }

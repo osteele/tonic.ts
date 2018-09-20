@@ -1,5 +1,9 @@
 import * as _ from 'lodash';
 import * as intervals from './internal/intervalParser';
+import {
+  qualityDegreeSemitones,
+  semitoneQualities,
+} from './internal/intervalParser';
 import * as PitchClassParser from './internal/pitchClassParser';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
@@ -44,6 +48,19 @@ export class Interval {
   /** Semitones doesn't include narrowing or widening by quality. */
   public static fromSemitones(semitones: number): Interval {
     return new Interval(semitones, intervals.semitoneQualities[semitones % 12]);
+  }
+
+  public static fromNumber(num: number, quality: IntervalQuality): Interval {
+    const n = 1 + ((num - 1) % 8);
+    const isPerfect = semitoneQualities[n] === IntervalQuality.Perfect;
+    const pq = IntervalQuality.closestNatural(quality, isPerfect);
+    const semitones = qualityDegreeSemitones.get(pq)!.get(n);
+    if (semitones === undefined) {
+      throw new Error(
+        `Not an interval: ${IntervalQuality.toString(quality)}${num}`,
+      );
+    }
+    return new Interval(semitones + 12 * Math.floor((num - 1) / 8), quality);
   }
 
   public static fromString(name: string): Interval {
@@ -183,6 +200,19 @@ export class Interval {
   }
 
   public add(other: Interval): Interval {
+    if (this.number !== null && other.number !== null) {
+      const num = this.number + other.number - 1;
+      let q = IntervalQuality.add(this.quality!, other.quality!);
+      if (
+        q === IntervalQuality.Perfect &&
+        [1, 4, 5].indexOf(1 + ((num - 1) % 8)) < 0
+      ) {
+        q = IntervalQuality.Major;
+      }
+      if (q !== null) {
+        return Interval.fromNumber(num, q);
+      }
+    }
     return Interval.fromSemitones(
       this.naturalSemitones + other.naturalSemitones,
     );
@@ -210,7 +240,7 @@ export namespace Intervals {
   export const P8 = Interval.fromString('P8');
 
   // augmented and diminished intervals
-  // TODO:
+  // FIXME:
   // export const a1 = Interval.fromString('a1');
   export const d2 = Interval.fromString('d2');
   export const A2 = Interval.fromString('A2');

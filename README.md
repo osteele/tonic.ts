@@ -11,12 +11,14 @@ JavaScript, there’s other alternatives (link TBD) for that.
 
 ## Features
 
-* **Music theory types**: Note, Interval, Chord, Scale, PitchClass. See the [API documentation](http://osteele.github.io/tonic.ts/).
-* **Guitar chord calculator** computes fingerings for guitar chords (and chords on other fretted instruments).
+* **Music theory types**: Note, Interval, Chord, Scale, PitchClass. See the [API
+  documentation](http://osteele.github.io/tonic.ts/).
+* **Guitar chord calculator** computes fingerings for guitar chords (and chords
+  on other fretted instruments).
 * **Graphics package** draw chord diagrams and [pitch
-constellations](https://en.wikipedia.org/wiki/Chromatic_circle#Pitch_constellation).
+  constellations](https://en.wikipedia.org/wiki/Chromatic_circle#Pitch_constellation).
   You can see the latter at
-[Fingerboard](http://osteele.github.io/fingerboard/).
+  [Fingerboard](http://osteele.github.io/fingerboard/).
 
 ## Examples
 
@@ -58,8 +60,8 @@ Intervals.M3.quality; // => 'M'
 // Interval arithmetic
 Intervals.M3.add(Intervals.m3); // ~> P5
 Intervals.m3.add(Intervals.M3); // ~> P5
-// Intervals.m3.add(Intervals.m3); // ~> d5
-// Intervals.M3.add(Intervals.M3); // ~> A5
+Intervals.m3.add(Intervals.m3); // ~> d5
+Intervals.M3.add(Intervals.M3); // ~> A5
 
 Note.fromString('C4').add(Intervals.M3); // ~> E4
 // Note.fromString('C4').add(Intervals.A3); // ~> E♯4

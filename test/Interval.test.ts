@@ -183,9 +183,21 @@ describe('Interval', () => {
     expect(Interval.fromString('P1')).not.toBe(Intervals.M2);
   });
 
-  describe('add', () =>
-    it('should add to an interval', () =>
-      expect(Intervals.m2.add(Intervals.M2).semitones).toBe(3)));
+  describe.only('add', () => {
+    it('should add an interval', () => {
+      const { m2, M2, d3, m3, M3, A3, P4, d5, P5, A5, TT } = Intervals;
+
+      expect(m2.add(m2)).toBe(d3);
+      expect(m2.add(M2)).toBe(M3);
+      expect(M2.add(m2)).toBe(M3);
+      expect(M2.add(M2)).toBe(A3);
+
+      expect(m3.add(m3)).toBe(d5);
+      expect(m3.add(M3)).toBe(P5);
+      expect(M3.add(m3)).toBe(P5);
+      expect(M3.add(M3)).toBe(A5);
+    });
+  });
 
   describe('between', () => {
     const E4 = Note.fromString('E4');

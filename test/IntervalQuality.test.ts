@@ -20,6 +20,33 @@ describe('IntervalQuality', () => {
     expect(IQ.toSemitones(null)).toBe(0);
   });
 
+  it('add', () => {
+    expect(IQ.add(IQ.Minor, IQ.Major)).toBe(IQ.Perfect);
+    expect(IQ.add(IQ.Major, IQ.Minor)).toBe(IQ.Perfect);
+    expect(IQ.add(IQ.Minor, IQ.Minor)).toBe(IQ.Diminished);
+    expect(IQ.add(IQ.Major, IQ.Major)).toBe(IQ.Augmented);
+
+    expect(IQ.add(IQ.Minor, IQ.Perfect)).toBe(IQ.Minor);
+    expect(IQ.add(IQ.Perfect, IQ.Minor)).toBe(IQ.Minor);
+    expect(IQ.add(IQ.Major, IQ.Perfect)).toBe(IQ.Major);
+    expect(IQ.add(IQ.Perfect, IQ.Major)).toBe(IQ.Major);
+    expect(IQ.add(IQ.Perfect, IQ.Perfect)).toBe(IQ.Perfect);
+
+    expect(IQ.add(IQ.Diminished, IQ.Major)).toBe(IQ.Diminished);
+    expect(IQ.add(IQ.Diminished, IQ.Minor)).toBe(IQ.Diminished);
+    expect(IQ.add(IQ.Diminished, IQ.Perfect)).toBe(IQ.Diminished);
+    expect(IQ.add(IQ.Diminished, IQ.Diminished)).toBe(IQ.DoublyDiminished);
+    expect(IQ.add(IQ.Diminished, IQ.DoublyDiminished)).toBe(null);
+
+    expect(IQ.add(IQ.Augmented, IQ.Major)).toBe(IQ.Augmented);
+    expect(IQ.add(IQ.Augmented, IQ.Minor)).toBe(IQ.Augmented);
+    expect(IQ.add(IQ.Augmented, IQ.Perfect)).toBe(IQ.Augmented);
+    expect(IQ.add(IQ.Augmented, IQ.Augmented)).toBe(IQ.DoublyAugmented);
+
+    expect(IQ.add(IQ.Augmented, IQ.Diminished)).toBe(IQ.Perfect);
+    expect(IQ.add(IQ.DoublyAugmented, IQ.DoublyAugmented)).toBe(null);
+  });
+
   it('inverse', () => {
     expect(IQ.inverse(IQ.Major)).toBe(IQ.Minor);
     expect(IQ.inverse(IQ.Minor)).toBe(IQ.Major);

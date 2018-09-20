@@ -32,12 +32,43 @@ export const longIntervalNames = [
   'Octave',
 ];
 
-// Major scale degree indexed by pitch class. The tritone has a null degree.
+/** Interval number / major scale degree, indexed by pitch class.
+ *
+ * The tritone has a null degree.
+ */
 export const semitoneDegrees: Array<number | null> = shorthandNames
   .map((s) => s.match(/\d+/))
   .map((m) => m && Number(m[0]));
 
-// Interval qualities indexed by pitch class. The tritone has a null quality.
+const diatonicQualities = [
+  IntervalQuality.Minor,
+  IntervalQuality.Major,
+  IntervalQuality.Perfect,
+];
+
+// quality -> number -> semitones
+export const qualityDegreeSemitones = new Map<
+  IntervalQuality,
+  Map<number, number>
+>(
+  diatonicQualities.map(
+    (q) =>
+      [
+        q,
+        new Map<number, number | null>(shorthandNames
+          .map(
+            (s, i) =>
+              s[0] === IntervalQuality.toString(q) ? [Number(s[1]), i] : null,
+          )
+          .filter(Boolean) as Array<[number, number]>),
+      ] as [IntervalQuality, Map<number, number>],
+  ),
+);
+
+/** Interval qualities indexed by pitch class.
+ *
+ * The tritone has a null quality.
+ */
 export const semitoneQualities: Array<IntervalQuality | null> = shorthandNames
   .map((s) => s.match(/[AMPmd]/))
   .map((m) => m && IntervalQuality.fromString(m[0]));
