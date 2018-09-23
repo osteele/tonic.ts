@@ -52,7 +52,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn format && yarn check && yarn test --bail",
+      "pre-commit": "! git grep -F '.only' test && yarn format && yarn check && yarn test --bail",
       "pre-push": "yarn lint && yarn check && yarn test"
     }
   }
