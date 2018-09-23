@@ -1,0 +1,274 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>tonic.ts</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">tonic.ts</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> tonic.ts</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<h1 id="tonic-ts">Tonic.ts</h1>
+				<p><a href="https://travis-ci.org/osteele/tonic.ts"><img src="https://travis-ci.org/osteele/tonic.ts.svg?branch=master" alt="Build Status"></a></p>
+				<p><a href="https://github.com/osteele/tonic.ts">Tonic.ts</a> is a TypeScript library that provides APIs for music theory, drawing
+				pitch constellation diagrams, and calculating guitar chord fingerings.</p>
+				<h2 id="classes">Classes</h2>
+				<ul>
+					<li><a href="classes/note.html">Note</a> represents musical notes such as &quot;E4&quot; and &quot;F♯5&quot;. It converts between
+					string and instance representations.</li>
+					<li><a href="classes/pitchclass.html">PitchClass</a> represents a pitch class: a musical pitch modulo its octave. For
+					example, the pitch class &quot;E&quot; represents &quot;E0&quot;, &quot;E1&quot;, &quot;E2&quot;, etc.</li>
+					<li><a href="interfaces/pitchlike.html">PitchLike</a> is an interface that includes <a href="classes/note.html">Note</a> and <a href="classes/pitchclass.html">PitchClass</a>. <a href="classes/chord.html">Chord</a>
+						and <a href="classes/key.html">Key</a> (below) can be specialized to either a pitch or a pitch
+					class; this interface defines their common type.</li>
+					<li><a href="classes/interval.html">Interval</a> represents a musical interval, such as a minor third or a perfect
+						fifth, between two notes. The difference between two pitch-like instances of the same type is an
+					Interval. A pitch-like instance can be transposed by an interval.</li>
+					<li>[[Chord<PitchLike>]] is a set of intervals from a root. A chord has a tonic, a
+							a (chord quality), and an inversion. From these can be derived a set of
+							<a href="classes/note.html">Note</a>s (or pitch classes), and a name. For example, &quot;E Major&quot; and &quot;C Minor&quot;
+					name chords.</li>
+					<li><a href="classes/chordquality.html">ChordQuality</a> represents the qualities of a chord&#39;s component intervals,
+						its suspensions, and additions. The qualities named by &quot;Major&quot;, &quot;Minor&quot;, and
+					&quot;Dom7&quot; are examples of chord qualities.</li>
+					<li><a href="classes/scale.html">Scale</a> is a named sequence of intervals from an (unspecified) tonic. For
+					example, &quot;Diatonic Major&quot; names a scale.</li>
+					<li><a href="classes/key.html">Key</a> is a scale that starts at a specific node or pitch
+					class.</li>
+				</ul>
+				<p><a href="classes/chord.html">Chord</a> and <a href="classes/key.html">Key</a> are generic classes, that can be instantiated at
+				either <a href="classes/note.html">Note</a> or <a href="classes/pitchclass.html">PitchClass</a>.</p>
+				<p>A [[ChordClass]] is to a <a href="classes/chord.html">Chord</a> (and its <em>root</em>) as a <a href="classes/scale.html">Scale</a> is to a
+					<a href="classes/key.html">Key</a> (and its <em>tonic</em>). The class name hide this symmetry, but
+				they&#39;re the names from the domain of music theory.</p>
+				<p>The API makes use of TypeScript generics. Although it can be used from straight
+				JavaScript, there&#39;s better alternatives (link TBD) for that.</p>
+				<h3 id="guitar-chord-calculator">Guitar Chord Calculator</h3>
+				<p><a href="globals.html#frettingfor">frettingFor</a> and <a href="globals.html#allfrettings">allFrettings</a> find <a href="https://en.wikipedia.org/wiki/Guitar_chord">guitar chords</a>
+				(or chords on other polyphonic fretted stringed instruments) for a chord.</p>
+				<p>Chords are filtered and sorted according to voicing and play-ability metrics:
+				number of open strings, distance between closed frets, presence of barres.</p>
+				<h2 id="graphics-module">Graphics Module</h2>
+				<p>The <code>diagram</code> module contains functions to render chord diagrams and <a href="https://en.wikipedia.org/wiki/Chromatic_circle#Pitch_constellation">pitch
+				constellations</a>.</p>
+				<p>These functions haven’t been tested since this package was ported from
+				CoffeeScript.</p>
+				<h2 id="license">License</h2>
+				<p>MIT</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/intervals.html">Intervals</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/intervalquality.html" class="tsd-kind-icon">Interval<wbr>Quality</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/chord.html" class="tsd-kind-icon">Chord</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/chordquality.html" class="tsd-kind-icon">Chord<wbr>Quality</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/frettedchord.html" class="tsd-kind-icon">Fretted<wbr>Chord</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/frettedinstrument.html" class="tsd-kind-icon">Fretted<wbr>Instrument</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/instrument.html" class="tsd-kind-icon">Instrument</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/interval.html" class="tsd-kind-icon">Interval</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/key.html" class="tsd-kind-icon">Key</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/note.html" class="tsd-kind-icon">Note</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/pitchclass.html" class="tsd-kind-icon">Pitch<wbr>Class</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/scale.html" class="tsd-kind-icon">Scale</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/stringinstrument.html" class="tsd-kind-icon">String<wbr>Instrument</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/barre.html" class="tsd-kind-icon">Barre</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/chordfret.html" class="tsd-kind-icon">Chord<wbr>Fret</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/chordqualityoptions.html" class="tsd-kind-icon">Chord<wbr>Quality<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/frettingoptions.html" class="tsd-kind-icon">Fretting<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/pitchlike.html" class="tsd-kind-icon">Pitch<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/stringfret.html" class="tsd-kind-icon">String<wbr>Fret</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#allfrettings" class="tsd-kind-icon">all<wbr>Frettings</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#asinterval" class="tsd-kind-icon">as<wbr>Interval</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#aspitchlike" class="tsd-kind-icon">as<wbr>Pitch<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#chordfromromannumeral" class="tsd-kind-icon">chord<wbr>From<wbr>Roman<wbr>Numeral</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#frettingfor" class="tsd-kind-icon">fretting<wbr>For</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#intervalclassdifference" class="tsd-kind-icon">interval<wbr>Class<wbr>Difference</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#parsepitchlike" class="tsd-kind-icon">parse<wbr>Pitch<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#instruments" class="tsd-kind-icon">Instruments</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
