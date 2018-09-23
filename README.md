@@ -22,7 +22,7 @@ JavaScript, there’s other alternatives (link TBD) for that.
 
 ## Examples
 
-(The commented-out lines don't yet work.)
+\[The commented-out lines don't yet work.\]
 
 ```typescript
 import { Chord, ChordQuality, Interval, Intervals, Key, Note, Scale } from 'tonic';
@@ -34,15 +34,15 @@ Note.fromString('C♯4') instanceof Note; // => true
 Note.fromString('C♭4') instanceof Note; // => true
 
 // Unicode and ASCII sharps and flats
-Note.fromString('C#4') === Note.fromString('C#4'); // => true
-Note.fromString('Cb4') === Note.fromString('Cb4'); // => true
+// Note.fromString('C#4') === Note.fromString('C♯4'); // => true
+// Note.fromString('Cb4') === Note.fromString('C♭4'); // => true
 
 // Enharmonic equivalents
 Note.fromString('E♯4').midiNumber === Note.fromString('F4').midiNumber; // => true
 Note.fromString('E4').midiNumber === Note.fromString('F♭4').midiNumber; // => true
 Note.fromString('E♯4') === Note.fromString('F4'); // => false
 Note.fromString('E4') === Note.fromString('F♭4'); // => false
-// Note.fromString('C4').octave; // => 5
+Note.fromString('C4').octave; // => 4
 Note.fromString('C4').midiNumber; // => 60
 Note.fromMidiNumber(60); // ~> C4
 
@@ -64,8 +64,8 @@ Intervals.m3.add(Intervals.m3); // ~> d5
 Intervals.M3.add(Intervals.M3); // ~> A5
 
 Note.fromString('C4').add(Intervals.M3); // ~> E4
-// Note.fromString('C4').add(Intervals.A3); // ~> E♯4
-// Note.fromString('C4').add(Intervals.d4); // ~> F♭4
+Note.fromString('C4').add(Intervals.A3); // ~> E♯4
+Note.fromString('C4').add(Intervals.d4); // ~> F♭4
 Note.fromString('C4').add(Intervals.P4); // ~> F4
 
 Interval.between(Note.fromString('C4'), Note.fromString('C4')); // ~> P1

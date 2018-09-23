@@ -13,8 +13,7 @@ describe('Note', () => {
 
   describe('fromString', () => {
     it('should parse scientific notation', () => {
-      // FIXME:
-      // expect(Note.fromString('C-1').midiNumber).toBe(0);
+      expect(Note.fromString('C-1').midiNumber).toBe(0);
       expect(Note.fromString('C0').midiNumber).toBe(12);
       expect(Note.fromString('C1').midiNumber).toBe(24);
       expect(Note.fromString('C4').midiNumber).toBe(60);
@@ -40,7 +39,7 @@ describe('Note', () => {
       expect(Note.fromString('C4')).not.toBe(Note.fromString('D4'));
       // FIXME:
       // expect(Note.fromString('C1')).toBe(Note.fromString('C,'));
-      expect(Note.fromString('C#4')).not.toBe(Note.fromString('Db4'));
+      expect(Note.fromString('C♯4')).not.toBe(Note.fromString('Db4'));
     });
   });
 
@@ -58,11 +57,74 @@ describe('Note', () => {
     expect(Note.fromMidiNumber(127).toString()).toBe('G9');
   });
 
-  it('add', () => {
+  describe('fromDegree', () => {
+    expect(Note.fromDegree(1).name).toBe('C4');
+    expect(Note.fromDegree(2).name).toBe('D4');
+    expect(Note.fromDegree(7).name).toBe('B4');
+    expect(Note.fromDegree(1, -3).name).toBe('C♭𝄫4');
+    expect(Note.fromDegree(1, -2).name).toBe('C𝄫4');
+    expect(Note.fromDegree(1, -1).name).toBe('C♭4');
+    expect(Note.fromDegree(1, 1).name).toBe('C♯4');
+    expect(Note.fromDegree(1, 2).name).toBe('C𝄪4');
+    expect(Note.fromDegree(1, 3).name).toBe('C♯𝄪4');
+    expect(Note.fromDegree(1, 0, 0).name).toBe('C0');
+
+    expect(Note.fromDegree(1).midiNumber).toBe(60);
+    expect(Note.fromDegree(1, 1).midiNumber).toBe(61);
+    expect(Note.fromDegree(2).midiNumber).toBe(62);
+    expect(Note.fromDegree(1, 0, 0).midiNumber).toBe(12);
+  });
+
+  describe('degree', () => {
+    expect(Note.fromString('C4').degree).toBe(1);
+    expect(Note.fromString('D4').degree).toBe(2);
+    expect(Note.fromString('B4').degree).toBe(7);
+    expect(Note.fromString('C0').degree).toBe(1);
+  });
+
+  describe('accidentals', () => {
+    expect(Note.fromString('C𝄫4').accidentals).toBe(-2);
+    expect(Note.fromString('C♭4').accidentals).toBe(-1);
+    expect(Note.fromString('C4').accidentals).toBe(0);
+    expect(Note.fromString('C♯4').accidentals).toBe(1);
+    expect(Note.fromString('C𝄪4').accidentals).toBe(2);
+  });
+
+  describe('octave', () => {
+    expect(Note.fromString('C4').octave).toBe(4);
+    expect(Note.fromString('B4').octave).toBe(4);
+    expect(Note.fromString('C5').octave).toBe(5);
+    expect(Note.fromString('C0').octave).toBe(0);
+  });
+
+  describe('add', () => {
+    const { P1, M2, d3, m3, M3, A3, TT, P8 } = Intervals;
     const C4 = Note.fromString('C4');
-    expect(C4.add(Intervals.P1).toString()).toBe('C4');
-    expect(C4.add(Intervals.M2).toString()).toBe('D4');
-    expect(C4.add(Intervals.P8).toString()).toBe('C5');
+    // tslint:disable-next-line:variable-name
+    const Csh = Note.fromString('C♯4');
+
+    it('adds simple intervals', () => {
+      expect(C4.add(P1).toString()).toBe('C4');
+      expect(C4.add(M2).toString()).toBe('D4');
+      expect(C4.add(M3).toString()).toBe('E4');
+      expect(C4.add(TT).toString()).toBe('F♯4');
+      expect(C4.add(P8).toString()).toBe('C5');
+
+      expect(C4.add(m3).toString()).toBe('E♭4');
+      expect(C4.add(d3).toString()).toBe('E𝄫4');
+      expect(C4.add(A3).toString()).toBe('E♯4');
+
+      expect(Csh.add(P1).toString()).toBe('C♯4');
+      expect(Csh.add(M2).toString()).toBe('D♯4');
+      expect(Csh.add(M3).toString()).toBe('E♯4');
+      expect(Csh.add(P8).toString()).toBe('C♯5');
+
+      expect(Csh.add(m3).toString()).toBe('E4');
+      expect(Csh.add(d3).toString()).toBe('E♭4');
+      expect(Csh.add(A3).toString()).toBe('E𝄪4');
+    });
+
+    it.skip('adds compound intervals', () => null);
   });
 
   it('transposeBy', () => {

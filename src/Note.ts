@@ -1,4 +1,6 @@
+import { semitonesToAccidentalString } from './internal/accidentals';
 import * as PitchClassParser from './internal/pitchClassParser';
+import { accidentalsToSemitones } from './internal/pitchClassParser';
 import { Interval } from './Interval';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
@@ -19,6 +21,14 @@ export class Note implements PitchLike {
     return new Note(midiNumber);
   }
 
+  public static fromDegree(degree: number, accidentals = 0, octave = 4): Note {
+    const d0 = degree - 1;
+    const midiNumber = 12 * (octave + 1) + Note.noteSemitones[d0] + accidentals;
+    const name =
+      'CDEFGAB'[d0] + semitonesToAccidentalString(accidentals) + octave;
+    return new Note(midiNumber, name);
+  }
+
   /** Return a note specified in [scientific pitch
    * notation](https://en.wikipedia.org/wiki/Scientific_pitch_notation) or
    * [Helmholtz pitch
@@ -36,6 +46,8 @@ export class Note implements PitchLike {
   // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
   private static readonly instances = new Map<string, Note>();
 
+  private static noteSemitones = [0, 2, 4, 5, 7, 9, 11];
+
   public readonly name: string;
   private constructor(readonly midiNumber: number, name?: string) {
     this.name = name || PitchClassParser.toScientificNotation(midiNumber);
@@ -52,8 +64,32 @@ export class Note implements PitchLike {
     return this.name;
   }
 
-  public add(other: Interval): Note {
-    return new Note(this.midiNumber + other.semitones);
+  get degree(): number {
+    const letter = this.name.slice(0, 1).toUpperCase();
+    return 'CDEFGAB'.indexOf(letter) + 1;
+  }
+
+  get accidentals(): number {
+    const m = this.name.toUpperCase().match(/^([A-G])([#b♯♭𝄪𝄫]*)(-?\d+)/)!;
+    return accidentalsToSemitones(m[2]);
+  }
+
+  get octave(): number {
+    return Math.floor(this.midiNumber / 12) - 1;
+  }
+
+  public add(interval: Interval): Note {
+    const semitones = this.midiNumber + interval.semitones;
+    const d0 = this.degree - 1 + interval.number! - 1;
+    if (d0 < 0) {
+      return Note.fromMidiNumber(semitones);
+    }
+    const letter = 'CDEFGAB'[d0 % 7];
+    const octave = Math.floor(semitones / 12) - 1;
+    const naturalSemitones = 12 * (octave + 1) + Note.noteSemitones[d0 % 7];
+    // return [semitones, d0, letter, octave, naturalSemitones];
+    const acc = semitonesToAccidentalString(semitones - naturalSemitones);
+    return new Note(semitones, `${letter}${acc}${octave}`);
   }
 
   public asPitch(): Note {

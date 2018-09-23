@@ -183,7 +183,7 @@ describe('Interval', () => {
     expect(Interval.fromString('P1')).not.toBe(Intervals.M2);
   });
 
-  describe.only('add', () => {
+  describe('add', () => {
     it('should add an interval', () => {
       const { m2, M2, d3, m3, M3, A3, P4, d5, P5, A5, TT } = Intervals;
 

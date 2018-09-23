@@ -34,19 +34,25 @@ export function asNoteName(
   return name;
 }
 
+export function accidentalsToSemitones(accidentals: string): number {
+  let n = 0;
+  for (const c of accidentals) {
+    n += accidentalValues[c];
+  }
+  return n;
+}
+
 export function fromScientificNotation(name: string): PitchClassNumber {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(\d+)$/i);
+  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(-?\d+)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
   }
   const [naturalName, accidentals, octave] = match.slice(1);
-  let pitch =
+  return (
     SharpNoteNames.indexOf(naturalName.toUpperCase()) +
-    12 * (1 + Number(octave));
-  for (const c of accidentals) {
-    pitch += accidentalValues[c];
-  }
-  return pitch;
+    accidentalsToSemitones(accidentals) +
+    12 * (1 + Number(octave))
+  );
 }
 
 export function fromHelmholtzNotation(name: string): PitchClassNumber {
