@@ -26,6 +26,7 @@ function replaceArrows(src: string): string {
 }
 
 const SOURCE_PATH = './README.md';
+const OUT_FILE = './test/docs.test.ts';
 const content: string = fs.readFileSync(SOURCE_PATH, 'utf8');
 const m = content.match(/^\s*```\s*typescript\n(.+?)```/ims);
 
@@ -50,5 +51,5 @@ $2
 });\n`,
 );
 src = PREAMBLE.replace('$(files)', SOURCE_PATH) + src;
-fs.writeFileSync('./test/docs.test.ts', src);
-console.log(`Wrote ${SOURCE_PATH}`);
+fs.writeFileSync(OUT_FILE, src);
+console.log(`Wrote ${OUT_FILE}`);

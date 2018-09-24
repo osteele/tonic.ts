@@ -42,32 +42,41 @@ export function accidentalsToSemitones(accidentals: string): number {
   return n;
 }
 
-export function fromScientificNotation(name: string): PitchClassNumber {
+export function fromScientificNotation(
+  name: string,
+): { midiNumber: number; accidentals: number } {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(-?\d+)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
   }
   const [naturalName, accidentals, octave] = match.slice(1);
-  return (
-    SharpNoteNames.indexOf(naturalName.toUpperCase()) +
-    accidentalsToSemitones(accidentals) +
-    12 * (1 + Number(octave))
-  );
+  return {
+    accidentals: accidentalsToSemitones(accidentals),
+    midiNumber:
+      SharpNoteNames.indexOf(naturalName.toUpperCase()) +
+      accidentalsToSemitones(accidentals) +
+      12 * (1 + Number(octave)),
+  };
 }
 
-export function fromHelmholtzNotation(name: string): PitchClassNumber {
-  const match = name.match(/^([A-G][#♯b♭𝄪𝄫]*)(,*)('*)$/i);
+export function fromHelmholtzNotation(
+  name: string,
+): { midiNumber: number; accidentals: number } {
+  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(,*)('*)$/i);
   if (!match) {
     throw new Error(`“${name}” is not in Helmholtz notation`);
   }
-  const [pitchClassName, commas, apostrophes] = match.slice(1);
-  const pitchClassNumber = fromString(pitchClassName, false);
+  const [pitchClassName, accidentals, commas, apostrophes] = match.slice(1);
+  const pitchClassNumber = fromString(pitchClassName + accidentals, false);
   const octave =
     4 -
     Number(pitchClassName === pitchClassName.toUpperCase()) -
     commas.length +
     apostrophes.length;
-  return 12 * octave + pitchClassNumber;
+  return {
+    accidentals: accidentalsToSemitones(accidentals),
+    midiNumber: 12 * octave + pitchClassNumber,
+  };
 }
 
 export function toScientificNotation(midiNumber: number): string {

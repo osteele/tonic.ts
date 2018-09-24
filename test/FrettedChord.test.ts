@@ -6,7 +6,7 @@ describe('allFrettings', () => {
   const aMinor = allFrettings('A Major');
 
   it('should have the expected length', () => {
-    expect(_.map(eMajor, 'ascii')).toHaveLength(22);
+    expect(_.map(eMajor, 'ascii')).toHaveLength(16);
     expect(_.map(aMinor, 'ascii')).toHaveLength(11);
   });
 

@@ -34,8 +34,8 @@ Note.fromString('C♯4') instanceof Note; // => true
 Note.fromString('C♭4') instanceof Note; // => true
 
 // Unicode and ASCII sharps and flats
-// Note.fromString('C#4') === Note.fromString('C♯4'); // => true
-// Note.fromString('Cb4') === Note.fromString('C♭4'); // => true
+Note.fromString('C#4') === Note.fromString('C♯4'); // => true
+Note.fromString('Cb4') === Note.fromString('C♭4'); // => true
 
 // Enharmonic equivalents
 Note.fromString('E♯4').midiNumber === Note.fromString('F4').midiNumber; // => true

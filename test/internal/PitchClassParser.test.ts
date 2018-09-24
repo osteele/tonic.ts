@@ -123,40 +123,6 @@ describe('PitchClassParser', () => {
         'D♭/\nC♯',
       ));
   });
-
-  describe('fromScientificNotation', () => {
-    it('should parse the pitch class', () => {
-      expect(PitchClassParser.fromScientificNotation('C4')).toBe(60);
-      expect(PitchClassParser.fromScientificNotation('D4')).toBe(62);
-      expect(PitchClassParser.fromScientificNotation('E4')).toBe(64);
-      expect(PitchClassParser.fromScientificNotation('F4')).toBe(65);
-      expect(PitchClassParser.fromScientificNotation('G4')).toBe(67);
-      expect(PitchClassParser.fromScientificNotation('A4')).toBe(69);
-      expect(PitchClassParser.fromScientificNotation('B4')).toBe(71);
-    });
-
-    it('should parse the octave', () => {
-      expect(PitchClassParser.fromScientificNotation('C1')).toBe(24);
-      expect(PitchClassParser.fromScientificNotation('C2')).toBe(36);
-      expect(PitchClassParser.fromScientificNotation('C3')).toBe(48);
-      expect(PitchClassParser.fromScientificNotation('C4')).toBe(60);
-      expect(PitchClassParser.fromScientificNotation('C5')).toBe(72);
-      expect(PitchClassParser.fromScientificNotation('C6')).toBe(84);
-    });
-
-    it('should parse accidentals', () => {
-      expect(PitchClassParser.fromScientificNotation('C#4')).toBe(61);
-      expect(PitchClassParser.fromScientificNotation('C♯4')).toBe(61);
-      expect(PitchClassParser.fromScientificNotation('Cb4')).toBe(59);
-      expect(PitchClassParser.fromScientificNotation('C♭4')).toBe(59);
-      expect(PitchClassParser.fromScientificNotation('C##4')).toBe(62);
-      expect(PitchClassParser.fromScientificNotation('C♯♯4')).toBe(62);
-      expect(PitchClassParser.fromScientificNotation('C𝄪4')).toBe(62);
-      expect(PitchClassParser.fromScientificNotation('Cbb4')).toBe(58);
-      expect(PitchClassParser.fromScientificNotation('C♭♭4')).toBe(58);
-      expect(PitchClassParser.fromScientificNotation('C𝄫4')).toBe(58);
-    });
-  });
 });
 
 describe('pitchToPitchClass', () => {

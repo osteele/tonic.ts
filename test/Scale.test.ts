@@ -64,7 +64,8 @@ describe('Key', () => {
       expect(Key.fromString('E7').tonic).toBeInstanceOf(Note);
 
       expect(Key.fromString('E7 Diatonic Major').tonic.name).toBe('E7');
-      expect(Key.fromString('E♯7 Diatonic Major').tonic.name).toBe('E♯7');
+      expect(Key.fromString('F7 Diatonic Major').tonic.name).toBe('F7');
+      expect(Key.fromString('F♯7 Diatonic Major').tonic.name).toBe('F♯7');
       expect(Key.fromString('E7').tonic.name).toBe('E7');
     });
 

@@ -37,8 +37,8 @@ describe('Note', () => {
     it('should intern instances', () => {
       expect(Note.fromString('C4')).toBe(Note.fromString('C4'));
       expect(Note.fromString('C4')).not.toBe(Note.fromString('D4'));
-      // FIXME:
-      // expect(Note.fromString('C1')).toBe(Note.fromString('C,'));
+      expect(Note.fromString('C#4')).toBe(Note.fromString('C♯4'));
+      expect(Note.fromString('C1')).toBe(Note.fromString('C,'));
       expect(Note.fromString('C♯4')).not.toBe(Note.fromString('Db4'));
     });
   });
@@ -46,34 +46,44 @@ describe('Note', () => {
   it('toString', () => {
     expect(Note.fromMidiNumber(0).toString()).toBe('C-1');
     expect(Note.fromMidiNumber(12).toString()).toBe('C0');
-    expect(Note.fromMidiNumber(13).toString()).toBe('C♯0');
     expect(Note.fromMidiNumber(23).toString()).toBe('B0');
     expect(Note.fromMidiNumber(24).toString()).toBe('C1');
     expect(Note.fromMidiNumber(36).toString()).toBe('C2');
     expect(Note.fromMidiNumber(60).toString()).toBe('C4');
+    expect(Note.fromMidiNumber(61).toString()).toBe('C♯4');
+    expect(Note.fromMidiNumber(62).toString()).toBe('D4');
+    expect(Note.fromMidiNumber(63).toString()).toBe('D♯4');
+    expect(Note.fromMidiNumber(64).toString()).toBe('E4');
+    expect(Note.fromMidiNumber(65).toString()).toBe('F4');
+    expect(Note.fromMidiNumber(66).toString()).toBe('F♯4');
+    expect(Note.fromMidiNumber(67).toString()).toBe('G4');
+    expect(Note.fromMidiNumber(68).toString()).toBe('G♯4');
+    expect(Note.fromMidiNumber(69).toString()).toBe('A4');
+    expect(Note.fromMidiNumber(70).toString()).toBe('A♯4');
+    expect(Note.fromMidiNumber(71).toString()).toBe('B4');
     expect(Note.fromMidiNumber(72).toString()).toBe('C5');
     expect(Note.fromMidiNumber(64).toString()).toBe('E4');
     expect(Note.fromMidiNumber(79).toString()).toBe('G5');
     expect(Note.fromMidiNumber(127).toString()).toBe('G9');
   });
 
-  describe('fromDegree', () => {
-    expect(Note.fromDegree(1).name).toBe('C4');
-    expect(Note.fromDegree(2).name).toBe('D4');
-    expect(Note.fromDegree(7).name).toBe('B4');
-    expect(Note.fromDegree(1, -3).name).toBe('C♭𝄫4');
-    expect(Note.fromDegree(1, -2).name).toBe('C𝄫4');
-    expect(Note.fromDegree(1, -1).name).toBe('C♭4');
-    expect(Note.fromDegree(1, 1).name).toBe('C♯4');
-    expect(Note.fromDegree(1, 2).name).toBe('C𝄪4');
-    expect(Note.fromDegree(1, 3).name).toBe('C♯𝄪4');
-    expect(Note.fromDegree(1, 0, 0).name).toBe('C0');
+  // describe('fromDegree', () => {
+  //   expect(Note.fromDegree(1).name).toBe('C4');
+  //   expect(Note.fromDegree(2).name).toBe('D4');
+  //   expect(Note.fromDegree(7).name).toBe('B4');
+  //   expect(Note.fromDegree(1, -3).name).toBe('C♭𝄫4');
+  //   expect(Note.fromDegree(1, -2).name).toBe('C𝄫4');
+  //   expect(Note.fromDegree(1, -1).name).toBe('C♭4');
+  //   expect(Note.fromDegree(1, 1).name).toBe('C♯4');
+  //   expect(Note.fromDegree(1, 2).name).toBe('C𝄪4');
+  //   expect(Note.fromDegree(1, 3).name).toBe('C♯𝄪4');
+  //   expect(Note.fromDegree(1, 0, 0).name).toBe('C0');
 
-    expect(Note.fromDegree(1).midiNumber).toBe(60);
-    expect(Note.fromDegree(1, 1).midiNumber).toBe(61);
-    expect(Note.fromDegree(2).midiNumber).toBe(62);
-    expect(Note.fromDegree(1, 0, 0).midiNumber).toBe(12);
-  });
+  //   expect(Note.fromDegree(1).midiNumber).toBe(60);
+  //   expect(Note.fromDegree(1, 1).midiNumber).toBe(61);
+  //   expect(Note.fromDegree(2).midiNumber).toBe(62);
+  //   expect(Note.fromDegree(1, 0, 0).midiNumber).toBe(12);
+  // });
 
   describe('degree', () => {
     expect(Note.fromString('C4').degree).toBe(1);
@@ -122,6 +132,11 @@ describe('Note', () => {
       expect(Csh.add(m3).toString()).toBe('E4');
       expect(Csh.add(d3).toString()).toBe('E♭4');
       expect(Csh.add(A3).toString()).toBe('E𝄪4');
+
+      expect(C4.add(Intervals.M3).name).toBe('E4');
+      expect(C4.add(Intervals.A3).name).toBe('E♯4');
+      expect(C4.add(Intervals.d4).name).toBe('F♭4');
+      expect(C4.add(Intervals.P4).name).toBe('F4');
     });
 
     it.skip('adds compound intervals', () => null);

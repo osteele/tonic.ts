@@ -17,16 +17,30 @@ import { PitchLike } from './PitchLike';
  * to implement sets of notes.
  */
 export class Note implements PitchLike {
+  // public static fromDegree(degree: number, accidentals = 0, octave = 4): Note {
+  //   const d0 = degree - 1;
+  //   const midiNumber = 12 * (octave + 1) + Note.noteSemitones[d0] + accidentals;
+  //   const name =
+  //     'CDEFGAB'[d0] + semitonesToAccidentalString(accidentals) + octave;
+  //   return new Note(midiNumber, name);
+  // }
+
   public static fromMidiNumber(midiNumber: number): Note {
-    return new Note(midiNumber);
+    return Note.fromSemitones(midiNumber, 0);
   }
 
-  public static fromDegree(degree: number, accidentals = 0, octave = 4): Note {
-    const d0 = degree - 1;
-    const midiNumber = 12 * (octave + 1) + Note.noteSemitones[d0] + accidentals;
-    const name =
-      'CDEFGAB'[d0] + semitonesToAccidentalString(accidentals) + octave;
-    return new Note(midiNumber, name);
+  public static fromSemitones(
+    semitones: number,
+    accidentalSemitones = 0,
+  ): Note {
+    const pc = semitones % 12;
+    const letter = Note.letters[pc];
+    const ad =
+      accidentalSemitones +
+      Number(Boolean(Note.letters[pc - 1] === Note.letters[pc]));
+    const acc = semitonesToAccidentalString(ad);
+    const octave = Math.floor(semitones / 12) - 1;
+    return new Note(semitones, `${letter}${acc}${octave}`);
   }
 
   /** Return a note specified in [scientific pitch
@@ -35,22 +49,52 @@ export class Note implements PitchLike {
    * notation](https://en.wikipedia.org/wiki/Helmholtz_pitch_notation).
    */
   public static fromString(name: string): Note {
-    const midiNumber = (name.match(/\d/)
+    let note = Note.instances.get(name);
+    if (note) {
+      return note;
+    }
+    const { midiNumber, accidentals } = (name.match(/\d/)
       ? PitchClassParser.fromScientificNotation
       : PitchClassParser.fromHelmholtzNotation)(name);
-    return new Note(midiNumber, name);
+    let noteMap = Note.instanceMap.get(accidentals);
+    if (!noteMap) {
+      Note.instanceMap.set(accidentals, (noteMap = new Map<number, Note>()));
+    }
+    note = noteMap.get(midiNumber);
+    if (!note) {
+      const canon = Note.makeNoteName(midiNumber - accidentals, accidentals);
+      note = new Note(midiNumber, canon);
+      noteMap.set(midiNumber, note);
+    }
+    return note;
   }
 
-  // Indexed by name not midiNumber, in order to preserve the distinction
+  // Indexed by name, not midiNumber, in order to preserve the distinction
   // between enharmonic equivalents.
-  // FIXME: this doesn't allow e.g. scientific C1 and Helmholtz C to be equal.
   private static readonly instances = new Map<string, Note>();
+
+  // accidental -> midiNumber -> Note
+  private static readonly instanceMap = new Map<number, Map<number, Note>>();
+
+  private static letters = 'CCDDEFFGGAAB';
 
   private static noteSemitones = [0, 2, 4, 5, 7, 9, 11];
 
-  public readonly name: string;
-  private constructor(readonly midiNumber: number, name?: string) {
-    this.name = name || PitchClassParser.toScientificNotation(midiNumber);
+  private static makeNoteName(
+    midiNumber: number,
+    accidentalSemitones: number,
+  ): string {
+    const pc = midiNumber % 12;
+    const letter = Note.letters[pc];
+    const ad =
+      accidentalSemitones +
+      Number(Boolean(Note.letters[pc - 1] === Note.letters[pc]));
+    const acc = semitonesToAccidentalString(ad);
+    const octave = Math.floor(midiNumber / 12) - 1;
+    return `${letter}${acc}${octave}`;
+  }
+
+  private constructor(readonly midiNumber: number, readonly name: string) {
     const instance = Note.instances.get(this.name);
     if (instance) {
       return instance;
@@ -79,17 +123,7 @@ export class Note implements PitchLike {
   }
 
   public add(interval: Interval): Note {
-    const semitones = this.midiNumber + interval.semitones;
-    const d0 = this.degree - 1 + interval.number! - 1;
-    if (d0 < 0) {
-      return Note.fromMidiNumber(semitones);
-    }
-    const letter = 'CDEFGAB'[d0 % 7];
-    const octave = Math.floor(semitones / 12) - 1;
-    const naturalSemitones = 12 * (octave + 1) + Note.noteSemitones[d0 % 7];
-    // return [semitones, d0, letter, octave, naturalSemitones];
-    const acc = semitonesToAccidentalString(semitones - naturalSemitones);
-    return new Note(semitones, `${letter}${acc}${octave}`);
+    return this.transposeBy(interval);
   }
 
   public asPitch(): Note {
@@ -103,6 +137,13 @@ export class Note implements PitchLike {
   }
 
   public transposeBy(interval: Interval): Note {
-    return new Note(this.midiNumber + interval.semitones);
+    const semitones = this.midiNumber + interval.semitones;
+    if (interval.number === null) {
+      return Note.fromMidiNumber(semitones);
+    }
+    const d0 = this.degree - 1 + interval.number - 1;
+    const octave = Math.floor(semitones / 12) - 1;
+    const naturalSemitones = 12 * (octave + 1) + Note.noteSemitones[d0 % 7];
+    return Note.fromSemitones(naturalSemitones, semitones - naturalSemitones);
   }
 }
