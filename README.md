@@ -76,16 +76,14 @@ Interval.between(Note.fromString('E4'), Note.fromString('C4')); // ~> M3
 Interval.between(Note.fromString('F4'), Note.fromString('C4')); // ~> P4
 
 // Chords
-Chord.fromString('E Major');
+Chord.fromString('E Major').intervals;  // ~> [M3, P5]
+Chord.fromString('E Minor').intervals;  // ~> [m3, P5]
+Chord.fromString('E').intervals;        // ~> [M3, P5]
+Chord.fromString('Em').intervals;       // ~> [m3, P5]
 ChordQuality.fromString('Dominant 7th'); // ~> Dom 7th
-ChordQuality.fromIntervals([Intervals.P1, Intervals.M3, Intervals.P5]); // ~> Major
-ChordQuality.fromIntervals([Intervals.P1, Intervals.m3, Intervals.P5]); // ~> Minor
-// ChordQuality.fromIntervals([
-//   Intervals.P1,
-//   Intervals.m3,
-//   Intervals.P5,
-//   Intervals.m7,
-// ]); // => Min 7th
+ChordQuality.fromIntervals([Intervals.m3, Intervals.P5]); // ~> Minor
+ChordQuality.fromIntervals([Intervals.M3, Intervals.P5]); // ~> Major
+// ChordQuality.fromIntervals([Intervals.M3, Intervals.P5, Intervals.m7]); // ~> Dom 7th
 
 // Scales
 const scale = Scale.fromString('Diatonic Major');

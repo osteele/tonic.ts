@@ -3,7 +3,7 @@ import { Chord } from './Chord';
 import { Barre, FrettedChord } from './FrettedChord';
 import { FrettedInstrument, Instruments, StringFret } from './Instrument';
 import { powerset } from './internal/utils';
-import { Interval } from './Interval';
+import { Interval, Intervals } from './Interval';
 import { Note } from './Note';
 
 //
@@ -87,7 +87,7 @@ function fretPositionsOnChord(
   instrument: FrettedInstrument,
 ): StringFret[] {
   const root = chord.root.asPitchClass();
-  const { intervals } = chord;
+  const intervals = [Intervals.P1, ...chord.intervals];
   const positions = new Array<StringFret>();
   instrument.forEachStringFret((pos) => {
     const interval = Interval.between(
@@ -170,12 +170,13 @@ function generateFrettings(
       .map((fretNumber, stringNumber) => ({ fretNumber, stringNumber }))
       .filter(({ fretNumber }) => fretNumber !== null) as StringFret[];
     const root = chord.root.asPitchClass();
+    const intervals = [Intervals.P1, ...chord.intervals];
     const chordFrets = stringFrets.map((pos) => {
       const pitch = instrument.pitchAt(pos);
       const intervalClass = Interval.between(root, pitch.asPitchClass());
       return {
         ...pos,
-        degreeIndex: chord.intervals.indexOf(intervalClass),
+        degreeIndex: intervals.indexOf(intervalClass),
         intervalClass,
         pitch,
       };

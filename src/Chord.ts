@@ -62,9 +62,12 @@ export class Chord<T extends PitchLike> {
     );
     this.abbr = this.abbrs[0];
     this.intervals = this.chordClass.intervals;
-    this.notes = this.chordClass.intervals.map((interval: Interval) =>
-      this.root.transposeBy(interval),
-    ) as T[];
+    this.notes = [
+      root,
+      ...this.chordClass.intervals.map(
+        (interval: Interval) => this.root.transposeBy(interval) as T,
+      ),
+    ];
 
     // degrees = (1 + 2 * pitchClass.semitones for pitchClass in [0..@pitchClasses.length])
     // degrees[1] = {'Sus2':2, 'Sus4':4}[@name] || degrees[1]

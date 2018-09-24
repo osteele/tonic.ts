@@ -31,7 +31,10 @@ export class ChordQuality {
   public static fromIntervals(_intervals: Interval[] | number[]): ChordQuality {
     const intervals = (_intervals as Array<Interval | number>).map(asInterval);
     const semitones = intervals.map((interval: Interval) => interval.semitones);
-    const key = semitones.sort().join(',');
+    const key = semitones
+      .filter((n) => n !== 0)
+      .sort()
+      .join(',');
     const instance = ChordQuality.chordMap.get(key);
     if (!instance) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
@@ -142,8 +145,14 @@ const chordClassArray: ChordQuality[] = [
     .replace('Diminished', 'Dim');
   const toneNames: { [_: string]: number } = { t: 10, e: 11 };
   const intervalInstances = intervals.match(/[PMm]/)
-    ? intervals.split(' ').map(Interval.fromString)
-    : intervals.match(/./g)!.map((c: string) => {
+    ? intervals
+        .replace(/^P1 /, '')
+        .split(' ')
+        .map(Interval.fromString)
+    : intervals
+        .replace(/^0/, '')
+        .match(/./g)!
+        .map((c: string) => {
         const left = toneNames[c];
         const semitones = left != null ? left : Number(c);
         return Interval.fromSemitones(semitones);
