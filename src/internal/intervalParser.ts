@@ -1,6 +1,6 @@
 import { IntervalQuality } from '../IntervalQuality';
 
-export const shorthandNames = [
+export const shortIntervalNames = [
   'P1',
   'm2',
   'M2',
@@ -36,7 +36,7 @@ export const longIntervalNames = [
  *
  * The tritone has a null degree.
  */
-export const semitoneDegrees: Array<number | null> = shorthandNames
+export const semitoneDegrees: Array<number | null> = shortIntervalNames
   .map((s) => s.match(/\d+/))
   .map((m) => m && Number(m[0]));
 
@@ -55,7 +55,7 @@ export const qualityDegreeSemitones = new Map<
     (q) =>
       [
         q,
-        new Map<number, number | null>(shorthandNames
+        new Map<number, number | null>(shortIntervalNames
           .map(
             (s, i) =>
               s[0] === IntervalQuality.toString(q) ? [Number(s[1]), i] : null,
@@ -69,7 +69,7 @@ export const qualityDegreeSemitones = new Map<
  *
  * The tritone has a null quality.
  */
-export const semitoneQualities: Array<IntervalQuality | null> = shorthandNames
+export const semitoneQualities: Array<IntervalQuality | null> = shortIntervalNames
   .map((s) => s.match(/[AMPmd]/))
   .map((m) => m && IntervalQuality.fromString(m[0]));
 
@@ -82,7 +82,7 @@ export function parseInterval(
   quality: IntervalQuality | null;
 } {
   // base case / fast path
-  let pc = shorthandNames.indexOf(name);
+  let pc = shortIntervalNames.indexOf(name);
   if (pc < 0) {
     pc = longIntervalNames.indexOf(name);
   }
@@ -103,11 +103,11 @@ export function parseInterval(
   const degree = Number(m[2]);
   if (degree <= 8) {
     // Augmented or diminished. Find the closest natural, and adjust from there.
-    pc = shorthandNames.indexOf(`P${degree}`);
+    pc = shortIntervalNames.indexOf(`P${degree}`);
     if (pc < 0) {
       const quality = IntervalQuality.fromString(qualityName);
       const nat = IntervalQuality.closestNatural(quality!);
-      pc = shorthandNames.indexOf(`${IntervalQuality.toString(nat!)}${degree}`);
+      pc = shortIntervalNames.indexOf(`${IntervalQuality.toString(nat!)}${degree}`);
     }
     return {
       degree: semitoneDegrees[pc],
