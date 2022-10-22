@@ -98,7 +98,7 @@ key.intervals; // ~> [P1, M2, M3, P4, P5, M6, M7]
 key.pitchClasses; // ~> [0, 2, 4, 5, 7, 9, 11]
 
 // Instruments and fret fingerings
-frettingFor('E Major').ascii; // ~> 022100
+frettingFor('E Major')?.ascii; // ~> 022100
 ```
 
 ## Status
