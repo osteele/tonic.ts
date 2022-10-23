@@ -1,5 +1,5 @@
 {
-  "name": "tonic.js",
+  "name": "tonic.ts",
   "description": "Music theory and instrument models.",
   "version": "0.1.0",
   "author": "Oliver Steele <steele@osteele.com>",
@@ -9,7 +9,7 @@
     "music-theory",
     "chord-diagrams"
   ],
-  "repository": "github:osteele/tonic.js",
+  "repository": "github:osteele/tonic.ts",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
