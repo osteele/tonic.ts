@@ -291,4 +291,4 @@ export function intervalClassDifference(a: number, b: number): number {
   return PitchClassParser.normalize(b - a);
 }
 
-export const ShortIntervalNames = Interval.names; 
+export const ShortIntervalNames = Interval.names;

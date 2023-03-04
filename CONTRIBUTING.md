@@ -1,3 +1,5 @@
+# Contributing
+
 ## Tests
 
 ```shell
@@ -15,8 +17,8 @@ The following tests the doc examples. (Currently this is just the first fenced
 TypeScript block in the README.)
 
 ```shell
-$ yarn test:docs        # once
-$ yarn test:docs:watch  # watch mode
+yarn test:docs        # once
+yarn test:docs:watch  # watch mode
 ```
 
 Note: `yarn test:docs:watch` requires [entr](http://www.entrproject.org). On

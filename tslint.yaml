@@ -6,7 +6,7 @@ rules:
   quotemark: [true, 'single', 'avoid-escape', 'avoid-template']
   no-namespace: false
   variable-name:
-    [true, 'ban-keywords', 'check-format', 'allow-leading-underscore']
+    [true, 'ban-keywords', 'check-format', 'allow-leading-underscore', 'allow-pascal-case']
 
   # FIXME
   max-classes-per-file: [true, 3]
