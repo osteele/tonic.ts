@@ -41,7 +41,7 @@ import { PitchLike } from './PitchLike';
  */
 export class Interval {
   public static readonly names: ReadonlyArray<string> =
-    intervals.shorthandNames;
+    intervals.shortIntervalNames;
   public static readonly longNames: ReadonlyArray<string> =
     intervals.longIntervalNames;
 
@@ -105,7 +105,7 @@ export class Interval {
   // tslint:disable-next-line:member-ordering
   public static readonly all: Readonly<{
     [_: string]: Interval;
-  }> = intervals.shorthandNames.reduce(
+  }> = intervals.shortIntervalNames.reduce(
     (acc: { [_: string]: Interval }, name, semitones) => {
       acc[name] = Interval.fromSemitones(semitones);
       return acc;
@@ -143,7 +143,7 @@ export class Interval {
    */
   get number(): number | null {
     const dn = this.naturalSemitones;
-    const m = intervals.shorthandNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
+    const m = intervals.shortIntervalNames[dn > 12 ? dn % 12 : dn].match(/\d+/);
     return m && Number(m[0]) + (dn > 12 ? 7 * Math.floor(dn / 12) : 0);
   }
 
@@ -193,7 +193,7 @@ export class Interval {
       // Tritone, or complex interval that includes one
       const semitones = this.semitones;
       return semitones === 6
-        ? intervals.shorthandNames[semitones]
+        ? intervals.shortIntervalNames[semitones]
         : _.times((semitones - 6) / 12, () => 'P8').join('+') + '+TT';
     }
     return `${IntervalQuality.toString(q)}${this.number}`;
@@ -290,3 +290,5 @@ export namespace Intervals {
 export function intervalClassDifference(a: number, b: number): number {
   return PitchClassParser.normalize(b - a);
 }
+
+export const ShortIntervalNames = Interval.names; 
