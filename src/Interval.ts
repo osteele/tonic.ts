@@ -205,7 +205,7 @@ export class Interval {
       let q = IntervalQuality.add(this.quality!, other.quality!);
       if (
         q === IntervalQuality.Perfect &&
-        [1, 4, 5].indexOf(1 + ((num - 1) % 8)) < 0
+        [1, 4, 5].indexOf(1 + ((num - 1) % 7)) < 0
       ) {
         q = IntervalQuality.Major;
       }
@@ -240,8 +240,7 @@ export namespace Intervals {
   export const P8 = Interval.fromString('P8');
 
   // augmented and diminished intervals
-  // FIXME:
-  // export const a1 = Interval.fromString('a1');
+  export const A1 = Interval.fromString('A1');
   export const d2 = Interval.fromString('d2');
   export const A2 = Interval.fromString('A2');
   export const d3 = Interval.fromString('d3');
