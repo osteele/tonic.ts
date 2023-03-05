@@ -34,19 +34,26 @@ export const longIntervalNames = [
 
 /** Interval number / major scale degree, indexed by pitch class.
  *
+ * `semitoneDegrees[pitchClass] \elem [1..8]`
+ *
  * The tritone has a null degree.
  */
 export const semitoneDegrees: Array<number | null> = shortIntervalNames
   .map((s) => s.match(/\d+/))
   .map((m) => m && Number(m[0]));
 
-const diatonicQualities = [
+/** Interval qualities of diatonic notes. */
+export const diatonicQualities = [
   IntervalQuality.Minor,
   IntervalQuality.Major,
   IntervalQuality.Perfect,
 ];
 
-// quality -> number -> semitones
+/** Map (number, quality) -> semitones
+ *
+ * `qualityDegreeSemitones[quality][number] -> semitones`
+ *
+ */
 export const qualityDegreeSemitones = new Map<
   IntervalQuality,
   Map<number, number>
@@ -65,7 +72,9 @@ export const qualityDegreeSemitones = new Map<
   ),
 );
 
-/** Interval qualities indexed by pitch class.
+/** Index pitch class -> Interval quality.
+ *
+ * `semitoneQualities[pitchClass] \elem {Major, Minor, Perfect}`
  *
  * The tritone has a null quality.
  */
