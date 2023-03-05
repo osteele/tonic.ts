@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as intervals from './internal/intervalParser';
 import {
+  diatonicQualities,
   qualityDegreeSemitones,
   semitoneQualities,
 } from './internal/intervalParser';
@@ -45,22 +46,37 @@ export class Interval {
   public static readonly longNames: ReadonlyArray<string> =
     intervals.longIntervalNames;
 
-  /** Semitones doesn't include narrowing or widening by quality. */
-  public static fromSemitones(semitones: number): Interval {
-    return new Interval(semitones, intervals.semitoneQualities[semitones % 12]);
-  }
-
   public static fromNumber(num: number, quality: IntervalQuality): Interval {
-    const n = 1 + ((num - 1) % 8);
-    const isPerfect = semitoneQualities[n] === IntervalQuality.Perfect;
+    const simpleNumber = 1 + ((num - 1) % 7);
+    const perfectNumbers = [1, 4, 5, 7];
+    const isPerfect = perfectNumbers.indexOf(simpleNumber) >= 0;
     const pq = IntervalQuality.closestNatural(quality, isPerfect);
-    const semitones = qualityDegreeSemitones.get(pq)!.get(n);
-    if (semitones === undefined) {
+    const semitones = qualityDegreeSemitones.get(pq)!.get(simpleNumber);
+    // return [simpleNumber, isPerfect, pq, semitones];
+    const degreeIntervals = isPerfect
+      ? [IntervalQuality.Perfect]
+      : [IntervalQuality.Minor, IntervalQuality.Major];
+    if (
+      semitones === undefined ||
+      (diatonicQualities.indexOf(quality) >= 0 &&
+        degreeIntervals.indexOf(quality) < 0)
+    ) {
       throw new Error(
         `Not an interval: ${IntervalQuality.toString(quality)}${num}`,
       );
     }
     return new Interval(semitones + 12 * Math.floor((num - 1) / 8), quality);
+  }
+
+  /** Semitones doesn't include narrowing or widening by quality. */
+  public static fromSemitones(
+    semitones: number,
+    accidentals?: number,
+  ): Interval {
+    const q = accidentals
+      ? IntervalQuality.fromSemitones(accidentals)
+      : intervals.semitoneQualities[semitones % 12];
+    return new Interval(semitones, q);
   }
 
   public static fromString(name: string): Interval {
@@ -81,11 +97,23 @@ export class Interval {
 
   public static between<T extends PitchLike>(a: T, b: T): Interval;
   public static between(a: number, b: number): Interval;
-  public static between<T extends PitchLike | number>(a: T, b: T) {
-    // FIXME: preserve the quality?
+  public static between<T extends PitchLike | number>(a: T, b: T): Interval {
     let semitones = 0;
     if (a instanceof Note && b instanceof Note) {
-      semitones = Math.abs(b.midiNumber - a.midiNumber);
+      semitones = b.midiNumber - a.midiNumber;
+      if (semitones < 0) {
+        return Interval.between(b, a);
+      }
+      const num = b.degree - a.degree + 1;
+      const accidentals = b.accidentals - a.accidentals;
+      // const simpleDegree = 1 + ((degree - 1) % 7);
+      const naturalPitchClass = semitones % 12;
+      // TODO: |accidentals| > 2
+      const q =
+        accidentals === 0
+          ? semitoneQualities[naturalPitchClass]!
+          : IntervalQuality.fromSemitones(accidentals)!;
+      return Interval.fromNumber(num, q);
     } else if (a instanceof PitchClass && b instanceof PitchClass) {
       semitones = PitchClassParser.normalize(b.semitones - a.semitones);
     } else if (typeof a === 'number' && typeof b === 'number') {
