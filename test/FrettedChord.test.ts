@@ -84,6 +84,11 @@ describe('frettingFor', () => {
     expect(frettingFor('C Major')?.ascii).toBe('x32010');
   });
 
+  it('honors maxFretNumber options', () => {
+    expect(frettingFor('E Major')?.ascii).toBe('022100');
+    expect(frettingFor('E Major', { maxFretNumber: 1 })?.ascii).toBe('xxx100');
+  });
+
   it('minor open chords', () => {
     expect(frettingFor('E Minor')?.ascii).toBe('022000');
     expect(frettingFor('A Minor')?.ascii).toBe('x02210');

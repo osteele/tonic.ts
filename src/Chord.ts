@@ -28,7 +28,7 @@ export class Chord<T extends PitchLike> {
   ): Chord<Note> | Chord<PitchClass> | ChordQuality {
     const match = name.match(chordNameRegex1) || name.match(chordNameRegex2);
     if (!match) {
-      throw new Error(`“${name}” is not a chord name`);
+      return ChordQuality.fromString(name);
     }
     const rootName = match[1];
     const className = match[2];

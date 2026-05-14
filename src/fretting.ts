@@ -59,7 +59,7 @@ export function allFrettings(
     typeof chordOrName === 'string'
       ? (Chord.fromString(chordOrName) as Chord<Note>)
       : chordOrName;
-  const allOptions = { ...options, ...defaultFrettingOptions };
+  const allOptions = { ...defaultFrettingOptions, ...options };
   let frettings = generateFrettings(chord, allOptions.instrument, allOptions);
   frettings = selectFrettings(frettings, allOptions);
   frettings = sortFingerings(frettings);

@@ -124,7 +124,7 @@ describe("Interval", () => {
       expect(() => Interval.fromNumber(2, Perfect)).toThrow();
       expect(() => Interval.fromNumber(3, Perfect)).toThrow();
       expect(() => Interval.fromNumber(4, Minor)).toThrow();
-      // expect(() => Interval.fromNumber(5, Minor)).toThrow(); // FIXME
+      expect(() => Interval.fromNumber(5, Minor)).toThrow();
       expect(() => Interval.fromNumber(6, Perfect)).toThrow();
     });
   });
@@ -374,11 +374,10 @@ describe("Interval", () => {
       expect(Interval.between(D6, C4)).toBe(Interval.fromString("M16"));
     });
 
-    it.skip("should preserve the quality", () => {
-      const d3 = Interval.fromString("d3");
+    it("should preserve the quality", () => {
       const A3 = Interval.fromString("A3");
       expect(Interval.between(C4, Note.fromString("E4"))).toBe(M3);
-      expect(Interval.between(C4, Note.fromString("Eb4"))).toBe(d3);
+      expect(Interval.between(C4, Note.fromString("Eb4"))).toBe(m3);
       expect(Interval.between(C4, Note.fromString("E♯4"))).toBe(A3);
     });
   });

@@ -1,14 +1,16 @@
-import { Intervals, Note, PitchClass } from '../src';
+import { Interval, Intervals, Note, PitchClass } from '../src';
 
 describe('Note', () => {
   describe('fromMidiNumber', () => {
-    expect(Note.fromMidiNumber(0).toString()).toBe('C-1');
-    expect(Note.fromMidiNumber(12).toString()).toBe('C0');
-    expect(Note.fromMidiNumber(13).toString()).toBe('C♯0');
-    expect(Note.fromMidiNumber(23).toString()).toBe('B0');
-    expect(Note.fromMidiNumber(24).toString()).toBe('C1');
-    expect(Note.fromMidiNumber(36).toString()).toBe('C2');
-    expect(Note.fromMidiNumber(127).toString()).toBe('G9');
+    it('converts MIDI numbers to notes', () => {
+      expect(Note.fromMidiNumber(0).toString()).toBe('C-1');
+      expect(Note.fromMidiNumber(12).toString()).toBe('C0');
+      expect(Note.fromMidiNumber(13).toString()).toBe('C♯0');
+      expect(Note.fromMidiNumber(23).toString()).toBe('B0');
+      expect(Note.fromMidiNumber(24).toString()).toBe('C1');
+      expect(Note.fromMidiNumber(36).toString()).toBe('C2');
+      expect(Note.fromMidiNumber(127).toString()).toBe('G9');
+    });
   });
 
   describe('fromString', () => {
@@ -86,25 +88,31 @@ describe('Note', () => {
   // });
 
   describe('degree', () => {
-    expect(Note.fromString('C4').degree).toBe(1);
-    expect(Note.fromString('D4').degree).toBe(2);
-    expect(Note.fromString('B4').degree).toBe(7);
-    expect(Note.fromString('C0').degree).toBe(1);
+    it('returns the diatonic degree', () => {
+      expect(Note.fromString('C4').degree).toBe(1);
+      expect(Note.fromString('D4').degree).toBe(2);
+      expect(Note.fromString('B4').degree).toBe(7);
+      expect(Note.fromString('C0').degree).toBe(1);
+    });
   });
 
   describe('accidentals', () => {
-    expect(Note.fromString('C𝄫4').accidentals).toBe(-2);
-    expect(Note.fromString('C♭4').accidentals).toBe(-1);
-    expect(Note.fromString('C4').accidentals).toBe(0);
-    expect(Note.fromString('C♯4').accidentals).toBe(1);
-    expect(Note.fromString('C𝄪4').accidentals).toBe(2);
+    it('returns the accidental offset in semitones', () => {
+      expect(Note.fromString('C𝄫4').accidentals).toBe(-2);
+      expect(Note.fromString('C♭4').accidentals).toBe(-1);
+      expect(Note.fromString('C4').accidentals).toBe(0);
+      expect(Note.fromString('C♯4').accidentals).toBe(1);
+      expect(Note.fromString('C𝄪4').accidentals).toBe(2);
+    });
   });
 
   describe('octave', () => {
-    expect(Note.fromString('C4').octave).toBe(4);
-    expect(Note.fromString('B4').octave).toBe(4);
-    expect(Note.fromString('C5').octave).toBe(5);
-    expect(Note.fromString('C0').octave).toBe(0);
+    it('returns the scientific-pitch octave', () => {
+      expect(Note.fromString('C4').octave).toBe(4);
+      expect(Note.fromString('B4').octave).toBe(4);
+      expect(Note.fromString('C5').octave).toBe(5);
+      expect(Note.fromString('C0').octave).toBe(0);
+    });
   });
 
   describe('add', () => {
@@ -139,7 +147,11 @@ describe('Note', () => {
       expect(C4.add(Intervals.P4).name).toBe('F4');
     });
 
-    it.skip('adds compound intervals', () => undefined);
+    it('adds compound intervals', () => {
+      expect(C4.add(Intervals.M9).toString()).toBe('D5');
+      expect(C4.add(Intervals.m10).toString()).toBe('E♭5');
+      expect(C4.add(Interval.fromString('M16')).toString()).toBe('D6');
+    });
   });
 
   it('transposeBy', () => {

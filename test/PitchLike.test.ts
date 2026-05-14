@@ -10,7 +10,7 @@ describe('parsePitchLike', () => {
   });
 
   it('throws exceptions', () => {
-    expect(() => expect(parsePitchLike('invalid')).toThrow());
+    expect(() => parsePitchLike('invalid')).toThrow();
   });
 });
 
@@ -24,7 +24,7 @@ describe('asPitchLike', () => {
   });
 
   it('throws exceptions', () => {
-    expect(() => expect(asPitchLike('invalid')).toThrow());
+    expect(() => asPitchLike('invalid')).toThrow();
   });
 
   it('is idempotent on Note and PitchClass', () => {

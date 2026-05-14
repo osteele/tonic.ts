@@ -113,6 +113,11 @@ describe('Chord', () => {
       expect(Chord.fromString("E' Major")).toBeInstanceOf(Chord);
       expect(Chord.fromString("E'  Major")).toBeInstanceOf(Chord);
     });
+
+    it('should return chord qualities from quality-only names', () => {
+      expect(Chord.fromString('Major')).toBe(ChordQuality.fromString('Major'));
+      expect(Chord.fromString('Minor')).toBe(ChordQuality.fromString('Minor'));
+    });
   });
 
   describe('fromPitches', () => {
@@ -137,9 +142,11 @@ describe('Chord', () => {
   });
 
   describe('intervals', () => {
-    expect(Chord.fromString('E').intervals).toEqual([M3, P5]);
-    expect(Chord.fromString('Em').intervals).toEqual([m3, P5]);
-    expect(Chord.fromString('E7').intervals).toEqual([M3, P5, m7]);
+    it('returns the chord quality intervals', () => {
+      expect(Chord.fromString('E').intervals).toEqual([M3, P5]);
+      expect(Chord.fromString('Em').intervals).toEqual([m3, P5]);
+      expect(Chord.fromString('E7').intervals).toEqual([M3, P5, m7]);
+    });
   });
 });
 
