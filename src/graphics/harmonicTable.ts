@@ -25,9 +25,11 @@ const intervalVectors = {
 
 // Returns a record {m3 M3 P5} that represents the canonical vector (according
 // to `IntervalVectors`) of the interval class.
-function intervalClassVectors(
-  intervalClass: number,
-): { m3: number; M3: number; P5: number } {
+function intervalClassVectors(intervalClass: number): {
+  m3: number;
+  M3: number;
+  P5: number;
+} {
   const originalIntervalClass = intervalClass; // for error reporting
   let [dM3, dP5] = [0, 0];
   while (intervalClass >= 24) {

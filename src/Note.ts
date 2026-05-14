@@ -53,9 +53,11 @@ export class Note implements PitchLike {
     if (note) {
       return note;
     }
-    const { midiNumber, accidentals } = (name.match(/\d/)
-      ? PitchClassParser.fromScientificNotation
-      : PitchClassParser.fromHelmholtzNotation)(name);
+    const { midiNumber, accidentals } = (
+      name.match(/\d/)
+        ? PitchClassParser.fromScientificNotation
+        : PitchClassParser.fromHelmholtzNotation
+    )(name);
     let noteMap = Note.instanceMap.get(accidentals);
     if (!noteMap) {
       Note.instanceMap.set(accidentals, (noteMap = new Map<number, Note>()));
@@ -94,7 +96,10 @@ export class Note implements PitchLike {
     return `${letter}${acc}${octave}`;
   }
 
-  private constructor(readonly midiNumber: number, readonly name: string) {
+  private constructor(
+    readonly midiNumber: number,
+    readonly name: string,
+  ) {
     const instance = Note.instances.get(this.name);
     if (instance) {
       return instance;

@@ -148,10 +148,7 @@ const chordClassArray: ChordQuality[] = [
     .replace('Diminished', 'Dim');
   const toneNames: { [_: string]: number } = { t: 10, e: 11 };
   const intervalInstances = intervals.match(/[PMm]/)
-    ? intervals
-        .replace(/^P1 /, '')
-        .split(' ')
-        .map(Interval.fromString)
+    ? intervals.replace(/^P1 /, '').split(' ').map(Interval.fromString)
     : intervals
         .replace(/^0/, '')
         .match(/./g)!

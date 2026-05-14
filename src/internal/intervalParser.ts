@@ -62,12 +62,13 @@ export const qualityDegreeSemitones = new Map<
     (q) =>
       [
         q,
-        new Map<number, number | null>(shortIntervalNames
-          .map(
-            (s, i) =>
+        new Map<number, number | null>(
+          shortIntervalNames
+            .map((s, i) =>
               s[0] === IntervalQuality.toString(q) ? [Number(s[1]), i] : null,
-          )
-          .filter(Boolean) as Array<[number, number]>),
+            )
+            .filter(Boolean) as Array<[number, number]>,
+        ),
       ] as [IntervalQuality, Map<number, number>],
   ),
 );
@@ -78,14 +79,13 @@ export const qualityDegreeSemitones = new Map<
  *
  * The tritone has a null quality.
  */
-export const semitoneQualities: Array<IntervalQuality | null> = shortIntervalNames
-  .map((s) => s.match(/[AMPmd]/))
-  .map((m) => m && IntervalQuality.fromString(m[0]));
+export const semitoneQualities: Array<IntervalQuality | null> =
+  shortIntervalNames
+    .map((s) => s.match(/[AMPmd]/))
+    .map((m) => m && IntervalQuality.fromString(m[0]));
 
 // TODO: P and M optional; test perf, min, maj, dim, aug; ordinals
-export function parseInterval(
-  name: string,
-): {
+export function parseInterval(name: string): {
   degree: number | null;
   semitones: number;
   quality: IntervalQuality | null;
@@ -116,7 +116,9 @@ export function parseInterval(
     if (pc < 0) {
       const quality = IntervalQuality.fromString(qualityName);
       const nat = IntervalQuality.closestNatural(quality!);
-      pc = shortIntervalNames.indexOf(`${IntervalQuality.toString(nat!)}${degree}`);
+      pc = shortIntervalNames.indexOf(
+        `${IntervalQuality.toString(nat!)}${degree}`,
+      );
     }
     return {
       degree: semitoneDegrees[pc],

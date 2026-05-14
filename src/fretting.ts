@@ -159,7 +159,8 @@ function generateFrettings(
     fretsPerString(chord, instrument, options),
   )
     .filter(
-      (fretArray) => countPitchClasses(instrument, fretArray) === pitchClassCount,
+      (fretArray) =>
+        countPitchClasses(instrument, fretArray) === pitchClassCount,
     )
     .filter((fretArray) => computeFretSpread(fretArray) <= options.span);
   // Transform the candidates into FretPositions, find barres, and create a
@@ -324,15 +325,12 @@ const sortingPreferences: Array<{
  * `descending` is true, in which case the key is complemented so that the sort
  * will be reversed.
  */
-const getSortKey = (
-  key: FrettedChordProjection<boolean | number>,
-  descending: boolean,
-) => (
-  fretting: FrettedChord,
-): number | boolean => {
-  const k = key(fretting);
-  return typeof k === 'boolean' ? (descending ? !k : k) : descending ? -k : k;
-};
+const getSortKey =
+  (key: FrettedChordProjection<boolean | number>, descending: boolean) =>
+  (fretting: FrettedChord): number | boolean => {
+    const k = key(fretting);
+    return typeof k === 'boolean' ? (descending ? !k : k) : descending ? -k : k;
+  };
 
 /** Sort frettings lexicographically by the projections in
  * `sortingPreferences`.
@@ -365,15 +363,14 @@ function computeBarreCandidateStrings(fretArray: FretArray): string[] {
   for (const referenceFret of fretArray) {
     if (referenceFret !== null && !codeStrings[referenceFret]) {
       codeStrings[referenceFret] = fretArray
-        .map(
-          (fretNumber) =>
-            fretNumber === null
-              ? 'x'
-              : fretNumber < referenceFret
-                ? '<'
-                : fretNumber > referenceFret
-                  ? '>'
-                  : '=',
+        .map((fretNumber) =>
+          fretNumber === null
+            ? 'x'
+            : fretNumber < referenceFret
+              ? '<'
+              : fretNumber > referenceFret
+                ? '>'
+                : '=',
         )
         .join('');
     }

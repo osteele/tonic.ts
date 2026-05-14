@@ -36,13 +36,7 @@ describe('ScalePattern', () => {
     it('should have seven intervals', () => {
       expect(scale.intervals).toHaveLength(7);
       expect(scale.intervals.map((interval) => interval.semitones)).toEqual([
-        0,
-        2,
-        4,
-        5,
-        7,
-        9,
-        11,
+        0, 2, 4, 5, 7, 9, 11,
       ]);
     });
 

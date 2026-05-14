@@ -27,7 +27,10 @@ describe('rotateArray', () => {
 
 describe('reverseMap', () => {
   it('reverses its elements', () => {
-    const map = new Map<string, number>([['a', 1], ['b', 2]]);
+    const map = new Map<string, number>([
+      ['a', 1],
+      ['b', 2],
+    ]);
     const rev: Map<number, string> = reverseMap(map);
     expect(rev.get(1)).toBe('a');
     expect(rev.get(2)).toBe('b');

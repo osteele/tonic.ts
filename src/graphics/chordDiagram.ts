@@ -141,10 +141,7 @@ function drawChordDiagram(
   let { drawNut } = options;
 
   let topFret = 0;
-  const frets = _.chain(positions)
-    .map('fret')
-    .without(0)
-    .value();
+  const frets = _.chain(positions).map('fret').without(0).value();
   const lowestFret = Math.min(...frets);
   const highestFret = Math.max(...frets);
   if (highestFret > 4) {

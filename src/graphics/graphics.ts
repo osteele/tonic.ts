@@ -11,9 +11,11 @@ export interface GraphicsContext {
   fill: () => void;
   fillText: (_: string, x: number, y: number) => void;
   lineTo: (x: number, y: number) => void;
-  measureText: (
-    _: string,
-  ) => { width: number; emHeightAscent: number; emHeightDescent: number };
+  measureText: (_: string) => {
+    width: number;
+    emHeightAscent: number;
+    emHeightDescent: number;
+  };
   moveTo: (x: number, y: number) => void;
   rect: (x: number, y: number, width: number, height: number) => void;
   restore: () => void;

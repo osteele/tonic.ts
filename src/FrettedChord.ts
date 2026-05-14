@@ -118,10 +118,8 @@ export class FrettedChord {
 
   private createProperties(): { [_: string]: boolean | number } {
     const fretString = this.ascii;
-    return _.mapValues(
-      propertyGetters,
-      (getter) =>
-        getter instanceof RegExp ? getter.test(fretString) : getter(this),
+    return _.mapValues(propertyGetters, (getter) =>
+      getter instanceof RegExp ? getter.test(fretString) : getter(this),
     );
   }
 
@@ -187,13 +185,7 @@ const propertyGetters: { [_: string]: RegExp | Getter<boolean | number> } = {
   skipped: /\dx+\d/,
 
   position: ({ positions }) =>
-    Math.max(
-      _.chain(positions)
-        .map('fretNumber')
-        .min()
-        .value()! - 1,
-      0,
-    ),
+    Math.max(_.chain(positions).map('fretNumber').min().value()! - 1, 0),
 
   strings: ({ positions }) => positions.length,
 };

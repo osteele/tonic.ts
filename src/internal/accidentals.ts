@@ -1,12 +1,12 @@
 // A map of accidental names to semitone offsets
 // tslint:disable object-literal-sort-keys quotemark
 export const accidentalValues: { [_: string]: number } = {
-  "#": 1,
-  "♯": 1,
-  "b": -1,
-  "♭": -1,
-  "𝄪": 2,
-  "𝄫": -2,
+  '#': 1,
+  '♯': 1,
+  b: -1,
+  '♭': -1,
+  '𝄪': 2,
+  '𝄫': -2,
 };
 // tslint:enable
 

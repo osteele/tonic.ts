@@ -53,14 +53,14 @@ const abbrToQuality: { [_: string]: IntervalQuality } = {
 // FIXME: why does auto-format keep changing this back?
 // tslint:disable:quotemark
 const nameToQuality: { [_: string]: IntervalQuality } = {
-  "major": IntervalQuality.Major,
-  "minor": IntervalQuality.Minor,
-  "perfect": IntervalQuality.Perfect,
+  major: IntervalQuality.Major,
+  minor: IntervalQuality.Minor,
+  perfect: IntervalQuality.Perfect,
   // tslint:disable-next-line:object-literal-sort-keys
-  "augmented": IntervalQuality.Augmented,
-  "diminished": IntervalQuality.Diminished,
-  "doubly augmented": IntervalQuality.DoublyAugmented,
-  "doubly diminished": IntervalQuality.DoublyDiminished,
+  augmented: IntervalQuality.Augmented,
+  diminished: IntervalQuality.Diminished,
+  'doubly augmented': IntervalQuality.DoublyAugmented,
+  'doubly diminished': IntervalQuality.DoublyDiminished,
 };
 // tslint:enable:quotemark
 
@@ -167,7 +167,10 @@ export namespace IntervalQuality {
   }
 
   /** The closest major or minor quality. */
-  export function closestNatural(q: IntervalQuality, isPerfect?: boolean): IntervalQuality {
+  export function closestNatural(
+    q: IntervalQuality,
+    isPerfect?: boolean,
+  ): IntervalQuality {
     switch (q) {
       case IntervalQuality.Perfect:
         return IntervalQuality.Perfect;

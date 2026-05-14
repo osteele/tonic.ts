@@ -42,9 +42,10 @@ export function accidentalsToSemitones(accidentals: string): number {
   return n;
 }
 
-export function fromScientificNotation(
-  name: string,
-): { midiNumber: number; accidentals: number } {
+export function fromScientificNotation(name: string): {
+  midiNumber: number;
+  accidentals: number;
+} {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(-?\d+)$/iu);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
@@ -59,9 +60,10 @@ export function fromScientificNotation(
   };
 }
 
-export function fromHelmholtzNotation(
-  name: string,
-): { midiNumber: number; accidentals: number } {
+export function fromHelmholtzNotation(name: string): {
+  midiNumber: number;
+  accidentals: number;
+} {
   const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(,*)('*)$/iu);
   if (!match) {
     throw new Error(`“${name}” is not in Helmholtz notation`);

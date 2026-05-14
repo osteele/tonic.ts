@@ -49,12 +49,11 @@ function naturalSemitones(num: number): number {
   );
 }
 
-function qualityFromSemitones(
-  num: number,
-  semitones: number,
-): IntervalQuality {
+function qualityFromSemitones(num: number, semitones: number): IntervalQuality {
   const delta = semitones - naturalSemitones(num);
-  const qualities = isPerfectNumber(num) ? perfectQualities : imperfectQualities;
+  const qualities = isPerfectNumber(num)
+    ? perfectQualities
+    : imperfectQualities;
   const index = delta + (isPerfectNumber(num) ? 2 : 3);
   const quality = qualities[index];
   if (!quality) {
@@ -102,7 +101,9 @@ export class Interval {
 
   public static fromNumber(num: number, quality: IntervalQuality): Interval {
     if (num <= 0) {
-      throw new Error(`Not an interval: ${IntervalQuality.toString(quality)}${num}`);
+      throw new Error(
+        `Not an interval: ${IntervalQuality.toString(quality)}${num}`,
+      );
     }
     const simpleNumber = simpleIntervalNumber(num);
     const isPerfect = isPerfectNumber(num);
