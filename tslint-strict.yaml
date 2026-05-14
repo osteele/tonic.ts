@@ -1,4 +1,0 @@
-extends: ['./tslint.yaml', 'tslint-sonarts']
-rules:
-  no-commented-code: false # TODO
-  no-misleading-array-reverse: false

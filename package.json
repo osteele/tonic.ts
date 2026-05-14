@@ -21,39 +21,41 @@
     "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.1",
+    "@eslint/js": "^10.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.7.0",
+    "eslint": "^10.3.0",
     "husky": "^1.0.0-rc.13",
-    "jest": "^23.4.2",
-    "npm-run-all": "^4.1.3",
-    "rimraf": "^2.6.2",
-    "ts-jest": "^23.1.2",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typedoc": "^0.12.0",
-    "typescript": "^3.0.1"
+    "jest": "^30.4.2",
+    "npm-run-all2": "^8.0.4",
+    "rimraf": "^6.1.3",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.28.19",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3"
   },
   "scripts": {
     "build": "rimraf dist && tsc",
     "check": "tsc --noEmit",
     "clean": "rimraf docs/api dist",
     "docs": "typedoc",
-    "format": "yarn lint --fix",
-    "lint": "tslint --project .",
-    "lint:strict": "tslint --project . -c tslint-strict.yaml",
-    "prepublishOnly": "yarn build",
-    "test": "yarn _test:docs:build && jest",
+    "format": "eslint src test extractDocTests.ts eslint.config.mjs jest.config.js --fix",
+    "lint": "eslint src test extractDocTests.ts eslint.config.mjs jest.config.js",
+    "prepublishOnly": "bun run build",
+    "test": "bun run _test:docs:build && jest",
     "test:watch": "jest --watch",
     "test:docs": "run-s _test:docs:build",
     "test:docs:watch": "run-p _test:docs:build:watch _test:docs:jest:watch",
-    "_test:docs:build": "npx ts-node extractDocTests.ts",
+    "_test:docs:build": "ts-node extractDocTests.ts",
     "_test:docs:jest": "jest test/docs.test.ts",
     "_test:docs:jest:watch": "jest --watch test/docs.test.ts",
-    "_test:docs:build:watch": "ls extractDocTests.ts README.md src/**/*.ts | entr -s 'yarn _test:docs:build'"
+    "_test:docs:build:watch": "ls extractDocTests.ts README.md src/**/*.ts | entr -s 'bun run _test:docs:build'"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "! git grep -F '.only' test && yarn format && yarn check && yarn test --bail",
-      "pre-push": "yarn lint && yarn check && yarn test"
+      "pre-commit": "! git grep -F '.only' test && bun run format && bun run check && bun run test --bail",
+      "pre-push": "bun run lint && bun run check && bun run test"
     }
   }
 }

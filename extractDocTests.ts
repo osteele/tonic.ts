@@ -6,7 +6,6 @@ const PREAMBLE = `// DO NOTE EDIT THIS FILE!
 // This file is generated from $(files).
 // You will lose your changes.
 
-// tslint:disable:ordered-imports quotemark
 `;
 
 function updateImports(src: string): string {

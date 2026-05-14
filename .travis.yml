@@ -4,15 +4,19 @@ node_js:
   - "18"
 
 cache:
-  yarn: true
   directories:
     - ./node_modules
 
+install:
+  - curl -fsSL https://bun.sh/install | bash
+  - export PATH="$HOME/.bun/bin:$PATH"
+  - bun install --frozen-lockfile
+
 script:
-  - yarn lint
-  - yarn check
-  - yarn test
-  - yarn docs
+  - bun run lint
+  - bun run check
+  - bun run test
+  - bun run docs
 
 deploy:
   local-dir: docs/api

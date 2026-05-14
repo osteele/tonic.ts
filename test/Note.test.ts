@@ -139,7 +139,7 @@ describe('Note', () => {
       expect(C4.add(Intervals.P4).name).toBe('F4');
     });
 
-    it.skip('adds compound intervals', () => null);
+    it.skip('adds compound intervals', () => undefined);
   });
 
   it('transposeBy', () => {

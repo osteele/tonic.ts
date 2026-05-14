@@ -1,11 +1,12 @@
+/** @type {import('jest').Config} */
 module.exports = {
-  // Enable TypeScript
   moduleFileExtensions: ['js', 'jsx', 'json', 'node', 'ts', 'tsx'],
-  transform: { '^.+\\.tsx?$': 'ts-jest' },
-  // Where are the test files?
+  preset: 'ts-jest',
+  testEnvironment: 'node',
   testMatch: [
     '**/__tests__/**/*.(js|ts)?(x)',
-    '**/?(*.)+(spec|test).(js|ts)?(x)'
+    '**/?(*.)+(spec|test).(js|ts)?(x)',
   ],
-  testPathIgnorePatterns: ['./dist/', '/node_modules/']
+  testPathIgnorePatterns: ['./dist/', '/node_modules/'],
+  watchman: false,
 };

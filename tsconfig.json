@@ -12,6 +12,7 @@
     "strictNullChecks": true /* Enable strict null checks. */,
     "strictFunctionTypes": true /* Enable strict checking of function types. */,
     "strictPropertyInitialization": true /* Enable strict checking of property initialization in classes. */,
+    "useDefineForClassFields": false,
     "noImplicitThis": true /* Raise error on 'this' expressions with an implied 'any' type. */,
     "alwaysStrict": true /* Parse in strict mode and emit "use strict" for each source file. */,
 
@@ -22,6 +23,9 @@
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
 
     /* Module Resolution Options */
+    "moduleResolution": "node10",
+    "types": ["jest", "node"],
+    "ignoreDeprecations": "6.0",
     "forceConsistentCasingInFileNames": true,
 
     /* Source Map Options */
