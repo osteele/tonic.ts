@@ -21,6 +21,7 @@
     "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.7.0",
@@ -40,7 +41,8 @@
     "check": "tsc --noEmit",
     "clean": "rimraf docs/api dist",
     "docs": "typedoc",
-    "format": "eslint src test extractDocTests.ts eslint.config.mjs jest.config.js --fix",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "lint": "eslint src test extractDocTests.ts eslint.config.mjs jest.config.js",
     "prepublishOnly": "bun run build",
     "test": "bun run _test:docs:build && jest",
