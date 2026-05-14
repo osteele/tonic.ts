@@ -4,7 +4,7 @@ This project has no release tags in the repository history. The sections below
 are backfilled from `package.json` version changes and grouped to list only the
 larger user-facing or project-level changes.
 
-## Unreleased
+## 0.1.1 - 2026-05-15
 
 - Fixed documentation examples to use the published `tonic.ts` package name.
 - Fixed chord-quality lookup for built-in seventh and ninth chord interval
