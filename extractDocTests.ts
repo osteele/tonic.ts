@@ -10,7 +10,10 @@ const PREAMBLE = `// DO NOTE EDIT THIS FILE!
 `;
 
 function updateImports(src: string): string {
-  src = src.replace(/^import (.+) from 'tonic'/gm, "import $1 from '../src'");
+  src = src.replace(
+    /^import (.+) from 'tonic(?:\.ts)?'/gm,
+    "import $1 from '../src'",
+  );
   src = src.replace(/^$/m, "import { stringify } from './docTestHelpers';\n");
   return src;
 }
