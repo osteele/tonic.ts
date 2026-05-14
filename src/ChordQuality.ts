@@ -17,6 +17,15 @@ const rootIntervalNumberToInversion: { [_: number]: number } = {
   5: 2,
 };
 
+function intervalKey(intervals: ReadonlyArray<Interval | number>): string {
+  return intervals
+    .map(asInterval)
+    .map((interval) => interval.semitones)
+    .filter((n) => n !== 0)
+    .sort((a, b) => a - b)
+    .join(',');
+}
+
 /** A `ChordQuality` represents the qualities of a chord's component intervals,
  * its suspensions, and additions. Unlike a [[Chord]], a `ChordQuality` does not
  * include the root.
@@ -30,11 +39,7 @@ export class ChordQuality {
   /** Return the ChordQuality that matches a set of intervals. */
   public static fromIntervals(_intervals: Interval[] | number[]): ChordQuality {
     const intervals = (_intervals as Array<Interval | number>).map(asInterval);
-    const semitones = intervals.map((interval: Interval) => interval.semitones);
-    const key = semitones
-      .filter((n) => n !== 0)
-      .sort()
-      .join(',');
+    const key = intervalKey(intervals);
     const instance = ChordQuality.chordMap.get(key);
     if (!instance) {
       throw new Error(`Couldn't find chord class with intervals ${intervals}`);
@@ -96,7 +101,7 @@ export class ChordQuality {
 
 class ChordClassAccessor extends ChordQuality {
   public static addChord(chordClass: ChordQuality) {
-    const pitchKey = chordClass.intervals.map((i) => i.semitones).join(',');
+    const pitchKey = intervalKey(chordClass.intervals);
     [
       chordClass.name,
       chordClass.fullName,

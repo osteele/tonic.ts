@@ -31,6 +31,21 @@ describe('ChordQuality', () => {
       expect(M2.name).toBe('Major');
     });
 
+    it('should find built-in extended chords from semitone arrays', () => {
+      const cases: Array<{ intervals: number[]; name: string }> = [
+        { intervals: [0, 4, 7, 10], name: 'Dom 7th' },
+        { intervals: [0, 3, 7, 10], name: 'Min 7th' },
+        { intervals: [0, 3, 6, 10], name: 'Min 7th b5' },
+        { intervals: [0, 4, 6, 10], name: 'Dom 7b5' },
+        { intervals: [0, 4, 7, 11], name: 'Maj 7th' },
+        { intervals: [0, 4, 7, 11, 14], name: 'Maj 9th' },
+      ];
+
+      cases.forEach(({ intervals, name }) => {
+        expect(ChordQuality.fromIntervals(intervals).name).toBe(name);
+      });
+    });
+
     it('should recognize inversions', () => {
       const root = ChordQuality.fromIntervals([P1, M3, P5]);
       expect(root.inversion).toBe(null);
