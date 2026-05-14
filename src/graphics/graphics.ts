@@ -89,7 +89,7 @@ export function drawText(text: string, options: Partial<DrawTextOptions> = {}) {
   return ctx.fillText(text, x, y);
 }
 
-export function withCanvas(canvas: GraphicsContext, cb: () => any) {
+export function withCanvas<T>(canvas: GraphicsContext, cb: () => T): T {
   const savedContext = globalContext;
   try {
     globalContext = canvas;
@@ -99,7 +99,7 @@ export function withCanvas(canvas: GraphicsContext, cb: () => any) {
   }
 }
 
-export function withGraphicsContext(cb: (_: GraphicsContext) => any) {
+export function withGraphicsContext<T>(cb: (_: GraphicsContext) => T): T {
   const ctx = globalContext!;
   ctx.save();
   try {

@@ -5,8 +5,8 @@ import { Note } from './Note';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
 
-const chordNameRegex1 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*)\s*(7)$/;
-const chordNameRegex2 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/;
+const chordNameRegex1 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*)\s*(7)$/u;
+const chordNameRegex2 = /^([a-gA-G],*'*[#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/u;
 
 const inversionNames = ['a', 'c', 'd'];
 

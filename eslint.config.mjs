@@ -10,13 +10,7 @@ export default tseslint.config(
   {
     files: ['**/*.ts'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      'no-irregular-whitespace': 'off',
-      'no-misleading-character-class': 'off',
-      'no-useless-assignment': 'off',
-      'no-useless-escape': 'off',
     },
   },
   {

@@ -45,7 +45,7 @@ export function accidentalsToSemitones(accidentals: string): number {
 export function fromScientificNotation(
   name: string,
 ): { midiNumber: number; accidentals: number } {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(-?\d+)$/i);
+  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(-?\d+)$/iu);
   if (!match) {
     throw new Error(`“${name}” is not in scientific notation`);
   }
@@ -62,7 +62,7 @@ export function fromScientificNotation(
 export function fromHelmholtzNotation(
   name: string,
 ): { midiNumber: number; accidentals: number } {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(,*)('*)$/i);
+  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)(,*)('*)$/iu);
   if (!match) {
     throw new Error(`“${name}” is not in Helmholtz notation`);
   }
@@ -85,7 +85,7 @@ export function toScientificNotation(midiNumber: number): string {
 }
 
 export function fromString(name: string, normal = true): PitchClassNumber {
-  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/i);
+  const match = name.match(/^([A-G])([#♯b♭𝄪𝄫]*)$/iu);
   if (!match) {
     throw new Error(`“${name}” is not a pitch class name`);
   }

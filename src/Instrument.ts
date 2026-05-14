@@ -50,7 +50,7 @@ export class FrettedInstrument extends StringInstrument {
   }
 
   /** Applies `callback` to each fret on each string. */
-  public forEachStringFret(callback: (_: StringFret) => any) {
+  public forEachStringFret(callback: (_: StringFret) => void) {
     this.stringNumbers.forEach((stringNumber) => {
       this.fretNumbers.forEach((fretNumber) => {
         callback({ stringNumber, fretNumber });

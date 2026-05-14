@@ -63,7 +63,7 @@ export class FrettedChord {
 
   // Fingering positions, ascending by string number
   public readonly positions: ReadonlyArray<ChordFret>;
-  public readonly properties: Readonly<{ [_: string]: any }>;
+  public readonly properties: Readonly<{ [_: string]: boolean | number }>;
 
   private _fretString: string | null = null;
   constructor(
@@ -87,7 +87,7 @@ export class FrettedChord {
     if (this._fretString) {
       return this._fretString;
     }
-    const fretArray = this.instrument.stringNumbers.map((_: any) => -1);
+    const fretArray = this.instrument.stringNumbers.map(() => -1);
     this.positions.forEach(({ stringNumber, fretNumber }: StringFret) => {
       fretArray[stringNumber] = fretNumber;
     });
@@ -116,7 +116,7 @@ export class FrettedChord {
     return this.positions.map(({ pitch }) => pitch);
   }
 
-  private createProperties(): object {
+  private createProperties(): { [_: string]: boolean | number } {
     const fretString = this.ascii;
     return _.mapValues(
       propertyGetters,
@@ -169,7 +169,7 @@ type Getter<T> = (_: FrettedChord) => T;
 
 // The implementation of FrettedChord.properties applies these to the
 // instance.
-const propertyGetters: { [_: string]: RegExp | Getter<any> } = {
+const propertyGetters: { [_: string]: RegExp | Getter<boolean | number> } = {
   fingers: (fretting) => fretting.fingerCount,
   bassIsRoot: ({ positions }) =>
     _.sortBy(positions, (pos) => pos.stringNumber)[0].intervalClass ===

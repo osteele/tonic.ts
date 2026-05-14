@@ -3,13 +3,67 @@ import * as intervals from './internal/intervalParser';
 import {
   diatonicQualities,
   qualityDegreeSemitones,
-  semitoneQualities,
 } from './internal/intervalParser';
 import * as PitchClassParser from './internal/pitchClassParser';
 import { IntervalQuality } from './IntervalQuality';
 import { Note } from './Note';
 import { PitchClass } from './PitchClass';
 import { PitchLike } from './PitchLike';
+
+const perfectNumbers = [1, 4, 5];
+const perfectQualities = [
+  IntervalQuality.DoublyDiminished,
+  IntervalQuality.Diminished,
+  IntervalQuality.Perfect,
+  IntervalQuality.Augmented,
+  IntervalQuality.DoublyAugmented,
+];
+const imperfectQualities = [
+  IntervalQuality.DoublyDiminished,
+  IntervalQuality.Diminished,
+  IntervalQuality.Minor,
+  IntervalQuality.Major,
+  IntervalQuality.Augmented,
+  IntervalQuality.DoublyAugmented,
+];
+
+function simpleIntervalNumber(num: number): number {
+  return 1 + ((num - 1) % 7);
+}
+
+function octaveOffset(num: number): number {
+  return 12 * Math.floor((num - 1) / 7);
+}
+
+function isPerfectNumber(num: number): boolean {
+  return perfectNumbers.indexOf(simpleIntervalNumber(num)) >= 0;
+}
+
+function naturalSemitones(num: number): number {
+  const simpleNumber = simpleIntervalNumber(num);
+  const quality = isPerfectNumber(num)
+    ? IntervalQuality.Perfect
+    : IntervalQuality.Major;
+  return (
+    qualityDegreeSemitones.get(quality)!.get(simpleNumber)! + octaveOffset(num)
+  );
+}
+
+function qualityFromSemitones(
+  num: number,
+  semitones: number,
+): IntervalQuality {
+  const delta = semitones - naturalSemitones(num);
+  const qualities = isPerfectNumber(num) ? perfectQualities : imperfectQualities;
+  const index = delta + (isPerfectNumber(num) ? 2 : 3);
+  const quality = qualities[index];
+  if (!quality) {
+    throw new Error(
+      `Not an interval: ${semitones} semitones over ${num} degrees`,
+    );
+  }
+  return quality;
+}
 
 /** An Interval is the distance between two notes.
  *
@@ -47,9 +101,11 @@ export class Interval {
     intervals.longIntervalNames;
 
   public static fromNumber(num: number, quality: IntervalQuality): Interval {
-    const simpleNumber = 1 + ((num - 1) % 7);
-    const perfectNumbers = [1, 4, 5, 7];
-    const isPerfect = perfectNumbers.indexOf(simpleNumber) >= 0;
+    if (num <= 0) {
+      throw new Error(`Not an interval: ${IntervalQuality.toString(quality)}${num}`);
+    }
+    const simpleNumber = simpleIntervalNumber(num);
+    const isPerfect = isPerfectNumber(num);
     const pq = IntervalQuality.closestNatural(quality, isPerfect);
     const semitones = qualityDegreeSemitones.get(pq)!.get(simpleNumber);
     // return [simpleNumber, isPerfect, pq, semitones];
@@ -65,7 +121,7 @@ export class Interval {
         `Not an interval: ${IntervalQuality.toString(quality)}${num}`,
       );
     }
-    return new Interval(semitones + 12 * Math.floor((num - 1) / 8), quality);
+    return new Interval(semitones + octaveOffset(num), quality);
   }
 
   /** Semitones doesn't include narrowing or widening by quality. */
@@ -98,32 +154,23 @@ export class Interval {
   public static between<T extends PitchLike>(a: T, b: T): Interval;
   public static between(a: number, b: number): Interval;
   public static between<T extends PitchLike | number>(a: T, b: T): Interval {
-    let semitones = 0;
     if (a instanceof Note && b instanceof Note) {
-      semitones = b.midiNumber - a.midiNumber;
+      const semitones = b.midiNumber - a.midiNumber;
       if (semitones < 0) {
         return Interval.between(b, a);
       }
-      const num = b.degree - a.degree + 1;
-      const accidentals = b.accidentals - a.accidentals;
-      // const simpleDegree = 1 + ((degree - 1) % 7);
-      const naturalPitchClass = semitones % 12;
-      // TODO: |accidentals| > 2
-      const q =
-        accidentals === 0
-          ? semitoneQualities[naturalPitchClass]!
-          : IntervalQuality.fromSemitones(accidentals)!;
-      return Interval.fromNumber(num, q);
+      const num = b.degree - a.degree + 1 + 7 * (b.octave - a.octave);
+      return Interval.fromNumber(num, qualityFromSemitones(num, semitones));
     } else if (a instanceof PitchClass && b instanceof PitchClass) {
-      semitones = PitchClassParser.normalize(b.semitones - a.semitones);
-    } else if (typeof a === 'number' && typeof b === 'number') {
-      semitones = Math.abs(b - a);
-    } else {
-      throw new Error(
-        `Can't take the interval between different types ${a} and ${b}`,
+      return Interval.fromSemitones(
+        PitchClassParser.normalize(b.semitones - a.semitones),
       );
+    } else if (typeof a === 'number' && typeof b === 'number') {
+      return Interval.fromSemitones(Math.abs(b - a));
     }
-    return Interval.fromSemitones(semitones);
+    throw new Error(
+      `Can't take the interval between different types ${a} and ${b}`,
+    );
   }
 
   private static readonly instances = new Array<

@@ -311,6 +311,7 @@ describe("Interval", () => {
     const F4 = Note.fromString("F4");
     const Ff4 = Note.fromString("F♭4");
     const G4 = Note.fromString("G4");
+    const Gsh4 = Note.fromString("G♯4");
     const An4 = Note.fromString("A4");
     const B4 = Note.fromString("B4");
     const C5 = Note.fromString("C5");
@@ -318,24 +319,22 @@ describe("Interval", () => {
 
     it("should return the interval between two notes", () => {
       expect(Interval.between(C4, C4)).toBe(P1);
+      expect(Interval.between(C4, Csh4)).toBe(A1);
       expect(Interval.between(C4, D4)).toBe(M2);
+      expect(Interval.between(C4, Df4)).toBe(m2);
       expect(Interval.between(C4, Ef4)).toBe(m3);
       expect(Interval.between(C4, E4)).toBe(M3);
+      expect(Interval.between(C4, Ff4)).toBe(d4);
       expect(Interval.between(C4, F4)).toBe(P4);
       expect(Interval.between(C4, G4)).toBe(P5);
-      // expect(Interval.between(C4, A4)).toBe(P5);
+      expect(Interval.between(C4, An4)).toBe(M6);
       expect(Interval.between(C4, B4)).toBe(M7);
       expect(Interval.between(C4, C5)).toBe(P8);
 
-      // TODO
-      // expect(Interval.between(E4, E4)).toBe(P1);
-      // expect(Interval.between(E4, F4)).toBe(m2);
-      // expect(Interval.between(E4, G4)).toBe(m3);
-      // expect(Interval.between(E4, GS4)).toBe(M3);
-
-      // expect(Interval.between(C4, Csh4)).toBe(A1);
-
-      // expect(Interval.between(C4, Df4)).toBe(d2);
+      expect(Interval.between(E4, E4)).toBe(P1);
+      expect(Interval.between(E4, F4)).toBe(m2);
+      expect(Interval.between(E4, G4)).toBe(m3);
+      expect(Interval.between(E4, Gsh4)).toBe(M3);
     });
 
     // TODO: test for reversed intervals

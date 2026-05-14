@@ -324,7 +324,10 @@ const sortingPreferences: Array<{
  * `descending` is true, in which case the key is complemented so that the sort
  * will be reversed.
  */
-const getSortKey = (key: FrettedChordProjection<any>, descending: boolean) => (
+const getSortKey = (
+  key: FrettedChordProjection<boolean | number>,
+  descending: boolean,
+) => (
   fretting: FrettedChord,
 ): number | boolean => {
   const k = key(fretting);
@@ -394,11 +397,11 @@ function findBarres(fretArray: FretArray): Barre[] {
       continue;
     }
     const run = match[1];
-    if (!(run.match(/\=/g)!.length > 1)) {
+    if (!(run.match(/=/g)!.length > 1)) {
       continue;
     }
     barres.push({
-      fingerReplacementCount: run.match(/\=/g)!.length,
+      fingerReplacementCount: run.match(/=/g)!.length,
       firstString: match.index!,
       fretNumber,
       stringCount: run.length,

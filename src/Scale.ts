@@ -4,21 +4,21 @@ import * as PitchClassParser from './internal/pitchClassParser';
 import { Interval } from './Interval';
 import { asPitchLike, PitchLike } from './PitchLike';
 
-interface GenericScaleConstructorOptions {
+export interface GenericScaleConstructorOptions {
   name: string;
   pitchClasses: ReadonlyArray<number>;
   parent?: Scale | string | null;
   modeNames?: ReadonlyArray<string>;
 }
 
-interface ScaleConstructorOptions<T extends PitchLike>
+export interface ScaleConstructorOptions<T extends PitchLike>
   extends GenericScaleConstructorOptions {
   tonic: T;
 }
 
 /** A scale is a named collection, either of intervals or notes.
  */
-class GenericScale<T extends PitchLike | null> {
+class GenericScale {
   // noteNames(): string[] {
   //   if (this.tonicName == null) {
   //     throw new Error('only implemented for scales with tonics');
@@ -78,7 +78,7 @@ class GenericScale<T extends PitchLike | null> {
  * even music theory), `Scale` here conflates the musical concepts of  *scale*
  * (a sequence of notes), *key* (that additionally includes a tonic and chords,
  * but in which the notes are unordered), and *mode* (which additionally denotes
- * notes' melodic functions — I think).
+ * notes' melodic functions - I think).
  *
  * References:
  *
@@ -86,7 +86,7 @@ class GenericScale<T extends PitchLike | null> {
  * * Wikipedia [musical key](https://en.wikipedia.org/wiki/Key_(music))
  * * Wikipedia [musical mode](https://en.wikipedia.org/wiki/Mode_(music))
  */
-export class Scale extends GenericScale<null> {
+export class Scale extends GenericScale {
   public static fromString(name: string): Scale {
     const scale = Scale.instances.get(name);
     if (!scale) {
@@ -110,9 +110,9 @@ export class Scale extends GenericScale<null> {
  *
  * Wikipedia [musical key](https://en.wikipedia.org/wiki/Key_(music))
  */
-export class Key<T extends PitchLike> extends GenericScale<T> {
+export class Key<T extends PitchLike> extends GenericScale {
   public static fromString(name: string): Key<PitchLike> {
-    const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/);
+    const match = name.match(/^([a-gA-G][#b♯♭𝄪𝄫]*(?:\d*))\s*(.*)$/u);
     if (match) {
       const [tonicName, scaleName] = match.slice(1);
       const scale = Scale.fromString(scaleName || defaultScaleName);
@@ -151,7 +151,7 @@ export class Key<T extends PitchLike> extends GenericScale<T> {
   }
 
   public progression(names: string): Array<Chord<T>> {
-    return names.split(/[\s+\-]+/).map((name) => this.fromRomanNumeral(name));
+    return names.split(/[\s+-]+/).map((name) => this.fromRomanNumeral(name));
   }
 
   public fromRomanNumeral(name: string): Chord<T> {
@@ -164,7 +164,7 @@ const majorPentatonicScaleName = 'Major Pentatonic';
 const defaultScaleName = diatonicMajorScaleName;
 
 // tslint:disable: object-literal-sort-keys
-const scaleMap = [
+[
   {
     name: diatonicMajorScaleName,
     pitchClasses: [0, 2, 4, 5, 7, 9, 11],
@@ -246,35 +246,3 @@ function rotatePitchClasses(pitchClasses: ReadonlyArray<number>, i: number) {
     PitchClassParser.normalize(pc - pitchClasses[0]),
   );
 }
-
-// Indexed by scale degree
-// tslint:disable-next-line variable-name
-const FunctionNames = [
-  'Tonic',
-  'Supertonic',
-  'Mediant',
-  'Subdominant',
-  'Dominant',
-  'Submediant',
-  'Subtonic',
-  'Leading',
-];
-
-function parseChordNumeral(name: string) {
-  return {
-    augmented: name.match(/\+/),
-    degree: 'i ii iii iv v vi vii'.indexOf(name.match(/[iv+]/i)![1]) + 1,
-    diminished: name.match(/°/),
-    flat: name.match(/^[♭b]/),
-    major: name === name.toUpperCase(),
-  };
-}
-
-// FunctionQualities =
-//   major: 'I ii iii IV V vi vii°'.split(/\s/).map parseChordNumeral
-//   minor: 'i ii° bIII iv v bVI bVII'.split(/\s/).map parseChordNumeral
-
-// tslint:disable-next-line variable-name
-const ScaleDegreeNames = '1 ♭2 2 ♭3 3 4 ♭5 5 ♭6 6 ♭7 7'
-  .split(/\s/)
-  .map((d) => d.replace(/(\d)/, '$1\u0302'));

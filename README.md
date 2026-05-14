@@ -25,7 +25,7 @@ JavaScript, there’s other alternatives (link TBD) for that.
 \[The commented-out lines don't yet work.\]
 
 ```typescript
-import { Chord, ChordQuality, Interval, Intervals, Key, Note, Scale } from 'tonic.ts';
+import { Chord, ChordQuality, Interval, Intervals, Note, Scale } from 'tonic.ts';
 import { frettingFor } from 'tonic.ts';
 
 // Hemholtz and Scientific pitch notation

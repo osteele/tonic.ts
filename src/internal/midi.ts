@@ -7,7 +7,7 @@ export const midi2name = (n: MidiNumber) =>
   `${NoteNames[(n + 12) % 12]}${Math.floor((n - 12) / 12)}`;
 
 export function name2midi(name: string): MidiNumber {
-  const m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/);
+  const m = name.match(/^([A-Ga-g])([♯#♭b𝄪𝄫]*)(-?\d+)/u);
   if (!m) {
     throw new Error(`“${name}” is not a note name`);
   }

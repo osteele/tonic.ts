@@ -28,9 +28,7 @@ export function chordFromRomanNumeral<T extends PitchLike>(
   if (scale.tonic == null) {
     throw new Error('requires a scale with a tonic');
   }
-  // FIXME: use `accidental`
-  // tslint:disable-next-line no-dead-store
-  const [accidental, romanNumeral, modifiers, inversion] = match.slice(1);
+  const [, , romanNumeral, modifiers, inversion] = match;
   const degree = chordRomanNumerals.indexOf(romanNumeral.toUpperCase());
   if (!(degree >= 0)) {
     throw new Error('Not a chord name');

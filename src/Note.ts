@@ -114,7 +114,7 @@ export class Note implements PitchLike {
   }
 
   get accidentals(): number {
-    const m = this.name.toUpperCase().match(/^([A-G])([#b♯♭𝄪𝄫]*)(-?\d+)/)!;
+    const m = this.name.toUpperCase().match(/^([A-G])([#b♯♭𝄪𝄫]*)(-?\d+)/u)!;
     return accidentalsToSemitones(m[2]);
   }
 

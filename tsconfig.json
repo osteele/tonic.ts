@@ -4,6 +4,7 @@
     /* Basic Options */
     "target": "ES2020" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'. */,
     "declaration": true /* Generates corresponding '.d.ts' file. */,
+    "rootDir": "./src" /* Specify the root folder within your source files. */,
     "outDir": "./dist" /* Redirect output structure to the directory. */,
 
     /* Strict Type-Checking Options */
@@ -36,10 +37,8 @@
     /* Options from https://github.com/TypeStrong/typedoc#readme */
     /* Arguments */
     "out": "docs/api",
-    "mode": "file",
     /* Source file handling */
     "exclude": ["**/internal/*.ts", "**/graphics/*.ts"],
-    "excludeNotExported": true,
     "excludeExternals": true,
     "excludePrivate": true,
     "excludeProtected": true,

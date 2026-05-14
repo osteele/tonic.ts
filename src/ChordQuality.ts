@@ -83,9 +83,7 @@ export class ChordQuality {
   /** Return a chord with these intervals relative to `root`. */
   public at<T extends PitchLike>(root: T): Chord<T>;
   public at(root: string): Chord<PitchLike>;
-  public at<T extends PitchLike | string>(
-    _root: Note | PitchClass | string,
-  ): Chord<PitchLike> {
+  public at(_root: Note | PitchClass | string): Chord<PitchLike> {
     const root = typeof _root === 'string' ? parsePitchLike(_root) : _root;
     return new Chord(this, root);
   }
@@ -158,10 +156,10 @@ const chordClassArray: ChordQuality[] = [
         .replace(/^0/, '')
         .match(/./g)!
         .map((c: string) => {
-        const left = toneNames[c];
-        const semitones = left != null ? left : Number(c);
-        return Interval.fromSemitones(semitones);
-      });
+          const left = toneNames[c];
+          const semitones = left != null ? left : Number(c);
+          return Interval.fromSemitones(semitones);
+        });
   return new ChordQuality({
     abbrs,
     fullName: name,
